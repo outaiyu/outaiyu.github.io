@@ -466,6 +466,12 @@
 }
 
 function startGame() {
+    const bgMusic = document.getElementById("bgMusic");
+bgMusic.volume = 0.5;
+bgMusic.play().catch(err => {
+    console.log("Music blocked until user interaction", err);
+});
+
     console.log("START GAME");
 
     init();
