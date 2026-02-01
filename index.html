@@ -470,7 +470,7 @@
 
 function startGame() {
     const bgMusic = document.getElementById("bgMusic");
-bgMusic.volume = 1;
+bgMusic.volume = 0.3;
 bgMusic.play().catch(err => {
     console.log("Music blocked until user interaction", err);
 });
@@ -548,9 +548,9 @@ bgMusic.play().catch(err => {
             const hasKey4 = gameState.inventory.includes('key4');
             
             if (!hasKey1) {
-                document.getElementById('objective').textContent = 'Find first golden crystel key! use the mini map on inscruction to help';
+                document.getElementById('objective').textContent = 'Find the first golden crystel key! use the mini map on instruction to help';
             } else if (!hasKey2) {
-                document.getElementById('objective').textContent = 'you got the first key! continue the prosess';
+                document.getElementById('objective').textContent = 'you got the first key! continue the process';
             } else if (!hasKey3) {
                 document.getElementById('objective').textContent = 'half way already!';
             } else if (!hasKey4) {
@@ -558,19 +558,6 @@ bgMusic.play().catch(err => {
             } else {
                 document.getElementById('objective').textContent = 'Defeat Weeke!';
             }
-            /*
-             if (!hasKey1) {
-                newText = 'Find Key 1 (First Area)';
-            } else if (!hasKey2) {
-                newText = 'Find Key 2 (Second Area)';
-            } else if (!hasKey3) {
-                newText = 'Find Key 3 (Third Area)';
-            } else if (!hasKey4) {
-                newText = 'Find Key 4 (Fourth Area)';
-            } else {
-                newText = 'Defeat Weeke!';
-            }
-            */
             
             const groundGeometry = new THREE.PlaneGeometry(room.size.width, room.size.depth);
             const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x2d3d4d });
@@ -1134,47 +1121,85 @@ bgMusic.play().catch(err => {
     const velX = playerState.velocity.x;
     const velZ = playerState.velocity.z;
 
-    roomObjects.obstacles.forEach(obs => {
-        if (obs.type !== 'box') return;
+            room.obstacles.forEach(obs => {
+                if (obs.type !== 'box') return;
 
-        const boxHalf = obs.size / 2;
-        const playerRadius = 1;
+                const boxSize = obs.size;
+                const boxHalf = boxSize / 2;
+                const playerRadius = 1;
 
-        const minX = obs.x - boxHalf;
-        const maxX = obs.x + boxHalf;
-        const minZ = obs.z - boxHalf;
-        const maxZ = obs.z + boxHalf;
+                const minX = obs.x - boxHalf;
+                const maxX = obs.x + boxHalf;
+                const minZ = obs.z - boxHalf;
+                const maxZ = obs.z + boxHalf;
 
-        const clampedX = Math.max(minX, Math.min(maxX, newX));
-        const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
+                const clampedX = Math.max(minX, Math.min(maxX, newX));
+                const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
 
-        const closestX = newX - clampedX;
-        const closestZ = newZ - clampedZ;
-        const distanceSquared = closestX * closestX + closestZ * closestZ;
+                const closestX = newX - clampedX;
+                const closestZ = newZ - clampedZ;
+                const distanceSquared = closestX * closestX + closestZ * closestZ;
 
-        if (distanceSquared < playerRadius * playerRadius && playerState.position.y < obs.size + 0.5) {
-            const distance = Math.sqrt(distanceSquared);
-            const overlap = playerRadius - distance;
+                if (distanceSquared < playerRadius * playerRadius) {
+                    const boxTop = boxSize;
+                    
+                     if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
+                        newX = playerState.position.x;
+                        newZ = playerState.position.z;
+                        playerState.velocity.x = 0;
+                        playerState.velocity.z = 0;
+                        
+                        if (playerState.isJumping && playerState.jumpVelocity < 0) {
+                            playerState.isJumping = false;
+                            playerState.jumpVelocity = 0;
+                            playerState.position.y = Math.max(1, boxTop - playerRadius);
+                        }
+                    } else {
+                        const distance = Math.sqrt(distanceSquared);
+                        const overlap = playerRadius - distance;
 
-            if (distance > 0.001) {
-                newX = newX + (closestX / distance) * overlap;
-                newZ = newZ + (closestZ / distance) * overlap;
-            } else {
-                const dirX = newX - playerState.position.x;
-                const dirZ = newZ - playerState.position.z;
-                const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
-                if (dirLength > 0.001) {
-                    newX = newX + (dirX / dirLength) * playerRadius;
-                    newZ = newZ + (dirZ / dirLength) * playerRadius;
-                } else {
-                    newX = playerState.position.x;
-                    newZ = playerState.position.z;
+                        if (distance > 0.001) {
+                            newX = newX + (closestX / distance) * overlap;
+                            newZ = newZ + (closestZ / distance) * overlap;
+                        } else {
+                            const dirX = newX - playerState.position.x;
+                            const dirZ = newZ - playerState.position.z;
+                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                            if (dirLength > 0.001) {
+                                newX = newX + (dirX / dirLength) * playerRadius;
+                                newZ = newZ + (dirZ / dirLength) * playerRadius;
+                            } else {
+                                newX = playerState.position.x;
+                                newZ = playerState.position.z;
+                            }
+                        }
+                            }
+                    } else {
+                        const distance = Math.sqrt(distanceSquared);
+                        const overlap = playerRadius - distance;
+
+                        if (distance > 0.001) {
+                            newX = newX + (closestX / distance) * overlap;
+                            newZ = newZ + (closestZ / distance) * overlap;
+                        } else {
+                            const dirX = newX - playerState.position.x;
+                            const dirZ = newZ - playerState.position.z;
+                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                            if (dirLength > 0.001) {
+                                newX = newX + (dirX / dirLength) * playerRadius;
+                                newZ = newZ + (dirZ / dirLength) * playerRadius;
+                            } else {
+                                newX = playerState.position.x;
+                                newZ = playerState.position.z;
+                            }
+                        }
+                    }
                 }
-            }
-        }
-    });
 
-    roomObjects.walls.forEach(wall => {
+                playerState.position.x = newX;
+                playerState.position.z = newZ;
+
+                roomObjects.walls.forEach(wall => {
     const ry = wall.ry || 0;
 
     const nx = Math.sin(ry);
@@ -1201,8 +1226,8 @@ bgMusic.play().catch(err => {
     if (Math.abs(dist) < playerRadius + wallHalfThickness && Math.abs(along) < halfLen + 0.5) {
         const pushOut = playerRadius + wallHalfThickness - Math.abs(dist);
         const sign = dist >= 0 ? 1 : -1;
-        newX += nx * pushOut * sign;
-        newZ += nz * pushOut * sign;
+        newX = newX + nx * pushOut * sign;
+        newZ = newZ + nz * pushOut * sign;
     }
 });
 
@@ -1263,35 +1288,79 @@ playerState.position.z = Math.max(
 );
 
 
-    if (keys.jump && !playerState.isJumping) {
-        playerState.isJumping = true;
-        playerState.jumpVelocity = 12;
-    }
+    roomObjects.obstacles.forEach(obs => {
+                if (obs.type !== 'box') return;
 
-    if (playerState.isJumping) {
-        playerState.jumpVelocity -= 25 * deltaTime;
-        playerState.position.y += playerState.jumpVelocity * deltaTime;
+                const boxSize = obs.size;
+                const boxHalf = boxSize / 2;
+                const playerRadius = 1;
 
-        if (playerState.position.y <= 1) {
-            playerState.position.y = 1;
-            playerState.isJumping = false;
-            playerState.jumpVelocity = 0;
-        }
-    }
+                const minX = obs.x - boxHalf;
+                const maxX = obs.x + boxHalf;
+                const minZ = obs.z - boxHalf;
+                const maxZ = obs.z + boxHalf;
 
-    playerGroup.position.set(
-        playerState.position.x,
-        playerState.position.y - 1,
-        playerState.position.z
-    );
+                const clampedX = Math.max(minX, Math.min(maxX, newX));
+                const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
 
-   if (keys.forward || keys.backward || keys.left || keys.right) {
-    ball.rotation.x += playerState.velocity.z * 0.5;
-    ball.rotation.z -= playerState.velocity.x * 0.5;
+                const closestX = newX - clampedX;
+                const closestZ = newZ - clampedZ;
+                const distanceSquared = closestX * closestX + closestZ * closestZ;
+
+                if (distanceSquared < playerRadius * playerRadius) {
+                    const boxTop = boxSize;
+                    
+                    if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
+                        newX = playerState.position.x;
+                        newZ = playerState.position.z;
+                        playerState.velocity.x = 0;
+                        playerState.velocity.z = 0;
+                        
+                        if (playerState.isJumping && playerState.jumpVelocity < 0) {
+                            playerState.isJumping = false;
+                            playerState.jumpVelocity = 0;
+                            playerState.position.y = Math.max(1, boxTop - playerRadius);
+                        }
+                    } else {
+                        const distance = Math.sqrt(distanceSquared);
+                        const overlap = playerRadius - distance;
+
+                        if (distance > 0.001) {
+                            newX = newX + (closestX / distance) * overlap;
+                            newZ = newZ + (closestZ / distance) * overlap;
+                        } else {
+                            const dirX = newX - playerState.position.x;
+                            const dirZ = newZ - playerState.position.z;
+                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                            if (dirLength > 0.001) {
+                                newX = newX + (dirX / dirLength) * playerRadius;
+                                newZ = newZ + (dirZ / dirLength) * playerRadius;
+                            } else {
+                                newX = playerState.position.x;
+                                newZ = playerState.position.z;
+                            }
+                        }
+                    }
+                }
+            });
+
+     playerGroup.position.set(
+                playerState.position.x,
+                newY - 1,
+                playerState.position.z
+            );
+
+    if (keys.forward || keys.backward || keys.left || keys.right) {
+     ball.rotation.x += playerState.velocity.z * 0.5;
+     ball.rotation.z -= playerState.velocity.x * 0.5;
 }
 
-playerState.velocity.x = 0;
+    playerState.velocity.x = 0;
 playerState.velocity.z = 0;
+
+    playerState.position.x = newX;
+    playerState.position.z = newZ;
+    playerState.position.y = newY;
 
 
     
@@ -1474,17 +1543,6 @@ playerState.velocity.z = 0;
                 console.error('Objective element NOT FOUND!');
                 return;
             }
-            /*if (!hasKey1) {
-                document.getElementById('objective').textContent = 'Find the first golden crystel key! use the mini map on inscruction to help';
-            } else if (!hasKey2) {
-                document.getElementById('objective').textContent = 'you got the first key! continue the prosess';
-            } else if (!hasKey3) {
-                document.getElementById('objective').textContent = 'half way already!';
-            } else if (!hasKey4) {
-                document.getElementById('objective').textContent = 'go go go!';
-            } else {
-                document.getElementById('objective').textContent = 'Defeat Weeke!';
-            }*/
 
             const hasKey1 = gameState.inventory.includes('key1');
             const hasKey2 = gameState.inventory.includes('key2');
@@ -1493,9 +1551,9 @@ playerState.velocity.z = 0;
 
             let newText = '';
             if (!hasKey1) {
-                newText = 'Find the first golden crystel key! <br> use the mini map on inscruction to help';
+                newText = 'Find the first golden crystel key! <br> use the mini map on instruction to help';
             } else if (!hasKey2) {
-                newText = 'you got the first key! continue the prosess';
+                newText = 'you got the first key! continue the process';
             } else if (!hasKey3) {
                 newText = 'half way already!';
             } else if (!hasKey4) {
@@ -1518,12 +1576,60 @@ playerState.velocity.z = 0;
             const centerX = 50;
             const centerY = 50;
             
-            roomObjects.obstacles.forEach(obs => {
-                const x = centerX + obs.x * scale;
-                const y = centerY + obs.z * scale;
-                const size = obs.size * scale;
-                minimapCtx.fillStyle = '#555';
-                minimapCtx.fillRect(x - size / 2, y - size / 2, size, size);
+    roomObjects.obstacles.forEach(obs => {
+                if (obs.type !== 'box') return;
+
+                const boxSize = obs.size;
+                const boxHalf = boxSize / 2;
+                const playerRadius = 1;
+
+                const minX = obs.x - boxHalf;
+                const maxX = obs.x + boxHalf;
+                const minZ = obs.z - boxHalf;
+                const maxZ = obs.z + boxHalf;
+
+                const clampedX = Math.max(minX, Math.min(maxX, newX));
+                const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
+
+                const closestX = newX - clampedX;
+                const closestZ = newZ - clampedZ;
+                const distanceSquared = closestX * closestX + closestZ * closestZ;
+
+                if (distanceSquared < playerRadius * playerRadius) {
+                    const boxTop = boxSize;
+                    
+                    if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
+                        playerState.position.x = playerState.position.x;
+                        playerState.position.z = playerState.position.z;
+                        playerState.velocity.x = 0;
+                        playerState.velocity.z = 0;
+                        
+                        if (playerState.isJumping && playerState.jumpVelocity < 0) {
+                            playerState.isJumping = false;
+                            playerState.jumpVelocity = 0;
+                            playerState.position.y = Math.max(1, boxTop - playerRadius);
+                        }
+                    } else {
+                        const distance = Math.sqrt(distanceSquared);
+                        const overlap = playerRadius - distance;
+
+                        if (distance > 0.001) {
+                            newX = newX + (closestX / distance) * overlap;
+                            newZ = newZ + (closestZ / distance) * overlap;
+                        } else {
+                            const dirX = newX - playerState.position.x;
+                            const dirZ = newZ - playerState.position.z;
+                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                            if (dirLength > 0.001) {
+                                newX = newX + (dirX / dirLength) * playerRadius;
+                                newZ = newZ + (dirZ / dirLength) * playerRadius;
+                            } else {
+                                newX = playerState.position.x;
+                                newZ = playerState.position.z;
+                            }
+                        }
+                    }
+                }
             });
             
             roomObjects.keys.forEach(key => {
