@@ -436,7 +436,6 @@
     renderer.setPixelRatio(window.devicePixelRatio);
     camera.position.set(0, 2, 5);
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
-    light.castShadow = true;
     scene.add(light);
     console.log("Three.js initialized");
 }
