@@ -534,7 +534,7 @@ bgMusic.play().catch(err => {
             console.log('Ground created');
             
             if (room.walls && room.walls.length > 0) {
-                const wallHeight = 8;
+                const wallHeight = 16;
                 const doorWidth = 6;
                 room.walls.forEach(wall => {
                     const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
