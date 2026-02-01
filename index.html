@@ -1483,22 +1483,22 @@ playerState.position.z = Math.max(
                         }
                         door.openProgress = Math.min(1, door.openProgress + 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.y = 3.5 - slideAmount;
+                        door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.mesh.position.y = 3.5 - slideAmount;
+                            glassDoor.mesh.position.x = door.x - slideAmount;
                         }
                     } else if (door.isOpen && distance > 9) {
                         door.openProgress = Math.max(0, door.openProgress - 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.y = 3.5 - slideAmount;
+                        door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.mesh.position.y = 3.5 - slideAmount;
+                            glassDoor.mesh.position.x = door.x - slideAmount;
                         }
                         if (door.openProgress === 0) {
                             door.isOpen = false;
