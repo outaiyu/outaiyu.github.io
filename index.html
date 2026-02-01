@@ -471,7 +471,7 @@ bgMusic.play().catch(err => {
             ball.position.y = 0;
             playerGroup.add(ball);
             
-            const playerLight = new THREE.PointLight(0xFFFACD, 2, 10);
+            const playerLight = new THREE.PointLight(0xFFFACD, 3, 10);
             playerLight.castShadow = true;
             playerLight.position.set(0, 1, 0);
             playerGroup.add(playerLight);
@@ -639,7 +639,7 @@ bgMusic.play().catch(err => {
                 symbolMesh.receiveShadow = true;
                 moneyGroup.add(symbolMesh);
                 
-                const billLight = new THREE.PointLight(0x85BB65, 1, 8);
+                const billLight = new THREE.PointLight(0x85BB65, 2, 8);
                 billLight.castShadow = true;
                 billLight.position.set(0, 1.5, 0);
                 moneyGroup.add(billLight);
@@ -750,7 +750,7 @@ bgMusic.play().catch(err => {
     waitressMesh.receiveShadow = true;
     waitressGroup.add(waitressMesh);
     
-    const waitressLight = new THREE.PointLight(0xE60000, 1.5, 12);
+    const waitressLight = new THREE.PointLight(0xE60000, 2.5, 12);
     waitressLight.castShadow = true;
     waitressLight.position.set(0, 2.5, 0);
     waitressGroup.add(waitressLight);
