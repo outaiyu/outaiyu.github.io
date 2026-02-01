@@ -466,12 +466,12 @@ bgMusic.play().catch(err => {
                 emissiveIntensity: 0.5 
             });
             ball = new THREE.Mesh(ballGeometry, ballMaterial);
-            ball.castShadow = true;
+            ball.castShadow = false;
             ball.receiveShadow = true;
             ball.position.y = 0;
             playerGroup.add(ball);
             
-            const playerLight = new THREE.PointLight(0xFFFACD, 1, 10);
+            const playerLight = new THREE.PointLight(0xFFFACD, 2, 10);
             playerLight.castShadow = true;
             playerLight.position.set(0, 1, 0);
             playerGroup.add(playerLight);
