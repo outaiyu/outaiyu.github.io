@@ -318,6 +318,9 @@
                     { x: 0, z: -60, w: 70, ry: 0, hasDoor: true, needsKey: 'key3' },
                     { x: 0, z: -100, w: 70, ry: 0, hasDoor: true, needsKey: 'key4' }
                 ],
+                glassDoors: [
+                    { x: 0, z: -100 }
+                ],
                 obstacles: [
                     { x: 15, z: 95 },
                     { x: -15, z: 95 },
@@ -652,11 +655,11 @@ bgMusic.play().catch(err => {
                 if (door.type === 'glass') {
                     const doorGeometry = new THREE.BoxGeometry(6, 7, 0.2);
                     const doorMaterial = new THREE.MeshPhongMaterial({ 
-                        color: 0xAADDFF,
-                        emissive: 0x88CCFF,
-                        emissiveIntensity: 0.8,
+                        color: 0x88CCFF,
+                        emissive: 0x44AAFF,
+                        emissiveIntensity: 1.0,
                         transparent: true,
-                        opacity: 0.3,
+                        opacity: 0.6,
                         reflectivity: 1.0,
                         shininess: 100
                     });
