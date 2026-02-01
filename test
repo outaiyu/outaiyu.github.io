@@ -1,0 +1,1629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>The Prisoner's Escape</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #1a1a2e; color: white; user-select: none; -webkit-user-select: none; }
+        #gameCanvas { display: block; }
+        #loadingScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 1000; }
+        #loadingScreen.hidden { display: none; }
+        #loadingScreen h2 { font-size: 32px; color: #fff; margin-bottom: 20px; }
+        #loadingScreen p { font-size: 16px; color: #aaa; }
+        #loadingScreen button { margin-top: 20px; padding: 15px 30px; font-size: 18px; background: #4a90d9; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #ui { position: fixed; top: 20px; left: 20px; pointer-events: none; z-index: 100; }
+        #roomName { font-size: 28px; color: #ffd700; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        #objective { font-size: 20px; color: #00ff88; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        #controls { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); padding: 12px 20px; border-radius: 10px; z-index: 100; text-align: center; cursor: pointer; pointer-events: auto; transition: background 0.2s; }
+        #controls:hover { background: rgba(74, 144, 217, 0.4); }
+        #controls.mobileHidden { display: none; }
+        #dialogueBox { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 600px; max-height: 60vh; background: rgba(20, 20, 30, 0.95); border: 2px solid #ffd700; border-radius: 15px; padding: 20px; display: none; z-index: 200; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #dialogueSpeaker { color: #ffd700; font-weight: bold; font-size: 20px; margin-bottom: 10px; }
+        #dialogueText { font-size: 18px; line-height: 1.6; margin-bottom: 15px; }
+        #dialogueContinue { color: #888; font-size: 14px; animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
+        #inventory { position: fixed; top: 20px; right: 20px; background: rgba(0,0,0,0.6); padding: 15px; border-radius: 10px; border: 1px solid #555; z-index: 100; pointer-events: none; }
+        #inventoryTitle { color: #ffd700; font-size: 16px; margin-bottom: 10px; }
+        #inventoryItems { font-size: 14px; }
+        #interactPrompt { position: fixed; bottom: 150px; left: 50%; transform: translateX(-50%); color: #ffd700; font-size: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); display: none; z-index: 100; pointer-events: none; font-weight: bold; }
+        
+        #instructionsPanel { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 90%; max-width: 600px; max-height: 85vh; background: rgba(20, 20, 30, 0.98); border: 2px solid #ffd700; border-radius: 15px; padding: 25px; display: none; z-index: 400; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        #instructionsPanel h2 { color: #ffd700; font-size: 28px; margin-bottom: 20px; text-align: center; }
+        #instructionsPanel .section { margin-bottom: 20px; }
+        #instructionsPanel h3 { color: #4a90d9; font-size: 18px; margin-bottom: 10px; }
+        #instructionsPanel p, #instructionsPanel li { font-size: 16px; line-height: 1.6; margin: 8px 0; }
+        #instructionsPanel ul { margin-left: 25px; }
+        #closeInstructions { display: block; margin-top: 20px; padding: 12px 30px; font-size: 16px; background: #4a90d9; color: white; border: none; border-radius: 8px; cursor: pointer; width: 100%; }
+        
+        .controlModeButtons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        .controlModeBtn {
+            flex: 1;
+            padding: 10px 15px;
+            font-size: 14px;
+            background: #333;
+            color: #888;
+            border: 2px solid #555;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .controlModeBtn.active {
+            background: #4a90d9;
+            color: white;
+            border-color: #4a90d9;
+        }
+        
+        #victoryScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300; }
+        #victoryScreen h1 { font-size: 64px; color: #ffd700; margin-bottom: 30px; text-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+        #victoryScreen p { font-size: 24px; margin: 15px 0; max-width: 600px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
+        #victoryScreen button { margin-top: 30px; padding: 15px 40px; font-size: 20px; background: #4a90d9; color: white; border: none; border-radius: 10px; cursor: pointer; font-size: 18px; }
+        
+        #mobileControls { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 150; pointer-events: none; }
+        #mobileControls.active { display: block; }
+        
+        #joystickArea { position: absolute; left: 0; bottom: 0; width: 50%; height: 50%; pointer-events: auto; }
+        #joystickBase { position: absolute; left: 80px; bottom: 80px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; }
+        #joystickThumb { position: absolute; left: 50%; top: 50%; width: 50px; height: 50px; background: rgba(100,150,255,0.6); border-radius: 50%; transform: translate(-50%, -50%); pointer-events: none; }
+        
+        #lookArea { position: absolute; right: 0; bottom: 0; width: 50%; height: 100%; pointer-events: auto; }
+        
+        #actionButtons { position: absolute; bottom: 40px; right: 20px; pointer-events: auto; }
+        .actionBtn { width: 70px; height: 70px; margin-bottom: 10px; border: none; border-radius: 50%; font-size: 12px; font-weight: bold; color: white; cursor: pointer; pointer-events: auto; -webkit-tap-highlight-color: transparent; }
+        #jumpBtn { background: rgba(100,200,100,0.6); }
+        
+        #dialogueTapArea { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 201; display: none; }
+        #dialogueTapArea.active { display: block; }
+    </style>
+</head>
+<body>
+    <audio id="bgMusic" loop>
+        <source src="bgmusic1.mp3" type="audio/mpeg">
+    </audio>
+    <audio id="coinSound">
+        <source src="coin.mp3" type="audio/mpeg">
+    </audio>
+    
+    <div id="loadingScreen">
+        <h2>Loading...</h2>
+        <p>Initializing game...</p>
+        <button id="startGameBtn" style="display: none;">CLICK TO START</button>
+    </div>
+    
+    <canvas id="gameCanvas"></canvas>
+    
+    <div id="ui">
+        <div id="roomName">The Cage</div>
+        <div id="objective">Find key and escape</div>
+    </div>
+    <div id="inventory">
+        <div id="inventoryTitle">Inventory</div>
+        <div id="inventoryItems">Empty</div>
+    </div>
+    
+    <div id="controls" onclick="toggleInstructions()">
+        press i or tap for instructions
+    </div>
+    
+    <div id="interactPrompt">Press E to interact</div>
+    <div id="dialogueBox">
+        <div id="dialogueSpeaker"></div>
+        <div id="dialogueText"></div>
+        <div id="dialogueContinue">Press SPACE to continue</div>
+    </div>
+    <div id="dialogueTapArea"></div>
+    
+    <div id="mobileControls">
+        <div id="joystickArea">
+            <div id="joystickBase">
+                <div id="joystickThumb"></div>
+            </div>
+        </div>
+        <div id="lookArea"></div>
+        <div id="actionButtons">
+            <button id="infoBtn" class="actionBtn">INFO</button>
+            <button id="jumpBtn" class="actionBtn">JUMP</button>
+        </div>
+    </div>
+    
+    <div id="instructionsPanel">
+        <h2>HOW TO PLAY</h2>
+        <div class="section">
+            <h3>🎮 OBJECTIVE</h3>
+            <p>Collect all 4 golden crystel keys scattered throughout labyrinth, then defeat Weeke to escape!</p>
+        </div>
+        <div class="section">
+            <h3>️🎛 MODE</h3>
+            <p>Change control scheme(this will change the input (keybored/touchscreen)
+            <div class="controlModeButtons">
+                <button id="modeKeyboard" class="controlModeBtn">⌨️ Keyboard</button>
+                <button id="modeMobile" class="controlModeBtn">📱 Touch</button>
+            </div>
+        </div>
+        <div class="section" id="pcControls">
+            <h3>⌨️ PC CONTROLS</h3>
+            <ul>
+                <li><b>WASD</b> - Move around</li>
+                <li><b>Mouse</b> - Look around (click to lock)</li>
+                <li><b>Space</b> - Jump over hazards</li>
+                <li><b>E</b> - Interact with villain</li>
+                <li><b>I</b> - Show/hide these instructions</li>
+                <li><b>ESC</b> - Skip dialogue</li>
+            </ul>
+        </div>
+        <div class="section" id="mobileControlsInfo">
+            <h3>📱 MOBILE CONTROLS</h3>
+            <ul>
+                <li><b>Left joystick</b> - Move around</li>
+                <li><b>Right side</b> - Touch and drag to look</li>
+                <li><b>JUMP button</b> - Jump over hazards</li>
+                <li><b>INFO button</b> - Show/hide these instructions</li>
+                <li><b>E button</b> - Interact with villain (appears after collecting all 4 keys)</li>
+            </ul>
+        </div>
+        <div class="section">
+            <h3>⚠️ HAZARDS</h3>
+            <ul>
+                <li><b>Spikes</b> - Jump over them!</li>
+                <li><b>Blades</b> - Rotating traps, jump over!</li>
+                <li>Only hazards kill you while on the ground</li>
+            </ul>
+        </div>
+        <div style="display: flex; justify-content: center; margin-top: 20px;">
+            <canvas id="minimap" width="120" height="120" style="background: rgba(0,0,0,0.5); border: 2px solid #ffd700; border-radius: 5px;"></canvas>
+        </div>
+        <button id="closeInstructions">CLOSE</button>
+    </div>
+    
+    <div id="victoryScreen">
+        <h1>FREEDOM!</h1>
+        <p>You have escaped Weeke's trap!</p>
+        <p>Roll into light of freedom...</p>
+        <button onclick="location.reload()">PLAY AGAIN</button>
+    </div>
+ 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+    let scene, camera, renderer;
+    let gameState = {
+        currentRoom: 0,
+        inventory: [],
+        showingDialogue: false,
+        dialogueQueue: [],
+        gameOver: false,
+        victory: false,
+        gameStarted: false,
+        controlMode: null,
+        isMobile: false,
+        showingInstructions: false
+    };
+    let playerGroup, ball;
+    
+        
+        const keys = {
+            forward: false,
+            backward: false,
+            left: false,
+            right: false,
+            jump: false,
+            interact: false
+        };
+        
+        let playerState = {
+            position: { x: 0, y: 1, z: 100 },
+            velocity: { x: 0, y: 0, z: 0 },
+            isJumping: false,
+            jumpVelocity: 0
+        };
+        
+        let yaw = Math.PI, pitch = 0.3;
+        let roomObjects = {
+            obstacles: [],
+            keys: [],
+            doors: [],
+            walls: [],
+            villain: null
+        };
+        
+        let touchData = {
+            joystickActive: false,
+            joystickId: null,
+            joystickX: 0,
+            joystickY: 0,
+            lookActive: false,
+            lookId: null,
+            lastLookX: 0,
+            lastLookY: 0
+        };
+        function isMobileDevice() {
+            return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                   'ontouchstart' in window || 
+                   navigator.maxTouchPoints > 0;
+        }
+        function setControlMode(mode) {
+            gameState.controlMode = mode;
+            gameState.isMobile = (mode === 'mobile');
+            
+            document.getElementById('modeKeyboard').classList.remove('active');
+            document.getElementById('modeMobile').classList.remove('active');
+            
+            if (mode === 'mobile') {
+                document.getElementById('modeMobile').classList.add('active');
+                document.getElementById('controls').classList.add('mobileHidden');
+                document.getElementById('mobileControls').classList.add('active');
+                document.getElementById('dialogueContinue').textContent = 'Tap to continue';
+                document.getElementById('pcControls').style.display = 'none';
+                document.getElementById('mobileControlsInfo').style.display = 'block';
+            } else {
+                document.getElementById('modeKeyboard').classList.add('active');
+                document.getElementById('controls').classList.remove('mobileHidden');
+                document.getElementById('mobileControls').classList.remove('active');
+                document.getElementById('dialogueContinue').textContent = 'Press SPACE to continue';
+                document.getElementById('pcControls').style.display = 'block';
+                document.getElementById('mobileControlsInfo').style.display = 'none';
+            }
+            
+            console.log('Control mode set to:', mode, '(mobile:', gameState.isMobile + ')');
+        }
+ 
+        const story = {
+            intro: [
+                { speaker: '???', text: 'Ah... you finally wake.' },
+                { speaker: 'You', text: 'Who are you? Where am I?' },
+                { speaker: 'Weeke', text: 'I am Weeke. This is my labyrinth.' },
+                { speaker: 'Weeke', text: 'Four keys lie ahead. Collect them all.' },
+                { speaker: 'You', text: 'Let me go!' },
+                { speaker: 'Weeke', text: 'Escape? Perhaps... if you can solve my puzzles.' },
+                { speaker: 'Weeke', text: 'The challenge begins...' }
+            ],
+            key1Collected: [
+                { speaker: 'Weeke', text: 'One key found. Three remain.' }
+            ],
+            key2Collected: [
+                { speaker: 'Weeke', text: 'Two keys found. Continue.' }
+            ],
+            key3Collected: [
+                { speaker: 'Weeke', text: 'Three keys found. Almost there.' }
+            ],
+            key4Collected: [
+                { speaker: 'Weeke', text: 'All keys collected. Face me if you dare.' }
+            ],
+            victory: [
+                { speaker: 'You', text: 'I\'m free at last.' },
+                { speaker: 'Weeke', text: 'Impossible... You defeated me.' },
+                { speaker: 'You', text: 'Goodbye, Weeke.' }
+            ]
+        };
+ 
+        const rooms = [
+            {
+                name: 'Weeke\'s Labyrinth',
+                size: { width: 70, depth: 220 },
+                walls: [
+                    { x: 0, z: 110, w: 70, ry: 0, hasDoor: false },
+                    { x: 0, z: -110, w: 70, ry: 0, hasDoor: false },
+                    { x: -35, z: 0, w: 220, ry: Math.PI / 2, hasDoor: false },
+                    { x: 35, z: 0, w: 220, ry: Math.PI / 2, hasDoor: false },
+                    { x: 0, z: 40, w: 70, ry: 0, hasDoor: true, needsKey: 'key1' },
+                    { x: 0, z: -20, w: 70, ry: 0, hasDoor: true, needsKey: 'key2' },
+                    { x: 0, z: -60, w: 70, ry: 0, hasDoor: true, needsKey: 'key3' },
+                    { x: 0, z: -100, w: 70, ry: 0, hasDoor: true, needsKey: 'key4' }
+                ],
+                obstacles: [
+                    { x: 15, z: 95 },
+                    { x: -15, z: 95 },
+                    { x: 0, z: 80 },
+                    { x: 22, z: 70 },
+                    { x: -22, z: 70 },
+                    { x: 15, z: 55 },
+                    { x: -15, z: 55 },
+                    { x: 20, z: 25 },
+                    { x: -20, z: 25 },
+                    { x: 0, z: 0 },
+                    { x: 18, z: -35 },
+                    { x: -18, z: -35 },
+                    { x: 0, z: -25 },
+                    { x: 22, z: -75 },
+                    { x: -22, z: -75 },
+                    { x: 15, z: -95 },
+                    { x: -15, z: -95 }
+                ],
+                keys: [
+                    { x: -20, z: 85, type: 'key1' },
+                    { x: 20, z: 50, type: 'key2' },
+                    { x: -20, z: -10, type: 'key3' },
+                    { x: 25, z: -55, type: 'key4' }
+                ],
+                doors: [
+                    { x: 0, z: 40, type: 'exit', needsKey: 'key1', toRoom: null },
+                    { x: 0, z: -20, type: 'exit', needsKey: 'key2', toRoom: null },
+                    { x: 0, z: -60, type: 'exit', needsKey: 'key3', toRoom: null },
+                    { x: 0, z: -100, type: 'exit', needsKey: 'key4', toRoom: null }
+                ],
+                traps: [
+                    { type: 'spike', x: 15, z: 95 },
+                    { type: 'spike', x: -15, z: 95 },
+                    { type: 'spike', x: 25, z: 90 },
+                    { type: 'spike', x: -25, z: 90 },
+                    { type: 'spike', x: 20, z: 80 },
+                    { type: 'spike', x: -20, z: 80 },
+                    { type: 'spike', x: 12, z: 75 },
+                    { type: 'spike', x: -12, z: 75 },
+                    { type: 'spike', x: 28, z: 70 },
+                    { type: 'spike', x: -28, z: 70 },
+                    { type: 'blade', x: 15, z: 60, rotation: 0 },
+                    { type: 'blade', x: -15, z: 60, rotation: 0 },
+                    { type: 'spike', x: 10, z: 55 },
+                    { type: 'spike', x: -10, z: 55 },
+                    { type: 'spike', x: 22, z: 50 },
+                    { type: 'spike', x: -22, z: 50 },
+                    { type: 'blade', x: 18, z: 45, rotation: 0 },
+                    { type: 'blade', x: -18, z: 45, rotation: 0 },
+                    { type: 'spike', x: 25, z: 40 },
+                    { type: 'spike', x: -25, z: 40 },
+                    { type: 'spike', x: 15, z: 35 },
+                    { type: 'spike', x: -15, z: 35 },
+                    { type: 'blade', x: 15, z: 30, rotation: 0 },
+                    { type: 'blade', x: -15, z: 30, rotation: 0 },
+                    { type: 'spike', x: 8, z: 25 },
+                    { type: 'spike', x: -8, z: 25 },
+                    { type: 'spike', x: 20, z: 20 },
+                    { type: 'spike', x: -20, z: 20 },
+                    { type: 'blade', x: 12, z: 15, rotation: 0 },
+                    { type: 'blade', x: -12, z: 15, rotation: 0 },
+                    { type: 'spike', x: 25, z: 10 },
+                    { type: 'spike', x: -25, z: 10 },
+                    { type: 'spike', x: 12, z: 5 },
+                    { type: 'spike', x: -12, z: 5 },
+                    { type: 'spike', x: 18, z: 0 },
+                    { type: 'spike', x: -18, z: 0 },
+                    { type: 'blade', x: 14, z: -5, rotation: 0 },
+                    { type: 'blade', x: -14, z: -5, rotation: 0 },
+                    { type: 'spike', x: 22, z: -10 },
+                    { type: 'spike', x: -22, z: -10 },
+                    { type: 'spike', x: 8, z: -15 },
+                    { type: 'spike', x: -8, z: -15 },
+                    { type: 'blade', x: 14, z: -15, rotation: 0 },
+                    { type: 'blade', x: -14, z: -15, rotation: 0 },
+                    { type: 'spike', x: 28, z: -20 },
+                    { type: 'spike', x: -28, z: -20 },
+                    { type: 'spike', x: 15, z: -25 },
+                    { type: 'spike', x: -15, z: -25 },
+                    { type: 'blade', x: 16, z: -30, rotation: 0 },
+                    { type: 'blade', x: -16, z: -30, rotation: 0 },
+                    { type: 'spike', x: 10, z: -35 },
+                    { type: 'spike', x: -10, z: -35 },
+                    { type: 'spike', x: 25, z: -40 },
+                    { type: 'spike', x: -25, z: -40 },
+                    { type: 'spike', x: 15, z: -45 },
+                    { type: 'spike', x: -15, z: -45 },
+                    { type: 'blade', x: 20, z: -50, rotation: 0 },
+                    { type: 'blade', x: -20, z: -50, rotation: 0 },
+                    { type: 'spike', x: 18, z: -55, rotation: 0 },
+                    { type: 'spike', x: -18, z: -55, rotation: 0 },
+                    { type: 'blade', x: 18, z: -55, rotation: 0 },
+                    { type: 'blade', x: -18, z: -55, rotation: 0 },
+                    { type: 'spike', x: 12, z: -60 },
+                    { type: 'spike', x: -12, z: -60 },
+                    { type: 'spike', x: 28, z: -65 },
+                    { type: 'spike', x: -28, z: -65 },
+                    { type: 'blade', x: 15, z: -70, rotation: 0 },
+                    { type: 'blade', x: -15, z: -70, rotation: 0 },
+                    { type: 'spike', x: 12, z: -75 },
+                    { type: 'spike', x: -12, z: -75 },
+                    { type: 'spike', x: 8, z: -85 },
+                    { type: 'spike', x: -8, z: -85 },
+                    { type: 'spike', x: 22, z: -90 },
+                    { type: 'spike', x: -22, z: -90 },
+                    { type: 'blade', x: 15, z: -95, rotation: 0 },
+                    { type: 'blade', x: -15, z: -95, rotation: 0 },
+                    { type: 'spike', x: 25, z: -100 },
+                    { type: 'spike', x: -25, z: -100 }
+                ],
+                pressurePlates: [
+                    { x: 8, z: -95, id: 'plate1' },
+                    { x: -8, z: -95, id: 'plate2' }
+                ],
+                villain: true
+            }
+        ];
+ 
+        
+        function init() {
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    renderer = new THREE.WebGLRenderer({
+        canvas: document.getElementById("gameCanvas"),
+        antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    camera.position.set(0, 2, 5);
+    const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    scene.add(light);
+    console.log("Three.js initialized");
+}
+function startGame() {
+    const bgMusic = document.getElementById("bgMusic");
+bgMusic.volume = 0.3;
+bgMusic.play().catch(err => {
+    console.log("Music blocked until user interaction", err);
+});
+    console.log("START GAME");
+    init();
+    setupControls();
+    createPlayer();
+    createRoom(0);
+    updateObjective();
+    showDialogue(story.intro);
+    updateMobileButtons();
+    animate();
+}
+ 
+        function createPlayer() {
+            console.log('Creating player...');
+            playerGroup = new THREE.Group();
+            
+            const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
+            const ballMaterial = new THREE.MeshPhongMaterial({ 
+                color: 0x6aa8e0, 
+                emissive: 0x4a90d9, 
+                emissiveIntensity: 0.5 
+            });
+            ball = new THREE.Mesh(ballGeometry, ballMaterial);
+            ball.castShadow = true;
+            ball.position.y = 0;
+            playerGroup.add(ball);
+            
+            const glowGeometry = new THREE.SphereGeometry(1.2, 32, 32);
+            const glowMaterial = new THREE.MeshBasicMaterial({ 
+                color: 0x6aa8e0, 
+                transparent: true, 
+                opacity: 0.3 
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            glow.position.y = 0;
+            playerGroup.add(glow);
+            
+            scene.add(playerGroup);
+            playerGroup.position.set(0, 0, 100);
+            console.log('Player created at:', playerGroup.position);
+        }
+ 
+        function clearRoom() {
+            console.log('Clearing room...');
+            roomObjects.obstacles.forEach(obj => scene.remove(obj.mesh));
+            roomObjects.keys.forEach(obj => scene.remove(obj.mesh));
+            roomObjects.doors.forEach(obj => scene.remove(obj.mesh));
+            roomObjects.walls.forEach(obj => scene.remove(obj.mesh));
+            if (roomObjects.blades) {
+                roomObjects.blades.forEach(obj => scene.remove(obj.mesh));
+            }
+            if (roomObjects.spikes) {
+                roomObjects.spikes.forEach(obj => scene.remove(obj.mesh));
+            }
+            if (roomObjects.traps) {
+                roomObjects.traps.forEach(obj => scene.remove(obj.mesh));
+            }
+            
+            if (roomObjects.villain && roomObjects.villain.mesh) {
+                scene.remove(roomObjects.villain.mesh);
+            }
+            
+            roomObjects = { obstacles: [], keys: [], doors: [], walls: [], villain: null, blades: [], spikes: [], traps: [] };
+            console.log('Room cleared');
+        }
+ 
+        function createRoom(roomIndex) {
+            console.log('Creating room', roomIndex, ':', rooms[roomIndex].name);
+            clearRoom();
+            const room = rooms[roomIndex];
+            document.getElementById('roomName').textContent = room.name;
+            const hasKey1 = gameState.inventory.includes('key1');
+            const hasKey2 = gameState.inventory.includes('key2');
+            const hasKey3 = gameState.inventory.includes('key3');
+            const hasKey4 = gameState.inventory.includes('key4');
+            
+            if (!hasKey1) {
+                document.getElementById('objective').textContent = 'Find the first golden crystel key! use the mini map on instruction to help';
+            } else if (!hasKey2) {
+                document.getElementById('objective').textContent = 'you got the first key! continue the process';
+            } else if (!hasKey3) {
+                document.getElementById('objective').textContent = 'half way already!';
+            } else if (!hasKey4) {
+                document.getElementById('objective').textContent = 'go go go!';
+            } else {
+                document.getElementById('objective').textContent = 'Defeat Weeke!';
+            }
+            
+            const groundGeometry = new THREE.PlaneGeometry(room.size.width, room.size.depth);
+            const groundMaterial = new THREE.MeshPhongMaterial({ color: 0x2d3d4d });
+            const ground = new THREE.Mesh(groundGeometry, groundMaterial);
+            ground.rotation.x = -Math.PI / 2;
+            ground.receiveShadow = true;
+            scene.add(ground);
+            console.log('Ground created');
+            
+            if (room.walls && room.walls.length > 0) {
+                const wallMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x6a5a7a,
+                    emissive: 0x3a3a4a,
+                    emissiveIntensity: 0.2
+                });
+                const wallHeight = 8;
+                const doorWidth = 6;
+                room.walls.forEach(wall => {
+                    if (wall.hasDoor) {
+                        const halfWidth = wall.w / 2;
+                        const segmentWidth = halfWidth - doorWidth / 2;
+                        
+                        const leftWallGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight,1);
+                        const leftWallMesh = new THREE.Mesh(leftWallGeometry, wallMaterial);
+                        leftWallMesh.position.set(wall.x - (halfWidth - segmentWidth / 2), wallHeight / 2, wall.z);
+                        leftWallMesh.rotation.y = wall.ry || 0;
+                        leftWallMesh.receiveShadow = true;
+                        leftWallMesh.castShadow = true;
+                        scene.add(leftWallMesh);
+                        roomObjects.walls.push({ mesh: leftWallMesh, x: wall.x - (halfWidth - segmentWidth / 2), z: wall.z, w: segmentWidth, ry: wall.ry, hasDoor: false });
+                        
+                        const rightWallGeometry = new THREE.BoxGeometry(segmentWidth, wallHeight, 1);
+                        const rightWallMesh = new THREE.Mesh(rightWallGeometry, wallMaterial);
+                        rightWallMesh.position.set(wall.x + (halfWidth - segmentWidth / 2), wallHeight / 2, wall.z);
+                        rightWallMesh.rotation.y = wall.ry || 0;
+                        rightWallMesh.receiveShadow = true;
+                        rightWallMesh.castShadow = true;
+                        scene.add(rightWallMesh);
+                        roomObjects.walls.push({ mesh: rightWallMesh, x: wall.x + (halfWidth - segmentWidth / 2), z: wall.z, w: segmentWidth, ry: wall.ry, hasDoor: false });
+                    } else {
+                        const wallGeometry = new THREE.BoxGeometry(wall.w, wallHeight, 1);
+                        const wallMesh = new THREE.Mesh(wallGeometry, wallMaterial);
+                        wallMesh.position.set(wall.x, wallHeight / 2, wall.z);
+                        wallMesh.rotation.y = wall.ry || 0;
+                        wallMesh.receiveShadow = true;
+                        wallMesh.castShadow = true;
+                        scene.add(wallMesh);
+                        roomObjects.walls.push({ mesh: wallMesh, x: wall.x, z: wall.z, w: wall.w, ry: wall.ry, hasDoor: false });
+                    }
+                });
+                console.log('Created', roomObjects.walls.length, 'walls');
+            }
+            
+            roomObjects.blades = [];
+            roomObjects.spikes = [];
+            room.obstacles.forEach(obs => {
+                if (gameState.isMobile) {
+                    const spikeGroup = new THREE.Group();
+                    for (let i = 0; i < 5; i++) {
+                        const spikeGeometry = new THREE.ConeGeometry(0.2, 0.8, 4);
+                        const spikeMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+                        const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                        spike.position.set(i * 0.4 - 0.8, 0.4, 0);
+                        spikeGroup.add(spike);
+                    }
+                    spikeGroup.position.set(obs.x, 0, obs.z);
+                    scene.add(spikeGroup);
+                    roomObjects.obstacles.push({ mesh: spikeGroup, type: 'spike', x: obs.x, z: obs.z, size: 3 });
+                    roomObjects.spikes.push({ mesh: spikeGroup, x: obs.x, z: obs.z });
+                } else {
+                    const bladeGeometry = new THREE.BoxGeometry(3, 0.2, 0.5);
+                    const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+                    const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                    blade.position.set(obs.x, 1.5, obs.z);
+                    blade.castShadow = true;
+                    scene.add(blade);
+                    roomObjects.obstacles.push({ mesh: blade, type: 'blade', x: obs.x, z: obs.z, size: 3, rotation: 0 });
+                    roomObjects.blades.push({ mesh: blade, x: obs.x, z: obs.z, rotation: 0 });
+                }
+            });
+            console.log('Created', roomObjects.obstacles.length, 'obstacles');
+            
+            room.keys.forEach(key => {
+                if (gameState.inventory.includes(key.type)) return;
+                const keyGeometry = new THREE.OctahedronGeometry(0.5, 0);
+                const keyMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xffd700, 
+                    emissive: 0xffaa00, 
+                    emissiveIntensity: 0.5 
+                });
+                const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial);
+                keyMesh.position.set(key.x, 1.5, key.z);
+                keyMesh.castShadow = true;
+                scene.add(keyMesh);
+                roomObjects.keys.push({ mesh: keyMesh, type: key.type, x: key.x, z: key.z, collected: false });
+            });
+            console.log('Created', roomObjects.keys.length, 'keys');
+            
+            roomObjects.doors.forEach(door => {
+                const doorGeometry = new THREE.BoxGeometry(6, 7, 1);
+                const doorColor = gameState.inventory.includes(door.needsKey) ? 0x00ff00 : 0xff4444;
+                const doorMaterial = new THREE.MeshPhongMaterial({ 
+                    color: doorColor,
+                    emissive: gameState.inventory.includes(door.needsKey) ? 0x004400 : 0x440000,
+                    emissiveIntensity: 0.5,
+                    transparent: true,
+                    opacity: gameState.inventory.includes(door.needsKey) ? 0.3 : 1.0
+                });
+                const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+                doorMesh.position.set(door.x, 3.5, door.z);
+                doorMesh.castShadow = true;
+                scene.add(doorMesh);
+                roomObjects.doors.push({ 
+                    mesh: doorMesh, 
+                    type: door.type, 
+                    needsKey: door.needsKey, 
+                    toRoom: door.toRoom, 
+                    x: door.x, 
+                    z: door.z,
+                    unlocked: gameState.inventory.includes(door.needsKey) 
+                });
+                
+                const doorFrameGeometry = new THREE.BoxGeometry(7, 8, 1.2);
+                const doorFrameMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x8b4513,
+                    emissive: 0x4a2008,
+                    emissiveIntensity: 0.3
+                });
+                const doorFrameMesh = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
+                doorFrameMesh.position.set(door.x, 4, door.z);
+                doorFrameMesh.castShadow = true;
+                scene.add(doorFrameMesh);
+            });
+            console.log('Created', roomObjects.doors.length, 'doors');
+            
+            roomObjects.traps = [];
+            if (room.traps) {
+                room.traps.forEach(trap => {
+                    if (trap.type === 'spike') {
+                        const spikeGroup = new THREE.Group();
+                        for (let i = 0; i < 5; i++) {
+                            const spikeGeometry = new THREE.ConeGeometry(0.2, 0.8, 4);
+                            const spikeMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+                            const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                            spike.position.set(i * 0.4 - 0.8, 0.4, 0);
+                            spikeGroup.add(spike);
+                        }
+                        spikeGroup.position.set(trap.x, 0, trap.z);
+                        scene.add(spikeGroup);
+                        roomObjects.traps.push({ mesh: spikeGroup, type: 'spike', x: trap.x, z: trap.z });
+                    } else if (trap.type === 'blade') {
+                        const bladeGeometry = new THREE.BoxGeometry(3, 0.2, 0.5);
+                        const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+                        const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                        blade.position.set(trap.x, 1.5, trap.z);
+                        scene.add(blade);
+                        roomObjects.traps.push({ mesh: blade, type: 'blade', x: trap.x, z: trap.z, rotation: 0 });
+                    }
+                });
+                console.log('Created', roomObjects.traps.length, 'traps');
+            }
+            
+            roomObjects.pressurePlates = [];
+            if (room.pressurePlates) {
+                room.pressurePlates.forEach(plate => {
+                    const plateGeometry = new THREE.CylinderGeometry(1, 1, 0.2, 16);
+                    const plateMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+                    const plateMesh = new THREE.Mesh(plateGeometry, plateMaterial);
+                    plateMesh.position.set(plate.x, 0.1, plate.z);
+                    scene.add(plateMesh);
+                    roomObjects.pressurePlates.push({ mesh: plateMesh, id: plate.id, x: plate.x, z: plate.z, pressed: false });
+                });
+                console.log('Created', roomObjects.pressurePlates.length, 'pressure plates');
+            }
+            
+            if (room.villain) {
+                const villainGroup = new THREE.Group();
+                const villainBody = new THREE.SphereGeometry(2, 16, 16);
+                const villainMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x6666aa, 
+                    emissive: 0x333355, 
+                    emissiveIntensity: 0.3 
+                });
+                const villainMesh = new THREE.Mesh(villainBody, villainMaterial);
+                villainMesh.position.y = 1.5;
+                villainMesh.castShadow = true;
+                villainGroup.add(villainMesh);
+                
+                const villainEye1 = new THREE.SphereGeometry(0.25, 8, 8);
+                const villainEyeMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x333333, 
+                    emissive: 0x111111, 
+                    emissiveIntensity: 0.5 
+                });
+                const eye1 = new THREE.Mesh(villainEye1, villainEyeMaterial);
+                eye1.position.set(-0.7, 2.2, 1.8);
+                villainGroup.add(eye1);
+                const eye2 = new THREE.Mesh(villainEye1, villainEyeMaterial);
+                eye2.position.set(0.7, 2.2, 1.8);
+                villainGroup.add(eye2);
+                
+                villainGroup.position.set(0, 0, -90);
+                villainGroup.rotation.y = 0.3;
+                scene.add(villainGroup);
+                roomObjects.villain = { mesh: villainGroup, defeated: false, canInteract: false };
+                console.log('Villain created');
+            }
+            
+            playerState.position.x = 0;
+            playerState.position.z = 100;
+            playerState.position.y = 1;
+            playerState.velocity = { x: 0, y: 0, z: 0 };
+            playerGroup.position.set(playerState.position.x, 0, playerState.position.z);
+            yaw = Math.PI;
+            
+            console.log('Room', roomIndex, 'created completely');
+        }
+ 
+        function showDialogue(dialogueArray) {
+            gameState.dialogueQueue = [...dialogueArray];
+            gameState.showingDialogue = true;
+            if (gameState.isMobile) {
+                document.getElementById('dialogueTapArea').classList.add('active');
+            }
+            showNextDialogue();
+        }
+ 
+        function showNextDialogue() {
+            if (gameState.dialogueQueue.length === 0) {
+                gameState.showingDialogue = false;
+                document.getElementById('dialogueBox').style.display = 'none';
+                if (gameState.isMobile) {
+                    document.getElementById('dialogueTapArea').classList.remove('active');
+                }
+                console.log('Dialogue finished');
+                updateObjective();
+                return;
+            }
+            const dialogue = gameState.dialogueQueue.shift();
+            document.getElementById('dialogueBox').style.display = 'block';
+            document.getElementById('dialogueSpeaker').textContent = dialogue.speaker;
+            document.getElementById('dialogueText').textContent = dialogue.text;
+            console.log('Showing dialogue:', dialogue.speaker, '-', dialogue.text);
+        }
+ 
+        function setupControls() {
+            console.log('Setting up controls...');
+            
+            document.addEventListener('keydown', (e) => {
+                if (gameState.isMobile) {
+                    if (e.code === 'KeyI') {
+                        toggleInstructions();
+                    }
+                    return;
+                }
+                
+                if (gameState.showingDialogue && e.code === 'Space') {
+                    showNextDialogue();
+                    return;
+                }
+                if (gameState.showingDialogue && e.code === 'Escape') {
+                    gameState.dialogueQueue = [];
+                    gameState.showingDialogue = false;
+                    document.getElementById('dialogueBox').style.display = 'none';
+                    return;
+                }
+                
+                if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = true;
+                if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = true;
+                if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = true;
+                if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = true;
+                if (e.code === 'Space') keys.jump = true;
+                if (e.code === 'KeyE') {
+                    keys.interact = true;
+                    const hasAllKeys = gameState.inventory.includes('key1') && 
+                                     gameState.inventory.includes('key2') && 
+                                     gameState.inventory.includes('key3') && 
+                                     gameState.inventory.includes('key4');
+                    if (roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys) {
+                        roomObjects.villain.defeated = true;
+                        scene.remove(roomObjects.villain.mesh);
+                        roomObjects.villain = null;
+                        showDialogue(story.victory);
+                        setTimeout(() => {
+                            gameState.victory = true;
+                            document.getElementById('victoryScreen').style.display = 'flex';
+                        }, 5000);
+                    }
+                }
+                if (e.code === 'KeyI') {
+                    toggleInstructions();
+                }
+                console.log('Key down:', e.code);
+            });
+            
+            document.addEventListener('keyup', (e) => {
+                if (gameState.isMobile) {
+                    return;
+                }
+                
+                if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = false;
+                if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = false;
+                if (e.code === 'KeyA' || e.code === 'ArrowLeft') keys.left = false;
+                if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
+                if (e.code === 'Space') keys.jump = false;
+                if (e.code === 'KeyE') keys.interact = false;
+                console.log('Key up:', e.code);
+            });
+            
+            if (!gameState.isMobile) {
+                document.getElementById('controls').classList.remove('mobileHidden');
+                document.getElementById('mobileControls').classList.remove('active');
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (document.pointerLockElement && !gameState.showingDialogue && gameState.gameStarted) {
+                        yaw -= e.movementX * 0.002;
+                        pitch -= e.movementY * 0.002;
+                        pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
+                    }
+                });
+                
+                document.getElementById('gameCanvas').addEventListener('click', () => {
+                    if (!document.pointerLockElement && gameState.gameStarted && !gameState.showingDialogue) {
+                        document.getElementById('gameCanvas').requestPointerLock();
+                    }
+                });
+            } else {
+                document.getElementById('controls').classList.add('mobileHidden');
+                document.getElementById('mobileControls').classList.add('active');
+                setupMobileControls();
+            }
+            
+            console.log('Controls setup complete');
+        }
+ 
+        function setupMobileControls() {
+            console.log('Setting up mobile controls...');
+            
+            const joystickArea = document.getElementById('joystickArea');
+            const joystickBase = document.getElementById('joystickBase');
+            const joystickThumb = document.getElementById('joystickThumb');
+            const lookArea = document.getElementById('lookArea');
+            const jumpBtn = document.getElementById('jumpBtn');
+            const dialogueTapArea = document.getElementById('dialogueTapArea');
+            
+            joystickArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                const touch = e.changedTouches[0];
+                touchData.joystickActive = true;
+                touchData.joystickId = touch.identifier;
+                
+                const rect = joystickBase.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+                touchData.joystickX = touch.clientX - centerX;
+                touchData.joystickY = touch.clientY - centerY;
+                
+                updateJoystickThumb();
+            }, { passive: false });
+            
+            joystickArea.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!touchData.joystickActive) return;
+                
+                for (let touch of e.changedTouches) {
+                    if (touch.identifier === touchData.joystickId) {
+                        const rect = joystickBase.getBoundingClientRect();
+                        const centerX = rect.left + rect.width / 2;
+                        const centerY = rect.top + rect.height / 2;
+                        
+                        touchData.joystickX = touch.clientX - centerX;
+                        touchData.joystickY = touch.clientY - centerY;
+                        
+                        const maxDist = 35;
+                        const dist = Math.sqrt(touchData.joystickX * touchData.joystickX + touchData.joystickY * touchData.joystickY);
+                        if (dist > maxDist) {
+                            touchData.joystickX = (touchData.joystickX / dist) * maxDist;
+                            touchData.joystickY = (touchData.joystickY / dist) * maxDist;
+                        }
+                        
+                        updateJoystickThumb();
+                        break;
+                    }
+                }
+            }, { passive: false });
+            
+            const endJoystick = (e) => {
+                for (let touch of e.changedTouches) {
+                    if (touch.identifier === touchData.joystickId) {
+                        touchData.joystickActive = false;
+                        touchData.joystickId = null;
+                        touchData.joystickX = 0;
+                        touchData.joystickY = 0;
+                        updateJoystickThumb();
+                        break;
+                    }
+                }
+            };
+            
+            joystickArea.addEventListener('touchend', endJoystick);
+            joystickArea.addEventListener('touchcancel', endJoystick);
+            
+            function updateJoystickThumb() {
+                joystickThumb.style.transform = `translate(calc(-50% + ${touchData.joystickX}px), calc(-50% + ${touchData.joystickY}px))`;
+                
+                const threshold = 10;
+                keys.forward = touchData.joystickY < -threshold;
+                keys.backward = touchData.joystickY > threshold;
+                keys.left = touchData.joystickX < -threshold;
+                keys.right = touchData.joystickX > threshold;
+            }
+            
+            lookArea.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (gameState.showingDialogue) return;
+                
+                const touch = e.changedTouches[0];
+                touchData.lookActive = true;
+                touchData.lookId = touch.identifier;
+                touchData.lastLookX = touch.clientX;
+                touchData.lastLookY = touch.clientY;
+            }, { passive: false });
+            
+            lookArea.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (!touchData.lookActive) return;
+                
+                for (let touch of e.changedTouches) {
+                    if (touch.identifier === touchData.lookId) {
+                        const deltaX = touch.clientX - touchData.lastLookX;
+                        const deltaY = touch.clientY - touchData.lastLookY;
+                        
+                        yaw -= deltaX * 0.005;
+                        pitch -= deltaY * 0.005;
+                        pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
+                        
+                        touchData.lastLookX = touch.clientX;
+                        touchData.lastLookY = touch.clientY;
+                        break;
+                    }
+                }
+            }, { passive: false });
+            
+            const endLook = (e) => {
+                for (let touch of e.changedTouches) {
+                    if (touch.identifier === touchData.lookId) {
+                        touchData.lookActive = false;
+                        touchData.lookId = null;
+                        break;
+                    }
+                }
+            };
+            
+            lookArea.addEventListener('touchend', endLook);
+            lookArea.addEventListener('touchcancel', endLook);
+            
+            jumpBtn.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                keys.jump = true;
+            }, { passive: false });
+            
+             jumpBtn.addEventListener('touchend', (e) => {
+                 e.preventDefault();
+                 keys.jump = false;
+             }, { passive: false });
+             
+             document.getElementById('infoBtn').addEventListener('touchstart', (e) => {
+                 e.preventDefault();
+                 const hasAllKeys = gameState.inventory.includes('key1') && 
+                                  gameState.inventory.includes('key2') && 
+                                  gameState.inventory.includes('key3') && 
+                                  gameState.inventory.includes('key4');
+                 
+                 if (roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys) {
+                     keys.interact = true;
+                     roomObjects.villain.defeated = true;
+                     scene.remove(roomObjects.villain.mesh);
+                     roomObjects.villain = null;
+                     showDialogue(story.victory);
+                     setTimeout(() => {
+                         gameState.victory = true;
+                         document.getElementById('victoryScreen').style.display = 'flex';
+                     }, 5000);
+                 } else {
+                     toggleInstructions();
+                 }
+             }, { passive: false });
+             
+             document.getElementById('infoBtn').addEventListener('touchend', (e) => {
+                 e.preventDefault();
+                 keys.interact = false;
+             }, { passive: false });
+             
+             dialogueTapArea.addEventListener('touchstart', (e) => {
+                 e.preventDefault();
+                 if (gameState.showingDialogue) {
+                     showNextDialogue();
+                 }
+             }, { passive: false });
+             
+             console.log('Mobile controls setup complete');
+         }
+  
+         function toggleInstructions() {
+             const panel = document.getElementById('instructionsPanel');
+             const isVisible = panel.style.display === 'block';
+             panel.style.display = isVisible ? 'none' : 'block';
+             gameState.showingInstructions = !isVisible;
+         }
+         
+         document.getElementById('closeInstructions').addEventListener('click', () => {
+             document.getElementById('instructionsPanel').style.display = 'none';
+             gameState.showingInstructions = false;
+         });
+         document.getElementById('modeKeyboard').addEventListener('click', () => {
+             setControlMode('keyboard');
+         });
+         document.getElementById('modeMobile').addEventListener('click', () => {
+             setControlMode('mobile');
+         });
+        
+          function updateMobileButtons() {
+              if (!gameState.isMobile) return;
+             
+              const hasAllKeys = gameState.inventory.includes('key1') && 
+                               gameState.inventory.includes('key2') && 
+                               gameState.inventory.includes('key3') && 
+                               gameState.inventory.includes('key4');
+              const infoBtn = document.getElementById('infoBtn');
+             
+              if (hasAllKeys && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated) {
+                  infoBtn.textContent = 'E';
+                  infoBtn.style.background = 'rgba(255, 180, 50, 0.6)';
+              } else {
+                  infoBtn.textContent = 'INFO';
+                  infoBtn.style.background = 'rgba(100, 150, 255, 0.6)';
+              }
+          }
+     
+        function updatePlayer(deltaTime) {
+    if (
+        gameState.showingDialogue ||
+        gameState.gameOver ||
+        gameState.victory ||
+        gameState.showingInstructions ||
+        !gameState.gameStarted
+    ) return;
+    const room = rooms[gameState.currentRoom];
+    const speed = gameState.isMobile ? 6 : 12;
+    const moveX = Math.sin(yaw) * speed * deltaTime;
+    const moveZ = Math.cos(yaw) * speed * deltaTime;
+    if (keys.forward) {
+        playerState.velocity.x += moveX;
+        playerState.velocity.z += moveZ;
+    }
+    if (keys.backward) {
+        playerState.velocity.x -= moveX;
+        playerState.velocity.z -= moveZ;
+    }
+    if (keys.left) {
+        playerState.velocity.x += moveZ;
+        playerState.velocity.z -= moveX;
+    }
+    if (keys.right) {
+        playerState.velocity.x -= moveZ;
+        playerState.velocity.z += moveX;
+    }
+    let newX = playerState.position.x + playerState.velocity.x;
+    let newZ = playerState.position.z + playerState.velocity.z;
+    let newY = playerState.position.y;
+    const velX = playerState.velocity.x;
+    const velZ = playerState.velocity.z;
+    if (keys.jump && !playerState.isJumping) {
+        playerState.isJumping = true;
+        playerState.jumpVelocity = 12;
+    }
+    if (playerState.isJumping) {
+        newY += playerState.jumpVelocity * deltaTime;
+        playerState.jumpVelocity -= 30 * deltaTime;
+    }
+    if (newY < 1) {
+        newY = 1;
+        playerState.isJumping = false;
+        playerState.jumpVelocity = 0;
+    }
+    roomObjects.obstacles.forEach(obs => {
+                const boxSize = obs.size || 3;
+                const boxHalf = boxSize / 2;
+                const playerRadius = 1;
+                const minX = obs.x - boxHalf;
+                const maxX = obs.x + boxHalf;
+                const minZ = obs.z - boxHalf;
+                const maxZ = obs.z + boxHalf;
+                const clampedX = Math.max(minX, Math.min(maxX, newX));
+                const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
+                const closestX = newX - clampedX;
+                const closestZ = newZ - clampedZ;
+                const distanceSquared = closestX * closestX + closestZ * closestZ;
+                if (distanceSquared < playerRadius * playerRadius) {
+                    const boxTop = obs.type === 'spike' ? 0.8 : boxSize;
+                    
+                    if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
+                        newX = playerState.position.x;
+                        newZ = playerState.position.z;
+                        playerState.velocity.x = 0;
+                        playerState.velocity.z = 0;
+                        
+                        if (playerState.isJumping && playerState.jumpVelocity < 0) {
+                            playerState.isJumping = false;
+                            playerState.jumpVelocity = 0;
+                            playerState.position.y = Math.max(1, boxTop - playerRadius);
+                        }
+                    } else {
+                        const distance = Math.sqrt(distanceSquared);
+                        const overlap = playerRadius - distance;
+                        if (distance > 0.001) {
+                            newX = newX + (closestX / distance) * overlap;
+                            newZ = newZ + (closestZ / distance) * overlap;
+                        } else {
+                            const dirX = newX - playerState.position.x;
+                            const dirZ = newZ - playerState.position.z;
+                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                            if (dirLength > 0.001) {
+                                newX = newX + (dirX / dirLength) * playerRadius;
+                                newZ = newZ + (dirZ / dirLength) * playerRadius;
+                            } else {
+                                newX = playerState.position.x;
+                                newZ = playerState.position.z;
+                            }
+                        }
+                    }
+                }
+                playerState.position.x = newX;
+                playerState.position.z = newZ;
+            });
+    roomObjects.walls.forEach(wall => {
+    const ry = wall.ry || 0;
+    const nx = Math.sin(ry);
+    const nz = Math.cos(ry);
+    const tx = Math.cos(ry);
+    const tz = -Math.sin(ry);
+    const px = playerState.position.x - wall.x;
+    const pz = playerState.position.z - wall.z;
+    const cx = newX - wall.x;
+    const cz = newZ - wall.z;
+    const prevDist = px * nx + pz * nz;
+    const dist = cx * nx + cz * nz;
+    const along = cx * tx + cz * tz;
+    const halfLen = wall.w / 2;
+    const playerRadius = 1;
+    const wallHalfThickness = 0.5;
+    if (Math.abs(dist) < playerRadius + wallHalfThickness && Math.abs(along) < halfLen + 0.5) {
+        const pushOut = playerRadius + wallHalfThickness - Math.abs(dist);
+        const sign = dist >= 0 ? 1 : -1;
+        newX = newX + nx * pushOut * sign;
+        newZ = newZ + nz * pushOut * sign;
+    }
+});
+    roomObjects.doors.forEach(door => {
+        if (door.unlocked) return;
+        const w = 3;
+        const minX = door.x - w;
+        const maxX = door.x + w;
+        const minZ = door.z - 0.5;
+        const maxZ = door.z + 0.5;
+        const wasOutside =
+            playerState.position.x < minX ||
+            playerState.position.x > maxX ||
+            playerState.position.z < minZ ||
+            playerState.position.z > maxZ;
+        const wouldCollide =
+            newX > minX - 0.8 &&
+            newX < maxX + 0.8 &&
+            newZ > minZ - 0.8 &&
+            newZ < maxZ + 0.8;
+        if (wouldCollide && wasOutside) {
+            if (Math.abs(velX) > Math.abs(velZ)) {
+                newX = playerState.position.x;
+            } else {
+                newZ = playerState.position.z;
+            }
+        }
+    });
+    const PLAYER_RADIUS = 1;
+let minX = Infinity;
+let maxX = -Infinity;
+let minZ = Infinity;
+let maxZ = -Infinity;
+roomObjects.walls.forEach(wall => {
+    const halfW = wall.w / 2;
+    minX = Math.min(minX, wall.x - halfW);
+    maxX = Math.max(maxX, wall.x + halfW);
+    minZ = Math.min(minZ, wall.z - 0.5);
+    maxZ = Math.max(maxZ, wall.z + 0.5);
+});
+playerState.position.x = Math.max(
+    minX + PLAYER_RADIUS,
+    Math.min(maxX - PLAYER_RADIUS, newX)
+);
+playerState.position.z = Math.max(
+    minZ + PLAYER_RADIUS,
+    Math.min(maxZ - PLAYER_RADIUS, newZ)
+);
+     playerGroup.position.set(
+                playerState.position.x,
+                newY - 1,
+                playerState.position.z
+            );
+    if (keys.forward || keys.backward || keys.left || keys.right) {
+     ball.rotation.x += playerState.velocity.z * 0.5;
+     ball.rotation.z -= playerState.velocity.x * 0.5;
+ }
+    playerState.velocity.x = 0;
+playerState.velocity.z = 0;
+    playerState.position.x = newX;
+    playerState.position.z = newZ;
+    playerState.position.y = newY;
+    
+}
+        function checkCollisions() {
+            if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
+            for (let i = roomObjects.keys.length - 1; i >= 0; i--) {
+                const key = roomObjects.keys[i];
+                if (key.collected) continue;
+                const dx = playerState.position.x - key.x;
+                const dz = playerState.position.z - key.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                if (distance < 2) {
+                    console.log('=== KEY COLLECTED ===');
+                    console.log('Key type:', key.type);
+                    console.log('Inventory BEFORE:', gameState.inventory);
+                    key.collected = true;
+                    gameState.inventory.push(key.type);
+                    const coinSound = document.getElementById('coinSound');
+                    coinSound.volume = 0.5;
+                    coinSound.currentTime = 0;
+                    coinSound.play().catch(err => console.log('Coin sound play error:', err));
+                    console.log('Inventory AFTER:', gameState.inventory);
+                    scene.remove(key.mesh);
+                    roomObjects.keys.splice(i, 1);
+                    console.log('Removed key mesh from scene');
+                    console.log('Spliced key from array');
+                    console.log('Calling updateInventory...');
+                    updateInventory();
+                    console.log('Calling updateDoors...');
+                    updateDoors();
+                    console.log('Calling updateObjective...');
+                    try {
+                        updateObjective();
+                        console.log('updateObjective completed successfully');
+                    } catch (e) {
+                        console.error('updateObjective error:', e);
+                    }
+                    console.log('Calling updateMobileButtons...');
+                    updateMobileButtons();
+                    console.log('=== KEY COLLECTION DONE ===');
+                    break;
+                }
+            }
+            
+            roomObjects.doors.forEach(door => {
+                const dx = playerState.position.x - door.x;
+                const dz = playerState.position.z - door.z;
+                const distance = Math.sqrt(dx * dx + dz * dz);
+                if (distance < 5) {
+                    if (gameState.inventory.includes(door.needsKey) && !door.unlocked) {
+                        door.unlocked = true;
+                        door.mesh.material.color.setHex(0x00ff00);
+                        door.mesh.material.emissive.setHex(0x004400);
+                        door.mesh.material.opacity = 0.3;
+                        door.mesh.material.transparent = true;
+                    }
+                }
+            });
+            
+            roomObjects.traps.forEach(trap => {
+                if (trap.type === 'spike') {
+                    const dx = playerState.position.x - trap.x;
+                    const dz = playerState.position.z - trap.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 1.5 && !playerState.isJumping) {
+                        gameState.gameOver = true;
+                        console.log('Hit spikes');
+                        showGameOver();
+                    }
+                } else if (trap.type === 'blade') {
+                    const dx = playerState.position.x - trap.x;
+                    const dz = playerState.position.z - trap.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 2.5 && !playerState.isJumping) {
+                        gameState.gameOver = true;
+                        console.log('Hit blade');
+                        showGameOver();
+                    }
+                }
+            });
+            
+            roomObjects.obstacles.forEach(obs => {
+                if (obs.type === 'spike' && !playerState.isJumping) {
+                    const dx = playerState.position.x - obs.x;
+                    const dz = playerState.position.z - obs.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 1.5) {
+                        gameState.gameOver = true;
+                        console.log('Hit obstacle spikes');
+                        showGameOver();
+                    }
+                }
+            });
+            
+             if (roomObjects.villain) {
+                 const villain = roomObjects.villain;
+                 const dx = playerState.position.x - villain.mesh.position.x;
+                 const dz = playerState.position.z - villain.mesh.position.z;
+                 const distance = Math.sqrt(dx * dx + dz * dz);
+                 const hasAllKeys = gameState.inventory.includes('key1') && 
+                                  gameState.inventory.includes('key2') && 
+                                  gameState.inventory.includes('key3') && 
+                                  gameState.inventory.includes('key4');
+                 villain.canInteract = distance < 5 && hasAllKeys;
+                 
+                 const prompt = document.getElementById('interactPrompt');
+                 if (gameState.isMobile) {
+                     prompt.style.display = 'none';
+                     updateMobileButtons();
+                 } else {
+                     prompt.style.display = villain.canInteract && !villain.defeated ? 'block' : 'none';
+                 }
+             }
+        }
+  
+        function updateTraps(deltaTime) {
+            roomObjects.traps.forEach(trap => {
+                if (trap.type === 'blade') {
+                    trap.rotation += deltaTime * 2;
+                    trap.mesh.rotation.y = trap.rotation;
+                }
+            });
+            
+            roomObjects.blades.forEach(blade => {
+                blade.rotation += deltaTime * 2;
+                blade.mesh.rotation.y = blade.rotation;
+            });
+            
+            roomObjects.keys.forEach(key => {
+                if (!key.collected) {
+                    key.mesh.rotation.y += deltaTime;
+                    key.mesh.position.y = 1.5 + Math.sin(Date.now() * 0.003) * 0.3;
+                }
+            });
+        }
+  
+        function updateCamera() {
+            const cameraDistance = 12;
+            const cameraHeight = 10;
+            
+            const camX = playerState.position.x - Math.sin(yaw) * cameraDistance;
+            const camZ = playerState.position.z - Math.cos(yaw) * cameraDistance;
+            const camY = playerState.position.y + cameraHeight + pitch * 8;
+            
+            camera.position.x = camX;
+            camera.position.z = camZ;
+            camera.position.y = camY;
+            
+            const lookX = playerState.position.x + Math.sin(yaw) * 2;
+            const lookZ = playerState.position.z + Math.cos(yaw) * 2;
+            const lookY = playerState.position.y + pitch * 5;
+            
+            camera.lookAt(lookX, lookY, lookZ);
+        }
+  
+        function updateInventory() {
+            const itemsDiv = document.getElementById('inventoryItems');
+            if (!itemsDiv) {
+                console.error('Inventory items element not found!');
+                return;
+            }
+            if (gameState.inventory.length === 0) {
+                itemsDiv.textContent = 'Empty';
+            } else {
+                itemsDiv.innerHTML = gameState.inventory.map(item =>
+                    '<div style="color: #ffd700; margin: 3px 0;">' + item.replace('key', 'Key ') + '</div>'
+                ).join('');
+            }
+        }
+        
+        function updateDoors() {
+            roomObjects.doors.forEach(door => {
+                if (gameState.inventory.includes(door.needsKey) && !door.unlocked) {
+                    door.unlocked = true;
+                    door.mesh.material.color.setHex(0x00ff00);
+                    door.mesh.material.emissive.setHex(0x004400);
+                    door.mesh.material.opacity = 0.3;
+                    door.mesh.material.transparent = true;
+                }
+            });
+        }
+        
+        function updateObjective() {
+            const objectiveEl = document.getElementById('objective');
+            if (!objectiveEl) {
+                console.error('Objective element NOT FOUND!');
+                return;
+            }
+            const hasKey1 = gameState.inventory.includes('key1');
+            const hasKey2 = gameState.inventory.includes('key2');
+            const hasKey3 = gameState.inventory.includes('key3');
+            const hasKey4 = gameState.inventory.includes('key4');
+            let newText = '';
+            if (!hasKey1) {
+                newText = 'Find first golden crystel key! <br> use mini map on instruction to help';
+            } else if (!hasKey2) {
+                newText = 'you got first key! continue process';
+            } else if (!hasKey3) {
+                newText = 'half way already!';
+            } else if (!hasKey4) {
+                newText = 'go go go!';
+            } else {
+                newText = 'Defeat Weeke!';
+            }
+            objectiveEl.innerHTML = newText;
+        }
+ 
+        function drawMinimap() {
+            const minimapCanvas = document.getElementById('minimap');
+            const minimapCtx = minimapCanvas.getContext('2d');
+            minimapCtx.fillStyle = '#111';
+            minimapCtx.fillRect(0, 0, 100, 100);
+            
+            const room = rooms[gameState.currentRoom];
+            const scale = 80 / Math.max(room.size.width, room.size.depth);
+            const centerX = 50;
+            const centerY = 50;
+            
+            roomObjects.obstacles.forEach(obs => {
+                const x = centerX + obs.x * scale;
+                const y = centerY + obs.z * scale;
+                const size = 3 * scale;
+                minimapCtx.fillStyle = obs.type === 'spike' ? '#666' : '#888';
+                minimapCtx.fillRect(x - size/2, y - size/2, size, size);
+            });
+            
+            roomObjects.keys.forEach(key => {
+                if (!key.collected) {
+                    const x = centerX + key.x * scale;
+                    const y = centerY + key.z * scale;
+                    minimapCtx.fillStyle = '#ffd700';
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(x, y, 3, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+            
+            roomObjects.doors.forEach(door => {
+                if (door.type === 'exit') {
+                    const x = centerX + door.x * scale;
+                    const y = centerY + door.z * scale;
+                    minimapCtx.fillStyle = gameState.inventory.includes(door.needsKey) || door.unlocked ? '#00ff00' : '#ff4444';
+                    minimapCtx.fillRect(x - 4, y - 4, 8, 8);
+                }
+            });
+            
+            const playerX = centerX + playerState.position.x * scale;
+            const playerY = centerY + playerState.position.z * scale;
+            minimapCtx.fillStyle = '#6aa8e0';
+            minimapCtx.beginPath();
+            minimapCtx.arc(playerX, playerY, 4, 0, Math.PI * 2);
+            minimapCtx.fill();
+            
+            if (roomObjects.villain && roomObjects.villain.mesh) {
+                const vX = centerX + roomObjects.villain.mesh.position.x * scale;
+                const vY = centerY + roomObjects.villain.mesh.position.z * scale;
+                minimapCtx.fillStyle = '#6666aa';
+                minimapCtx.beginPath();
+                minimapCtx.arc(vX, vY, 5, 0, Math.PI * 2);
+                minimapCtx.fill();
+            }
+        }
+        
+        function showGameOver() {
+            if (!gameState.gameOver) return;
+            
+            const loadingScreen = document.getElementById('loadingScreen');
+            const title = loadingScreen.querySelector('h2');
+            const desc = loadingScreen.querySelector('p');
+            const btn = document.getElementById('startGameBtn');
+            
+            title.textContent = 'GAME OVER';
+            desc.textContent = 'You died...';
+            desc.style.display = 'block';
+            btn.style.display = 'block';
+            btn.textContent = 'TRY AGAIN';
+            loadingScreen.style.display = 'flex';
+            loadingScreen.classList.remove('hidden');
+            
+            btn.onclick = () => {
+                location.reload();
+            };
+        }
+        
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const deltaTime = 0.016;
+            
+            if (gameState.gameStarted && !gameState.showingDialogue && !gameState.gameOver && !gameState.victory && !gameState.showingInstructions) {
+                updatePlayer(deltaTime);
+                checkCollisions();
+                updateCamera();
+            }
+            
+            updateTraps(deltaTime);
+            drawMinimap();
+            renderer.render(scene, camera);
+        }
+        
+        window.onload = () => {
+            console.log('Window loaded, auto-detecting device...');
+            
+            const isMobile = isMobileDevice();
+            console.log('Auto-detected device:', isMobile ? 'Mobile' : 'Desktop');
+            
+            setControlMode(isMobile ? 'mobile' : 'keyboard');
+            
+            const loadingScreen = document.getElementById('loadingScreen');
+            const startBtn = document.getElementById('startGameBtn');
+            
+            document.getElementById('loadingScreen').querySelector('h2').textContent = 'Game Ready!';
+            document.getElementById('loadingScreen').querySelector('p').style.display = 'none';
+            startBtn.style.display = 'block';
+            
+            startBtn.onclick = () => {
+                loadingScreen.style.display = 'none';
+                gameState.gameStarted = true;
+                startGame();
+                const music = document.getElementById('bgMusic');
+                music.volume = 0.3;
+                music.play().catch(e => console.log('Audio play error:', e));
+                console.log('Game started, calling updateObjective...');
+                updateObjective();
+            };
+        };
+        
+        window.onresize = () => {
+            const canvas = document.getElementById('gameCanvas');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            if (camera) {
+                 camera.aspect = canvas.width / canvas.height;
+                 camera.updateProjectionMatrix();
+             }
+             if (renderer) {
+                 renderer.setSize(canvas.width, canvas.height);
+             }
+         };
+        window.testObjective = function(text) {
+            const el = document.getElementById('objective');
+            if (!el) {
+                console.error('Objective element NOT FOUND!');
+                return;
+            }
+            el.textContent = text;
+        }
+        window.debugInv = function() {
+            console.log('=== DEBUG INVENTORY ===');
+            console.log('Inventory array:', gameState.inventory);
+            console.log('Has key1?', gameState.inventory.includes('key1'));
+            console.log('Has key2?', gameState.inventory.includes('key2'));
+            console.log('Has key3?', gameState.inventory.includes('key3'));
+            console.log('Has key4?', gameState.inventory.includes('key4'));
+            console.log('=== END DEBUG ===');
+        }
+        window.forceUpdate = function() {
+            console.log('=== FORCE UPDATE ===');
+            updateObjective();
+            console.log('=== END FORCE ===');
+        }
+     </script>
+</body>
+</html>
