@@ -670,6 +670,19 @@ bgMusic.play().catch(err => {
                     doorMesh.castShadow = true;
                     doorMesh.receiveShadow = true;
                     scene.add(doorMesh);
+                    
+                    const doorFrameGeometry = new THREE.BoxGeometry(7, 8, 1.2);
+                    const doorFrameMaterial = new THREE.MeshPhongMaterial({ 
+                        color: 0x8b4513,
+                        emissive: 0x4a2008,
+                        emissiveIntensity: 0.3
+                    });
+                    const doorFrameMesh = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
+                    doorFrameMesh.position.set(door.x, 4, door.z);
+                    doorFrameMesh.castShadow = true;
+                    doorFrameMesh.receiveShadow = true;
+                    scene.add(doorFrameMesh);
+                    
                     roomObjects.doors.push({ 
                         mesh: doorMesh, 
                         type: door.type, 
