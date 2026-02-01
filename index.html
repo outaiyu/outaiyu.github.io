@@ -318,7 +318,7 @@
                     { x: 0, z: -60, w: 70, ry: 0, hasDoor: true, needsKey: 'key3' }
                 ],
                 glassDoors: [
-                    { x: 0, z: -100 }
+                    { x: 0, z: -95 }
                 ],
                 obstacles: [
                     { x: 15, z: 95 },
@@ -1339,10 +1339,10 @@ bgMusic.play().catch(err => {
 });
     roomObjects.doors.forEach(door => {
         if (door.type === 'glass') {
-            if (door.openProgress < 0.8) {
+            if (door.openProgress < 0.85) {
                 const w = 3;
-                const minX = door.x - w - door.openProgress * 4;
-                const maxX = door.x + w - door.openProgress * 4;
+                const minX = door.x - w - door.openProgress * 6;
+                const maxX = door.x + w - door.openProgress * 6;
                 const minZ = door.z - 0.5;
                 const maxZ = door.z + 0.5;
                 const wasOutside =
@@ -1478,11 +1478,11 @@ playerState.position.z = Math.max(
                             door.isOpen = true;
                         }
                         door.openProgress = Math.min(1, door.openProgress + 0.08);
-                        const slideAmount = door.openProgress * 4;
+                        const slideAmount = door.openProgress * 6;
                         door.mesh.position.x = door.x - slideAmount;
                     } else if (door.isOpen && distance > 9) {
                         door.openProgress = Math.max(0, door.openProgress - 0.08);
-                        const slideAmount = door.openProgress * 4;
+                        const slideAmount = door.openProgress * 6;
                         door.mesh.position.x = door.x - slideAmount;
                         if (door.openProgress === 0) {
                             door.isOpen = false;
