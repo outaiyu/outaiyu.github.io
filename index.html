@@ -87,6 +87,9 @@
     <audio id="bgMusic" loop>
         <source src="bgmusic1.mp3" type="audio/mpeg">
     </audio>
+    <audio id="coinSound">
+        <source src="coin.mp3" type="audio/mpeg">
+    </audio>
     
     <div id="loadingScreen">
         <h2>Loading...</h2>
@@ -100,7 +103,6 @@
         <div id="roomName">The Cage</div>
         <div id="objective">Find key and escape</div>
     </div>
-
     <div id="inventory">
         <div id="inventoryTitle">Inventory</div>
         <div id="inventoryItems">Empty</div>
@@ -190,7 +192,6 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
     let scene, camera, renderer;
-
     let gameState = {
         currentRoom: 0,
         inventory: [],
@@ -203,7 +204,6 @@
         isMobile: false,
         showingInstructions: false
     };
-
     let playerGroup, ball;
     
         
@@ -242,13 +242,11 @@
             lastLookX: 0,
             lastLookY: 0
         };
-
         function isMobileDevice() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                    'ontouchstart' in window || 
                    navigator.maxTouchPoints > 0;
         }
-
         function setControlMode(mode) {
             gameState.controlMode = mode;
             gameState.isMobile = (mode === 'mobile');
@@ -441,39 +439,30 @@
  
         function init() {
     scene = new THREE.Scene();
-
     camera = new THREE.PerspectiveCamera(
         75,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
     );
-
     renderer = new THREE.WebGLRenderer({
         canvas: document.getElementById("gameCanvas"),
         antialias: true
     });
-
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
-
     camera.position.set(0, 2, 5);
-
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
     scene.add(light);
-
     console.log("Three.js initialized");
 }
-
 function startGame() {
     const bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 1;
 bgMusic.play().catch(err => {
     console.log("Music blocked until user interaction", err);
 });
-
     console.log("START GAME");
-
     init();
     setupControls();
     createPlayer();
@@ -483,8 +472,6 @@ bgMusic.play().catch(err => {
     updateMobileButtons();
     animate();
 }
-
-
  
         function createPlayer() {
             console.log('Creating player...');
@@ -534,18 +521,15 @@ bgMusic.play().catch(err => {
         function createRoom(roomIndex) {
             console.log('Creating room', roomIndex, ':', rooms[roomIndex].name);
             clearRoom();
-
             const room = rooms[roomIndex];
-
             document.getElementById('roomName').textContent = room.name;
-
             const hasKey1 = gameState.inventory.includes('key1');
             const hasKey2 = gameState.inventory.includes('key2');
             const hasKey3 = gameState.inventory.includes('key3');
             const hasKey4 = gameState.inventory.includes('key4');
             
             if (!hasKey1) {
-                document.getElementById('objective').textContent = 'Find the first golden crystel key! use the mini map on inscruction to help';
+                document.getElementById('objective').textContent = 'Find first golden crystel key! use the mini map on inscruction to help';
             } else if (!hasKey2) {
                 document.getElementById('objective').textContent = 'you got the first key! continue the prosess';
             } else if (!hasKey3) {
@@ -1067,11 +1051,9 @@ bgMusic.play().catch(err => {
              document.getElementById('instructionsPanel').style.display = 'none';
              gameState.showingInstructions = false;
          });
-
          document.getElementById('modeKeyboard').addEventListener('click', () => {
              setControlMode('keyboard');
          });
-
          document.getElementById('modeMobile').addEventListener('click', () => {
              setControlMode('mobile');
          });
@@ -1102,12 +1084,9 @@ bgMusic.play().catch(err => {
         gameState.showingInstructions ||
         !gameState.gameStarted
     ) return;
-
     const speed = gameState.isMobile ? 6 : 12;
-
     const moveX = Math.sin(yaw) * speed * deltaTime;
     const moveZ = Math.cos(yaw) * speed * deltaTime;
-
     if (keys.forward) {
         playerState.velocity.x += moveX;
         playerState.velocity.z += moveZ;
@@ -1124,22 +1103,17 @@ bgMusic.play().catch(err => {
         playerState.velocity.x -= moveZ;
         playerState.velocity.z += moveX;
     }
-
     let newX = playerState.position.x + playerState.velocity.x;
     let newZ = playerState.position.z + playerState.velocity.z;
-
     const velX = playerState.velocity.x;
     const velZ = playerState.velocity.z;
-
     roomObjects.obstacles.forEach(obs => {
         if (obs.type !== 'box') return;
-
         const obsHalf = obs.size / 2 + 0.8;
         const minX = obs.x - obsHalf;
         const maxX = obs.x + obsHalf;
         const minZ = obs.z - obsHalf;
         const maxZ = obs.z + obsHalf;
-
         if (newX > minX && newX < maxX && newZ > minZ && newZ < maxZ) {
             if (playerState.position.y < obs.size + 0.5) {
                 if (Math.abs(velX) > Math.abs(velZ)) {
@@ -1150,30 +1124,21 @@ bgMusic.play().catch(err => {
             }
         }
     });
-
     roomObjects.walls.forEach(wall => {
     const ry = wall.ry || 0;
-
     const nx = Math.sin(ry);
     const nz = Math.cos(ry);
-
     const tx = Math.cos(ry);
     const tz = -Math.sin(ry);
-
     const px = playerState.position.x - wall.x;
     const pz = playerState.position.z - wall.z;
-
     const cx = newX - wall.x;
     const cz = newZ - wall.z;
-
     const prevDist = px * nx + pz * nz;
     const dist     = cx * nx + cz * nz;
-
     const along = cx * tx + cz * tz;
     const halfLen = wall.w / 2;
-
     const limit = 1.3;
-
     if (
         prevDist * dist < 0 &&                 
         Math.abs(along) < halfLen + 0.5        
@@ -1182,28 +1147,23 @@ bgMusic.play().catch(err => {
         newZ = playerState.position.z;
     }
 });
-
     roomObjects.doors.forEach(door => {
         if (door.unlocked) return;
-
         const w = 3;
         const minX = door.x - w;
         const maxX = door.x + w;
         const minZ = door.z - 0.5;
         const maxZ = door.z + 0.5;
-
         const wasOutside =
             playerState.position.x < minX ||
             playerState.position.x > maxX ||
             playerState.position.z < minZ ||
             playerState.position.z > maxZ;
-
         const wouldCollide =
             newX > minX - 0.8 &&
             newX < maxX + 0.8 &&
             newZ > minZ - 0.8 &&
             newZ < maxZ + 0.8;
-
         if (wouldCollide && wasOutside) {
             if (Math.abs(velX) > Math.abs(velZ)) {
                 newX = playerState.position.x;
@@ -1212,71 +1172,54 @@ bgMusic.play().catch(err => {
             }
         }
     });
-
     const PLAYER_RADIUS = 1;
-
 let minX = Infinity;
 let maxX = -Infinity;
 let minZ = Infinity;
 let maxZ = -Infinity;
-
 roomObjects.walls.forEach(wall => {
     const halfW = wall.w / 2;
-
     minX = Math.min(minX, wall.x - halfW);
     maxX = Math.max(maxX, wall.x + halfW);
     minZ = Math.min(minZ, wall.z - 0.5);
     maxZ = Math.max(maxZ, wall.z + 0.5);
 });
-
 playerState.position.x = Math.max(
     minX + PLAYER_RADIUS,
     Math.min(maxX - PLAYER_RADIUS, newX)
 );
-
 playerState.position.z = Math.max(
     minZ + PLAYER_RADIUS,
     Math.min(maxZ - PLAYER_RADIUS, newZ)
 );
-
-
     if (keys.jump && !playerState.isJumping) {
         playerState.isJumping = true;
         playerState.jumpVelocity = 12;
     }
-
     if (playerState.isJumping) {
         playerState.jumpVelocity -= 25 * deltaTime;
         playerState.position.y += playerState.jumpVelocity * deltaTime;
-
         if (playerState.position.y <= 1) {
             playerState.position.y = 1;
             playerState.isJumping = false;
             playerState.jumpVelocity = 0;
         }
     }
-
     playerGroup.position.set(
         playerState.position.x,
         playerState.position.y - 1,
         playerState.position.z
     );
-
    if (keys.forward || keys.backward || keys.left || keys.right) {
     ball.rotation.x += playerState.velocity.z * 0.5;
     ball.rotation.z -= playerState.velocity.x * 0.5;
 }
-
 playerState.velocity.x = 0;
 playerState.velocity.z = 0;
-
-
     
 }
-
         function checkCollisions() {
             if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
-
             for (let i = roomObjects.keys.length - 1; i >= 0; i--) {
                 const key = roomObjects.keys[i];
                 if (key.collected) continue;
@@ -1287,23 +1230,21 @@ playerState.velocity.z = 0;
                     console.log('=== KEY COLLECTED ===');
                     console.log('Key type:', key.type);
                     console.log('Inventory BEFORE:', gameState.inventory);
-
                     key.collected = true;
                     gameState.inventory.push(key.type);
-
+                    const coinSound = document.getElementById('coinSound');
+                    coinSound.volume = 0.5;
+                    coinSound.currentTime = 0;
+                    coinSound.play().catch(err => console.log('Coin sound play error:', err));
                     console.log('Inventory AFTER:', gameState.inventory);
-
                     scene.remove(key.mesh);
                     roomObjects.keys.splice(i, 1);
-
                     console.log('Removed key mesh from scene');
                     console.log('Spliced key from array');
                     console.log('Calling updateInventory...');
                     updateInventory();
-
                     console.log('Calling updateDoors...');
                     updateDoors();
-
                     console.log('Calling updateObjective...');
                     try {
                         updateObjective();
@@ -1311,10 +1252,8 @@ playerState.velocity.z = 0;
                     } catch (e) {
                         console.error('updateObjective error:', e);
                     }
-
                     console.log('Calling updateMobileButtons...');
                     updateMobileButtons();
-
                     console.log('=== KEY COLLECTION DONE ===');
                     break;
                 }
@@ -1410,7 +1349,7 @@ playerState.velocity.z = 0;
             const lookZ = playerState.position.z + Math.cos(yaw) * 2;
             const lookY = playerState.position.y + pitch * 5;
             
-            camera.lookAt(lookX, lookY, lookZ);
+            camera.lookAt(lookX, lookY, lookY);
         }
   
         function updateInventory() {
@@ -1457,12 +1396,10 @@ playerState.velocity.z = 0;
             } else {
                 document.getElementById('objective').textContent = 'Defeat Weeke!';
             }*/
-
             const hasKey1 = gameState.inventory.includes('key1');
             const hasKey2 = gameState.inventory.includes('key2');
             const hasKey3 = gameState.inventory.includes('key3');
             const hasKey4 = gameState.inventory.includes('key4');
-
             let newText = '';
             if (!hasKey1) {
                 newText = 'Find the first golden crystel key! <br> use the mini map on inscruction to help';
@@ -1475,7 +1412,6 @@ playerState.velocity.z = 0;
             } else {
                 newText = 'Defeat Weeke!';
             }
-
             objectiveEl.innerHTML = newText;
         }
  
@@ -1611,7 +1547,6 @@ playerState.velocity.z = 0;
                  renderer.setSize(canvas.width, canvas.height);
              }
          };
-
         window.testObjective = function(text) {
             const el = document.getElementById('objective');
             if (!el) {
@@ -1620,7 +1555,6 @@ playerState.velocity.z = 0;
             }
             el.textContent = text;
         }
-
         window.debugInv = function() {
             console.log('=== DEBUG INVENTORY ===');
             console.log('Inventory array:', gameState.inventory);
@@ -1630,7 +1564,6 @@ playerState.velocity.z = 0;
             console.log('Has key4?', gameState.inventory.includes('key4'));
             console.log('=== END DEBUG ===');
         }
-
         window.forceUpdate = function() {
             console.log('=== FORCE UPDATE ===');
             updateObjective();
