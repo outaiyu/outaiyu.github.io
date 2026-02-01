@@ -538,8 +538,8 @@ bgMusic.play().catch(err => {
                 room.walls.forEach(wall => {
                     const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
-                        color: isFinalRoomWall ? 0xFFCC00 : 0x6a5a7a,
-                        emissive: isFinalRoomWall ? 0xFF9900 : 0x3a3a4a,
+                        color: isFinalRoomWall ? 0xFF0000 : 0x6a5a7a,
+                        emissive: isFinalRoomWall ? 0xCC0000 : 0x3a3a4a,
                         emissiveIntensity: 0.2
                     });
                     if (wall.hasDoor) {
