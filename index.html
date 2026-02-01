@@ -1182,8 +1182,6 @@ bgMusic.play().catch(err => {
                         }
                     }
                 }
-                playerState.position.x = newX;
-                playerState.position.z = newZ;
             });
     roomObjects.walls.forEach(wall => {
     const ry = wall.ry || 0;
@@ -1263,10 +1261,7 @@ playerState.position.z = Math.max(
       ball.rotation.z -= playerState.velocity.x * 0.5;
   }
     playerState.velocity.x = 0;
-playerState.velocity.z = 0;
-    playerState.position.x = newX;
-    playerState.position.z = newZ;
-    playerState.position.y = newY;
+    playerState.velocity.z = 0;
     
 }
         function checkCollisions() {
