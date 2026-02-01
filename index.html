@@ -534,10 +534,10 @@ bgMusic.play().catch(err => {
             console.log('Ground created');
             
             if (room.walls && room.walls.length > 0) {
-                const wallHeight = 16;
                 const doorWidth = 6;
                 room.walls.forEach(wall => {
                     const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
+                    const wallHeight = isFinalRoomWall ? 16 : 8;
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
                         color: isFinalRoomWall ? 0xFFD700 : 0x8B7355,
                         emissive: isFinalRoomWall ? 0xCC9900 : 0x4A3728,
@@ -700,8 +700,10 @@ bgMusic.play().catch(err => {
                         transparent: true,
                         opacity: gameState.inventory.includes(door.needsKey) ? 0.3 : 1.0
                     });
+                    const isYellowWallDoor = door.z >= -110 && door.z <= -60;
+                    const doorHeight = isYellowWallDoor ? 16 : 8;
                     const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
-                    doorMesh.position.set(door.x, 3.5, door.z);
+                    doorMesh.position.set(door.x, doorHeight / 2, door.z);
                     doorMesh.castShadow = true;
                     doorMesh.receiveShadow = true;
                     scene.add(doorMesh);
@@ -715,14 +717,14 @@ bgMusic.play().catch(err => {
                         unlocked: gameState.inventory.includes(door.needsKey) 
                     });
                     
-                    const doorFrameGeometry = new THREE.BoxGeometry(7, 8, 1.2);
+                    const doorFrameGeometry = new THREE.BoxGeometry(7, doorHeight, 1.2);
                     const doorFrameMaterial = new THREE.MeshPhongMaterial({ 
                         color: 0x8b4513,
                         emissive: 0x4a2008,
                         emissiveIntensity: 0.3
                     });
                     const doorFrameMesh = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
-                    doorFrameMesh.position.set(door.x, 4, door.z);
+                    doorFrameMesh.position.set(door.x, doorHeight / 2, door.z);
                     doorFrameMesh.castShadow = true;
                     doorFrameMesh.receiveShadow = true;
                     scene.add(doorFrameMesh);
