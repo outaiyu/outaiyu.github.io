@@ -276,36 +276,35 @@
  
         const story = {
             intro: [
-                { speaker: '???', text: 'Ah... you finally wake.' },
-                { speaker: 'You', text: 'Who are you? Where am I?' },
-                { speaker: 'Weeke', text: 'I am Weeke. This is my labyrinth.' },
-                { speaker: 'Weeke', text: 'Four keys lie ahead. Collect them all.' },
-                { speaker: 'You', text: 'Let me go!' },
-                { speaker: 'Weeke', text: 'Escape? Perhaps... if you can solve my puzzles.' },
-                { speaker: 'Weeke', text: 'The challenge begins...' }
+                { speaker: 'Waitress', text: 'Hi there! Welcome to McDonald\'s!' },
+                { speaker: 'Bob', text: 'Hi! I\'m Bob. I\'m really hungry for a burger!' },
+                { speaker: 'Waitress', text: 'Sorry Bob, our burgers cost $4. You need to collect money first!' },
+                { speaker: 'Bob', text: 'Where can I find money?' },
+                { speaker: 'Waitress', text: 'There are 4 dollar bills scattered around. Good luck!' },
+                { speaker: 'Bob', text: 'I\'m on my way!'}
             ],
             key1Collected: [
-                { speaker: 'Weeke', text: 'One key found. Three remain.' }
+                { speaker: 'Waitress', text: 'One dollar found. Three more to go!' }
             ],
             key2Collected: [
-                { speaker: 'Weeke', text: 'Two keys found. Continue.' }
+                { speaker: 'Waitress', text: 'Two dollars collected. Keep going!' }
             ],
             key3Collected: [
-                { speaker: 'Weeke', text: 'Three keys found. Almost there.' }
+                { speaker: 'Waitress', text: 'Three dollars! Almost there for your burger!' }
             ],
             key4Collected: [
-                { speaker: 'Weeke', text: 'All keys collected. Face me if you dare.' }
+                { speaker: 'Waitress', text: 'All money collected! Come order your burger!' }
             ],
             victory: [
-                { speaker: 'You', text: 'I\'m free at last.' },
-                { speaker: 'Weeke', text: 'Impossible... You defeated me.' },
-                { speaker: 'You', text: 'Goodbye, Weeke.' }
+                { speaker: 'Bob', text: 'Here\'s my $4! Can I get a burger please?' },
+                { speaker: 'Waitress', text: 'Sure thing Bob! Here\'s your delicious burger!' },
+                { speaker: 'Bob', text: 'Thanks! This burger is amazing! Bye!' }
             ]
         };
  
         const rooms = [
             {
-                name: 'Weeke\'s Labyrinth',
+                name: 'McDonald\'s',
                 size: { width: 70, depth: 220 },
                 walls: [
                     { x: 0, z: 110, w: 70, ry: 0, hasDoor: false },
@@ -414,18 +413,7 @@
                     { type: 'spike', x: -12, z: -60 },
                     { type: 'spike', x: 28, z: -65 },
                     { type: 'spike', x: -28, z: -65 },
-                    { type: 'blade', x: 15, z: -70, rotation: 0 },
-                    { type: 'blade', x: -15, z: -70, rotation: 0 },
-                    { type: 'spike', x: 12, z: -75 },
-                    { type: 'spike', x: -12, z: -75 },
-                    { type: 'spike', x: 8, z: -85 },
-                    { type: 'spike', x: -8, z: -85 },
-                    { type: 'spike', x: 22, z: -90 },
-                    { type: 'spike', x: -22, z: -90 },
-                    { type: 'blade', x: 15, z: -95, rotation: 0 },
-                    { type: 'blade', x: -15, z: -95, rotation: 0 },
-                    { type: 'spike', x: 25, z: -100 },
-                    { type: 'spike', x: -25, z: -100 }
+                    { type: 'blade', x: 15, z: -70, rotation: 0 }
                 ],
                 pressurePlates: [
                     { x: 8, z: -95, id: 'plate1' },
@@ -537,15 +525,15 @@ bgMusic.play().catch(err => {
             const hasKey4 = gameState.inventory.includes('key4');
             
             if (!hasKey1) {
-                document.getElementById('objective').textContent = 'Find first golden crystel key! use mini map on instruction to help';
+                document.getElementById('objective').textContent = 'Find $1! Use minimap to help!';
             } else if (!hasKey2) {
-                document.getElementById('objective').textContent = 'you got first key! continue process';
+                document.getElementById('objective').textContent = 'You got $1! Find $2!';
             } else if (!hasKey3) {
-                document.getElementById('objective').textContent = 'half way already!';
+                document.getElementById('objective').textContent = 'You got $2! Find $3!';
             } else if (!hasKey4) {
-                document.getElementById('objective').textContent = 'go go go!';
+                document.getElementById('objective').textContent = 'Almost there! Find $4!';
             } else {
-                document.getElementById('objective').textContent = 'Defeat Weeke!';
+                document.getElementById('objective').textContent = 'Order your burger!';
             }
             
             const groundGeometry = new THREE.PlaneGeometry(room.size.width, room.size.depth);
@@ -631,17 +619,33 @@ bgMusic.play().catch(err => {
             
             room.keys.forEach(key => {
                 if (gameState.inventory.includes(key.type)) return;
-                const keyGeometry = new THREE.OctahedronGeometry(0.5, 0);
-                const keyMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xffd700, 
-                    emissive: 0xffaa00, 
+                const moneyGroup = new THREE.Group();
+                const billGeometry = new THREE.BoxGeometry(0.6, 0.8, 0.05);
+                const billMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x85BB65, 
+                    emissive: 0x4A8F54, 
+                    emissiveIntensity: 0.3 
+                });
+                const billMesh = new THREE.Mesh(billGeometry, billMaterial);
+                billMesh.position.y = 0.4;
+                billMesh.castShadow = true;
+                moneyGroup.add(billMesh);
+                
+                const symbolGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.06);
+                const symbolMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x1A7D37, 
+                    emissive: 0x0F5E28, 
                     emissiveIntensity: 0.5 
                 });
-                const keyMesh = new THREE.Mesh(keyGeometry, keyMaterial);
-                keyMesh.position.set(key.x, 1.5, key.z);
-                keyMesh.castShadow = true;
-                scene.add(keyMesh);
-                roomObjects.keys.push({ mesh: keyMesh, type: key.type, x: key.x, z: key.z, collected: false });
+                const symbolMesh = new THREE.Mesh(symbolGeometry, symbolMaterial);
+                symbolMesh.position.y = 0.4;
+                symbolMesh.castShadow = true;
+                moneyGroup.add(symbolMesh);
+                
+                moneyGroup.position.set(key.x, 1.5, key.z);
+                moneyGroup.rotation.y = Math.PI / 4;
+                scene.add(moneyGroup);
+                roomObjects.keys.push({ mesh: moneyGroup, type: key.type, x: key.x, z: key.z, collected: false });
             });
             console.log('Created', roomObjects.keys.length, 'keys');
             
@@ -723,37 +727,104 @@ bgMusic.play().catch(err => {
             }
             
             if (room.villain) {
-                const villainGroup = new THREE.Group();
-                const villainBody = new THREE.SphereGeometry(2, 16, 16);
-                const villainMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0x6666aa, 
-                    emissive: 0x333355, 
+                const waitressGroup = new THREE.Group();
+                const bodyMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFFC0CB, 
+                    emissive: 0xFF69B4, 
                     emissiveIntensity: 0.3 
                 });
-                const villainMesh = new THREE.Mesh(villainBody, villainMaterial);
-                villainMesh.position.y = 1.5;
-                villainMesh.castShadow = true;
-                villainGroup.add(villainMesh);
+                const bodyGeometry = new THREE.CylinderGeometry(0.8, 1, 2.5, 16);
+                const bodyMesh = new THREE.Mesh(bodyGeometry, bodyMaterial);
+                bodyMesh.position.y = 1.25;
+                bodyMesh.castShadow = true;
+                waitressGroup.add(bodyMesh);
                 
-                const villainEye1 = new THREE.SphereGeometry(0.25, 8, 8);
-                const villainEyeMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0x333333, 
-                    emissive: 0x111111, 
+                const headGeometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const headMesh = new THREE.Mesh(headGeometry, bodyMaterial);
+                headMesh.position.y = 2.75;
+                headMesh.castShadow = true;
+                waitressGroup.add(headMesh);
+                
+                const hatGeometry = new THREE.CylinderGeometry(0.6, 0.6, 0.3, 16);
+                const hatMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFF0000, 
+                    emissive: 0xCC0000, 
+                    emissiveIntensity: 0.3 
+                });
+                const hatMesh = new THREE.Mesh(hatGeometry, hatMaterial);
+                hatMesh.position.y = 3.2;
+                hatMesh.castShadow = true;
+                waitressGroup.add(hatMesh);
+                
+                const eyeGeometry = new THREE.SphereGeometry(0.08, 8, 8);
+                const eyeMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0x000000, 
+                    emissive: 0x333333, 
                     emissiveIntensity: 0.5 
                 });
-                const eye1 = new THREE.Mesh(villainEye1, villainEyeMaterial);
-                eye1.position.set(-0.7, 2.2, 1.8);
-                villainGroup.add(eye1);
-                const eye2 = new THREE.Mesh(villainEye1, villainEyeMaterial);
-                eye2.position.set(0.7, 2.2, 1.8);
-                villainGroup.add(eye2);
+                const eye1 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+                eye1.position.set(-0.15, 2.85, 0.45);
+                waitressGroup.add(eye1);
+                const eye2 = new THREE.Mesh(eyeGeometry, eyeMaterial);
+                eye2.position.set(0.15, 2.85, 0.45);
+                waitressGroup.add(eye2);
                 
-                villainGroup.position.set(0, 0, -90);
-                villainGroup.rotation.y = 0.3;
-                scene.add(villainGroup);
-                roomObjects.villain = { mesh: villainGroup, defeated: false, canInteract: false };
-                console.log('Villain created');
+                const smileGeometry = new THREE.TorusGeometry(0.15, 0.03, 8, 16, Math.PI);
+                const smileMaterial = new THREE.MeshPhongMaterial({ color: 0xFF0000 });
+                const smileMesh = new THREE.Mesh(smileGeometry, smileMaterial);
+                smileMesh.position.set(0, 2.65, 0.45);
+                smileMesh.rotation.x = Math.PI / 2;
+                waitressGroup.add(smileMesh);
+                
+                waitressGroup.position.set(0, 0, -90);
+                waitressGroup.rotation.y = 0;
+                scene.add(waitressGroup);
+                roomObjects.villain = { mesh: waitressGroup, defeated: false, canInteract: false };
+                console.log('Waitress created');
             }
+            
+            const counterMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513, emissive: 0x4A2008, emissiveIntensity: 0.2 });
+            const counterGeometry = new THREE.BoxGeometry(12, 1, 2);
+            const counter = new THREE.Mesh(counterGeometry, counterMaterial);
+            counter.position.set(0, 0.5, -100);
+            counter.castShadow = true;
+            scene.add(counter);
+            
+            for (let i = 0; i < 4; i++) {
+                const tableMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700, emissive: 0xCC9900, emissiveIntensity: 0.2 });
+                const tableGeometry = new THREE.CylinderGeometry(1.2, 1.2, 0.1, 16);
+                const table = new THREE.Mesh(tableGeometry, tableMaterial);
+                table.position.set((i - 1.5) * 3, 0.55, -95);
+                table.castShadow = true;
+                scene.add(table);
+                
+                const chairMaterial = new THREE.MeshPhongMaterial({ color: 0xFF4500, emissive: 0xCC3300, emissiveIntensity: 0.2 });
+                const chairGeometry = new THREE.BoxGeometry(0.5, 0.8, 0.5);
+                const chair = new THREE.Mesh(chairGeometry, chairMaterial);
+                chair.position.set((i - 1.5) * 3 + 0.6, 0.4, -95);
+                chair.castShadow = true;
+                scene.add(chair);
+                
+                const chair2 = new THREE.Mesh(chairGeometry, chairMaterial);
+                chair2.position.set((i - 1.5) * 3 - 0.6, 0.4, -95);
+                chair2.castShadow = true;
+                scene.add(chair2);
+            }
+            
+            const floorMaterial = new THREE.MeshPhongMaterial({ color: 0xFFA500, emissive: 0xCC8400, emissiveIntensity: 0.1 });
+            const floorGeometry = new THREE.PlaneGeometry(8, 30);
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.set(0, 0.01, -85);
+            floor.receiveShadow = true;
+            scene.add(floor);
+            
+            const signMaterial = new THREE.MeshPhongMaterial({ color: 0xFF0000, emissive: 0xCC0000, emissiveIntensity: 0.3 });
+            const signGeometry = new THREE.BoxGeometry(6, 1.5, 0.1);
+            const sign = new THREE.Mesh(signGeometry, signMaterial);
+            sign.position.set(25, 2, -85);
+            sign.castShadow = true;
+            scene.add(sign);
             
             playerState.position.x = 0;
             playerState.position.z = 100;
@@ -1422,10 +1493,10 @@ playerState.position.z = Math.max(
                 return;
             }
             if (gameState.inventory.length === 0) {
-                itemsDiv.textContent = 'Empty';
+                itemsDiv.textContent = '$0';
             } else {
                 itemsDiv.innerHTML = gameState.inventory.map(item =>
-                    '<div style="color: #ffd700; margin: 3px 0;">' + item.replace('key', 'Key ') + '</div>'
+                    '<div style="color: #85BB65; margin: 3px 0;">$' + item.replace('key', '') + '</div>'
                 ).join('');
             }
         }
@@ -1454,15 +1525,15 @@ playerState.position.z = Math.max(
             const hasKey4 = gameState.inventory.includes('key4');
             let newText = '';
             if (!hasKey1) {
-                newText = 'Find first golden crystel key! <br> use mini map on instruction to help';
+                newText = 'Find $1! <br> Use minimap to help!';
             } else if (!hasKey2) {
-                newText = 'you got first key! continue process';
+                newText = 'You got $1! Find $2!';
             } else if (!hasKey3) {
-                newText = 'half way already!';
+                newText = 'You got $2! Find $3!';
             } else if (!hasKey4) {
-                newText = 'go go go!';
+                newText = 'Almost there! Find $4!';
             } else {
-                newText = 'Defeat Weeke!';
+                newText = 'Order your burger!';
             }
             objectiveEl.innerHTML = newText;
         }
