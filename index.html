@@ -906,14 +906,6 @@ bgMusic.play().catch(err => {
     console.log('Waitress created');
 }
             
-            const woodFloorMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513, emissive: 0x5C3317, emissiveIntensity: 0.1 });
-            const woodFloorGeometry = new THREE.PlaneGeometry(70, 50);
-            const woodFloor = new THREE.Mesh(woodFloorGeometry, woodFloorMaterial);
-            woodFloor.rotation.x = -Math.PI / 2;
-            woodFloor.position.set(0, 0.01, -80);
-            woodFloor.receiveShadow = true;
-            scene.add(woodFloor);
-            
             playerState.position.x = 0;
             playerState.position.z = 100;
             playerState.position.y = 1;
