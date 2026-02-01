@@ -315,10 +315,10 @@
                     { x: 35, z: -85, w: 50, ry: Math.PI / 2, hasDoor: false },
                     { x: 0, z: 40, w: 70, ry: 0, hasDoor: true },
                     { x: 0, z: -20, w: 70, ry: 0, hasDoor: true, needsKey: 'key2' },
-                    { x: 0, z: -60, w: 70, ry: 0, hasDoor: true, needsKey: 'key3' }
+                    { x: 0, z: -60, w: 70, ry: 0, hasDoor: true }
                 ],
                 glassDoors: [
-                    { x: 0, z: -95 }
+                    { x: 0, z: -60 }
                 ],
                 obstacles: [
                     { x: 15, z: 95 },
@@ -1483,22 +1483,22 @@ playerState.position.z = Math.max(
                         }
                         door.openProgress = Math.min(1, door.openProgress + 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.x = door.x - slideAmount;
+                        door.mesh.position.y = 3.5 - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.mesh.position.x = door.x - slideAmount;
+                            glassDoor.mesh.position.y = 3.5 - slideAmount;
                         }
                     } else if (door.isOpen && distance > 9) {
                         door.openProgress = Math.max(0, door.openProgress - 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.x = door.x - slideAmount;
+                        door.mesh.position.y = 3.5 - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.mesh.position.x = door.x - slideAmount;
+                            glassDoor.mesh.position.y = 3.5 - slideAmount;
                         }
                         if (door.openProgress === 0) {
                             door.isOpen = false;
