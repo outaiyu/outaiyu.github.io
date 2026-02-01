@@ -739,8 +739,7 @@ bgMusic.play().catch(err => {
                     emissiveIntensity: 0.2 
                 });
                 const hat = new THREE.Mesh(hatGeometry, hatMaterial);
-                hat.position.set(1.2, 1.5, 0);
-                hat.rotation.z = Math.PI / 2;
+                hat.position.set(0, 2.5, 0);
                 hat.castShadow = true;
                 waitressGroup.add(hat);
                 
