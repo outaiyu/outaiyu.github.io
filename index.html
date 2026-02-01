@@ -789,9 +789,9 @@ bgMusic.play().catch(err => {
                         shininess: 100
                     });
                     
-                    const doorGeometry = new THREE.BoxGeometry(6, 7, 0.2);
+                    const doorGeometry = new THREE.BoxGeometry(6, 8, 0.2);
                     const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
-                    doorMesh.position.set(glassDoor.x, 3.5, glassDoor.z);
+                    doorMesh.position.set(glassDoor.x, 4, glassDoor.z);
                     doorMesh.castShadow = true;
                     doorMesh.receiveShadow = true;
                     scene.add(doorMesh);
