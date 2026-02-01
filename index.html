@@ -1133,55 +1133,37 @@ bgMusic.play().catch(err => {
         playerState.jumpVelocity = 0;
     }
     roomObjects.obstacles.forEach(obs => {
-        if (obs.type === 'blade') {
-            return;
-        }
-                const boxSize = obs.size || 3;
-                const boxHalf = boxSize / 2;
-                const playerRadius = 1;
-                const minX = obs.x - boxHalf;
-                const maxX = obs.x + boxHalf;
-                const minZ = obs.z - boxHalf;
-                const maxZ = obs.z + boxHalf;
-                const clampedX = Math.max(minX, Math.min(maxX, newX));
-                const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
-                const closestX = newX - clampedX;
-                const closestZ = newZ - clampedZ;
-                const distanceSquared = closestX * closestX + closestZ * closestZ;
-                if (distanceSquared < playerRadius * playerRadius) {
-                    const boxTop = obs.type === 'spike' ? 0.8 : boxSize;
-                    
-                    if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
-                        newX = playerState.position.x;
-                        newZ = playerState.position.z;
-                        playerState.velocity.x = 0;
-                        playerState.velocity.z = 0;
-                        
-                        if (playerState.isJumping && playerState.jumpVelocity < 0) {
-                            playerState.isJumping = false;
-                            playerState.jumpVelocity = 0;
-                            playerState.position.y = Math.max(1, boxTop - playerRadius);
-                        }
-                    } else {
-                        const distance = Math.sqrt(distanceSquared);
-                        const overlap = playerRadius - distance;
-                        if (distance > 0.001) {
-                            newX = newX + (closestX / distance) * overlap;
-                            newZ = newZ + (closestZ / distance) * overlap;
-                        } else {
-                            const dirX = newX - playerState.position.x;
-                            const dirZ = newZ - playerState.position.z;
-                            const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
-                            if (dirLength > 0.001) {
-                                newX = newX + (dirX / dirLength) * playerRadius;
-                                newZ = newZ + (dirZ / dirLength) * playerRadius;
-                            } else {
-                                newX = playerState.position.x;
-                                newZ = playerState.position.z;
-                            }
-                        }
-                    }
+        const boxSize = obs.size || 3;
+        const boxHalf = boxSize / 2;
+        const playerRadius = 1;
+        const minX = obs.x - boxHalf;
+        const maxX = obs.x + boxHalf;
+        const minZ = obs.z - boxHalf;
+        const maxZ = obs.z + boxHalf;
+        const clampedX = Math.max(minX, Math.min(maxX, newX));
+        const clampedZ = Math.max(minZ, Math.min(maxZ, newZ));
+        const closestX = newX - clampedX;
+        const closestZ = newZ - clampedZ;
+        const distanceSquared = closestX * closestX + closestZ * closestZ;
+        if (distanceSquared < playerRadius * playerRadius) {
+            const distance = Math.sqrt(distanceSquared);
+            const overlap = playerRadius - distance;
+            if (distance > 0.001) {
+                newX = newX + (closestX / distance) * overlap;
+                newZ = newZ + (closestZ / distance) * overlap;
+            } else {
+                const dirX = newX - playerState.position.x;
+                const dirZ = newZ - playerState.position.z;
+                const dirLength = Math.sqrt(dirX * dirX + dirZ * dirZ);
+                if (dirLength > 0.001) {
+                    newX = newX + (dirX / dirLength) * playerRadius;
+                    newZ = newZ + (dirZ / dirLength) * playerRadius;
+                } else {
+                    newX = playerState.position.x;
+                    newZ = playerState.position.z;
                 }
+            }
+        }
             });
     roomObjects.walls.forEach(wall => {
     const ry = wall.ry || 0;
