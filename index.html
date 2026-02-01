@@ -723,8 +723,8 @@ bgMusic.play().catch(err => {
                 const waitressGroup = new THREE.Group();
                 const waitressBody = new THREE.SphereGeometry(1.5, 16, 16);
                 const waitressMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xFF0000, 
-                    emissive: 0xCC0000, 
+                    color: 0xE60000, 
+                    emissive: 0xB30000, 
                     emissiveIntensity: 0.3 
                 });
                 const waitressMesh = new THREE.Mesh(waitressBody, waitressMaterial);
@@ -739,7 +739,8 @@ bgMusic.play().catch(err => {
                     emissiveIntensity: 0.2 
                 });
                 const hat = new THREE.Mesh(hatGeometry, hatMaterial);
-                hat.position.y = 3.3;
+                hat.position.set(1.2, 1.5, 0);
+                hat.rotation.z = Math.PI / 2;
                 hat.castShadow = true;
                 waitressGroup.add(hat);
                 
