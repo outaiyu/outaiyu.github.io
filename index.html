@@ -732,15 +732,16 @@ bgMusic.play().catch(err => {
                 waitressMesh.castShadow = true;
                 waitressGroup.add(waitressMesh);
 
-                const hatGeometry = new THREE.ConeGeometry(0.8, 1.0, 3);
+                const hatGeometry = new THREE.ConeGeometry(0.6, 0.9, 32);
                 const hatMaterial = new THREE.MeshPhongMaterial({ 
                     color: 0xFFFFFF,
                     emissive: 0xE0E0E0,
                     emissiveIntensity: 0.2
                 });
                 const hat = new THREE.Mesh(hatGeometry, hatMaterial);
-                hat.position.set(0, 2.4, 0);
-                hat.rotation.x = Math.PI / 8;
+                hat.position.set(0, 2.3, -0.2);
+                hat.rotation.x = 0.1;
+                hat.rotation.z = 0.1;
                 hat.castShadow = true;
                 waitressGroup.add(hat);
 
