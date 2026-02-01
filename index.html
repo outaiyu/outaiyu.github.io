@@ -723,14 +723,25 @@ bgMusic.play().catch(err => {
                 const waitressGroup = new THREE.Group();
                 const waitressBody = new THREE.SphereGeometry(1.5, 16, 16);
                 const waitressMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xFF69B4, 
-                    emissive: 0xCC44AA, 
+                    color: 0xFF0000, 
+                    emissive: 0xCC0000, 
                     emissiveIntensity: 0.3 
                 });
                 const waitressMesh = new THREE.Mesh(waitressBody, waitressMaterial);
                 waitressMesh.position.y = 1.5;
                 waitressMesh.castShadow = true;
                 waitressGroup.add(waitressMesh);
+                
+                const hatGeometry = new THREE.ConeGeometry(0.8, 0.6, 3);
+                const hatMaterial = new THREE.MeshPhongMaterial({ 
+                    color: 0xFFFFFF, 
+                    emissive: 0xE0E0E0, 
+                    emissiveIntensity: 0.2 
+                });
+                const hat = new THREE.Mesh(hatGeometry, hatMaterial);
+                hat.position.y = 3.3;
+                hat.castShadow = true;
+                waitressGroup.add(hat);
                 
                 const eyeGeometry = new THREE.SphereGeometry(0.25, 8, 8);
                 const eyeMaterial = new THREE.MeshPhongMaterial({ 
