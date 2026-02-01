@@ -1393,6 +1393,27 @@ bgMusic.play().catch(err => {
             }
         }
     });
+    
+    if (roomObjects.villain && !roomObjects.villain.defeated) {
+        const villainX = roomObjects.villain.mesh.position.x;
+        const villainZ = roomObjects.villain.mesh.position.z;
+        const villainRadius = 1.8;
+        const dx = newX - villainX;
+        const dz = newZ - villainZ;
+        const distance = Math.sqrt(dx * dx + dz * dz);
+        const minDistance = 1 + villainRadius;
+        if (distance < minDistance) {
+            const overlap = minDistance - distance;
+            if (distance > 0.001) {
+                newX = newX + (dx / distance) * overlap;
+                newZ = newZ + (dz / distance) * overlap;
+            } else {
+                newX = playerState.position.x;
+                newZ = playerState.position.z;
+            }
+        }
+    }
+    
     const PLAYER_RADIUS = 1;
 let minX = Infinity;
 let maxX = -Infinity;
