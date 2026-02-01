@@ -1342,7 +1342,7 @@ bgMusic.play().catch(err => {
         if (door.type === 'glass') {
             const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
             if (glassDoor && glassDoor.openProgress < 0.85) {
-                const slideAmount = glassDoor.openProgress * 5;
+                const slideAmount = glassDoor.openProgress * 8;
                 const doorCenter = glassDoor.x - slideAmount;
                 const w = 3;
                 const minX = doorCenter - w;
@@ -1482,7 +1482,7 @@ playerState.position.z = Math.max(
                             door.isOpen = true;
                         }
                         door.openProgress = Math.min(1, door.openProgress + 0.08);
-                        const slideAmount = door.openProgress * 5;
+                        const slideAmount = door.openProgress * 8;
                         door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
@@ -1492,7 +1492,7 @@ playerState.position.z = Math.max(
                         }
                     } else if (door.isOpen && distance > 9) {
                         door.openProgress = Math.max(0, door.openProgress - 0.08);
-                        const slideAmount = door.openProgress * 5;
+                        const slideAmount = door.openProgress * 8;
                         door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
