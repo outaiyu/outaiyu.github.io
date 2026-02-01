@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>The Prisoner's Escape</title>
+    <title>Bob's Burger Quest</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { font-family: 'Arial', sans-serif; background: #1a1a2e; color: white; user-select: none; -webkit-user-select: none; }
@@ -137,7 +137,7 @@
         <h2>HOW TO PLAY</h2>
         <div class="section">
             <h3>🎮 OBJECTIVE</h3>
-            <p>Collect all 4 golden crystel keys scattered throughout labyrinth, then defeat Weeke to escape!</p>
+            <p>Collect all 4 dollar bills scattered around, then order your burger from waitress!</p>
         </div>
         <div class="section">
             <h3>🎛 MODE</h3>
@@ -153,7 +153,7 @@
                 <li><b>WASD</b> - Move around</li>
                 <li><b>Mouse</b> - Look around (click to lock)</li>
                 <li><b>Space</b> - Jump over hazards</li>
-                <li><b>E</b> - Interact with villain</li>
+                <li><b>E</b> - Interact with waitress</li>
                 <li><b>I</b> - Show/hide these instructions</li>
                 <li><b>ESC</b> - Skip dialogue</li>
             </ul>
@@ -165,7 +165,7 @@
                 <li><b>Right side</b> - Touch and drag to look</li>
                 <li><b>JUMP button</b> - Jump over hazards</li>
                 <li><b>INFO button</b> - Show/hide these instructions</li>
-                <li><b>E button</b> - Interact with villain (appears after collecting all 4 keys)</li>
+                <li><b>E button</b> - Interact with waitress (appears after collecting all 4 dollars)</li>
             </ul>
         </div>
         <div class="section">
@@ -183,10 +183,10 @@
     </div>
     
     <div id="victoryScreen">
-        <h1>FREEDOM!</h1>
-        <p>You have escaped Weeke's trap!</p>
-        <p>Roll into light of freedom...</p>
-        <button onclick="location.reload()">PLAY AGAIN</button>
+        <h1>DELICIOUS!</h1>
+        <p>You got your burger!</p>
+        <p>Enjoy your meal...</p>
+        <button onclick="location.reload()">EAT AGAIN</button>
     </div>
  
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -1603,7 +1603,7 @@ playerState.position.z = Math.max(
             const btn = document.getElementById('startGameBtn');
             
             title.textContent = 'GAME OVER';
-            desc.textContent = 'You died...';
+            desc.textContent = 'You hit a hazard...';
             desc.style.display = 'block';
             btn.style.display = 'block';
             btn.textContent = 'TRY AGAIN';
@@ -1642,7 +1642,7 @@ playerState.position.z = Math.max(
             const loadingScreen = document.getElementById('loadingScreen');
             const startBtn = document.getElementById('startGameBtn');
             
-            document.getElementById('loadingScreen').querySelector('h2').textContent = 'Game Ready!';
+            document.getElementById('loadingScreen').querySelector('h2').textContent = 'Hungry for Burger?';
             document.getElementById('loadingScreen').querySelector('p').style.display = 'none';
             startBtn.style.display = 'block';
             
