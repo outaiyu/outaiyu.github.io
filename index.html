@@ -754,7 +754,7 @@ bgMusic.play().catch(err => {
     hat.castShadow = true;
     waitressGroup.add(hat);
     
-    const furGeometry = new THREE.CylinderGeometry(0.08, 0.15, 0.4, 16);
+    const furGeometry = new THREE.SphereGeometry(0.2, 32, 32);
     const furMaterial = new THREE.MeshPhongMaterial({ 
         color: 0xF5F5DC, 
         emissive: 0xD3D3D3, 
@@ -762,8 +762,7 @@ bgMusic.play().catch(err => {
         flatShading: false
     });
     const fur = new THREE.Mesh(furGeometry, furMaterial);
-    fur.position.set(0, 3.5, -1.8);
-    fur.rotation.x = -Math.PI / 4;
+    fur.position.set(0, 3.23, -1.73);
     fur.castShadow = true;
     waitressGroup.add(fur);
     
