@@ -1020,7 +1020,7 @@ bgMusic.play().catch(err => {
                                   gameState.inventory.includes('key3') && 
                                   gameState.inventory.includes('key4');
                  
-                 if (roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.vain.defeated && hasAllKeys) {
+                 if (roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys) {
                      keys.interact = true;
                      roomObjects.villain.defeated = true;
                      scene.remove(roomObjects.villain.mesh);
@@ -1181,7 +1181,6 @@ bgMusic.play().catch(err => {
                             }
                         }
                     }
-                }
                 }
                 playerState.position.x = newX;
                 playerState.position.z = newZ;
