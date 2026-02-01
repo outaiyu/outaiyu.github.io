@@ -347,7 +347,7 @@
                     { x: 0, z: 40, type: 'exit', needsKey: 'key1', toRoom: null },
                     { x: 0, z: -20, type: 'exit', needsKey: 'key2', toRoom: null },
                     { x: 0, z: -60, type: 'exit', needsKey: 'key3', toRoom: null },
-                    { x: 0, z: -100, type: 'exit', needsKey: 'key4', toRoom: null }
+                    { x: 0, z: -100, type: 'glass', needsKey: null, toRoom: null }
                 ],
                 traps: [
                     { type: 'spike', x: 15, z: 95 },
@@ -686,7 +686,8 @@ bgMusic.play().catch(err => {
                         x: door.x, 
                         z: door.z,
                         unlocked: true,
-                        isOpen: false
+                        isOpen: false,
+                        openProgress: 0
                     });
                 } else {
                     const doorGeometry = new THREE.BoxGeometry(6, 7, 1);
@@ -1295,6 +1296,33 @@ bgMusic.play().catch(err => {
     }
 });
     roomObjects.doors.forEach(door => {
+        if (door.type === 'glass') {
+            if (door.openProgress < 0.8) {
+                const w = 3;
+                const minX = door.x - w - door.openProgress * 4;
+                const maxX = door.x + w - door.openProgress * 4;
+                const minZ = door.z - 0.5;
+                const maxZ = door.z + 0.5;
+                const wasOutside =
+                    playerState.position.x < minX ||
+                    playerState.position.x > maxX ||
+                    playerState.position.z < minZ ||
+                    playerState.position.z > maxZ;
+                const wouldCollide =
+                    newX > minX - 0.8 &&
+                    newX < maxX + 0.8 &&
+                    newZ > minZ - 0.8 &&
+                    newZ < maxZ + 0.8;
+                if (wouldCollide && wasOutside) {
+                    if (Math.abs(velX) > Math.abs(velZ)) {
+                        newX = playerState.position.x;
+                    } else {
+                        newZ = playerState.position.z;
+                    }
+                }
+            }
+            return;
+        }
         if (door.unlocked) return;
         const w = 3;
         const minX = door.x - w;
@@ -1401,22 +1429,31 @@ playerState.position.z = Math.max(
                 const dx = playerState.position.x - door.x;
                 const dz = playerState.position.z - door.z;
                 const distance = Math.sqrt(dx * dx + dz * dz);
-                if (distance < 5) {
-                    if (door.type === 'glass') {
+                if (door.type === 'glass') {
+                    if (!door.openProgress) door.openProgress = 0;
+                    if (distance < 6) {
                         if (!door.isOpen) {
                             door.isOpen = true;
-                            door.mesh.material.opacity = 0.1;
                         }
-                    } else if (gameState.inventory.includes(door.needsKey) && !door.unlocked) {
+                        door.openProgress = Math.min(1, door.openProgress + 0.08);
+                        const slideAmount = door.openProgress * 4;
+                        door.mesh.position.x = door.x - slideAmount;
+                    } else if (door.isOpen && distance > 9) {
+                        door.openProgress = Math.max(0, door.openProgress - 0.08);
+                        const slideAmount = door.openProgress * 4;
+                        door.mesh.position.x = door.x - slideAmount;
+                        if (door.openProgress === 0) {
+                            door.isOpen = false;
+                        }
+                    }
+                } else {
+                    if (distance < 5 && gameState.inventory.includes(door.needsKey) && !door.unlocked) {
                         door.unlocked = true;
                         door.mesh.material.color.setHex(0x00ff00);
                         door.mesh.material.emissive.setHex(0x004400);
                         door.mesh.material.opacity = 0.3;
                         door.mesh.material.transparent = true;
                     }
-                } else if (door.type === 'glass' && door.isOpen && distance > 8) {
-                    door.isOpen = false;
-                    door.mesh.material.opacity = 0.3;
                 }
             });
             
