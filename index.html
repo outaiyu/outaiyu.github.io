@@ -536,7 +536,7 @@ bgMusic.play().catch(err => {
                 const wallHeight = 8;
                 const doorWidth = 6;
                 room.walls.forEach(wall => {
-                    const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
+                    const isFinalRoomWall = (wall.z >= -110 && wall.z <= -60) || (wall.x === -35 || wall.x === 35);
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
                         color: isFinalRoomWall ? 0xFF0000 : 0x6a5a7a,
                         emissive: isFinalRoomWall ? 0xCC0000 : 0x3a3a4a,
