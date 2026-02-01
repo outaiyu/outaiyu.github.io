@@ -1133,6 +1133,9 @@ bgMusic.play().catch(err => {
         playerState.jumpVelocity = 0;
     }
     roomObjects.obstacles.forEach(obs => {
+        if (obs.type === 'blade') {
+            return;
+        }
         const boxSize = obs.size || 3;
         const boxHalf = boxSize / 2;
         const playerRadius = 1;
