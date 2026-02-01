@@ -317,23 +317,23 @@
                     { x: 0, z: -100, w: 70, ry: 0, hasDoor: true, needsKey: 'key4' }
                 ],
                 obstacles: [
-                    { type: 'box', x: 15, z: 95, size: 3 },
-                    { type: 'box', x: -15, z: 95, size: 3 },
-                    { type: 'box', x: 0, z: 80, size: 2 },
-                    { type: 'box', x: 22, z: 70, size: 3 },
-                    { type: 'box', x: -22, z: 70, size: 3 },
-                    { type: 'box', x: 15, z: 55, size: 3 },
-                    { type: 'box', x: -15, z: 55, size: 3 },
-                    { type: 'box', x: 20, z: 25, size: 3 },
-                    { type: 'box', x: -20, z: 25, size: 3 },
-                    { type: 'box', x: 0, z: 0, size: 2 },
-                    { type: 'box', x: 18, z: -35, size: 4 },
-                    { type: 'box', x: -18, z: -35, size: 4 },
-                    { type: 'box', x: 0, z: -25, size: 3 },
-                    { type: 'box', x: 22, z: -75, size: 3 },
-                    { type: 'box', x: -22, z: -75, size: 3 },
-                    { type: 'box', x: 15, z: -95, size: 3 },
-                    { type: 'box', x: -15, z: -95, size: 3 }
+                    { x: 15, z: 95 },
+                    { x: -15, z: 95 },
+                    { x: 0, z: 80 },
+                    { x: 22, z: 70 },
+                    { x: -22, z: 70 },
+                    { x: 15, z: 55 },
+                    { x: -15, z: 55 },
+                    { x: 20, z: 25 },
+                    { x: -20, z: 25 },
+                    { x: 0, z: 0 },
+                    { x: 18, z: -35 },
+                    { x: -18, z: -35 },
+                    { x: 0, z: -25 },
+                    { x: 22, z: -75 },
+                    { x: -22, z: -75 },
+                    { x: 15, z: -95 },
+                    { x: -15, z: -95 }
                 ],
                 keys: [
                     { x: -20, z: 85, type: 'key1' },
@@ -508,12 +508,21 @@ bgMusic.play().catch(err => {
             roomObjects.keys.forEach(obj => scene.remove(obj.mesh));
             roomObjects.doors.forEach(obj => scene.remove(obj.mesh));
             roomObjects.walls.forEach(obj => scene.remove(obj.mesh));
+            if (roomObjects.blades) {
+                roomObjects.blades.forEach(obj => scene.remove(obj.mesh));
+            }
+            if (roomObjects.spikes) {
+                roomObjects.spikes.forEach(obj => scene.remove(obj.mesh));
+            }
+            if (roomObjects.traps) {
+                roomObjects.traps.forEach(obj => scene.remove(obj.mesh));
+            }
             
             if (roomObjects.villain && roomObjects.villain.mesh) {
                 scene.remove(roomObjects.villain.mesh);
             }
             
-            roomObjects = { obstacles: [], keys: [], doors: [], walls: [], villain: null };
+            roomObjects = { obstacles: [], keys: [], doors: [], walls: [], villain: null, blades: [], spikes: [], traps: [] };
             console.log('Room cleared');
         }
  
@@ -591,16 +600,31 @@ bgMusic.play().catch(err => {
                 console.log('Created', roomObjects.walls.length, 'walls');
             }
             
+            roomObjects.blades = [];
+            roomObjects.spikes = [];
             room.obstacles.forEach(obs => {
-                if (obs.type === 'box') {
-                    const boxGeometry = new THREE.BoxGeometry(obs.size, obs.size, obs.size);
-                    const boxMaterial = new THREE.MeshPhongMaterial({ color: 0x5a5a6a });
-                    const box = new THREE.Mesh(boxGeometry, boxMaterial);
-                    box.position.set(obs.x, obs.size / 2, obs.z);
-                    box.castShadow = true;
-                    box.receiveShadow = true;
-                    scene.add(box);
-                    roomObjects.obstacles.push({ mesh: box, type: 'box', x: obs.x, z: obs.z, size: obs.size });
+                if (gameState.isMobile) {
+                    const spikeGroup = new THREE.Group();
+                    for (let i = 0; i < 5; i++) {
+                        const spikeGeometry = new THREE.ConeGeometry(0.2, 0.8, 4);
+                        const spikeMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
+                        const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                        spike.position.set(i * 0.4 - 0.8, 0.4, 0);
+                        spikeGroup.add(spike);
+                    }
+                    spikeGroup.position.set(obs.x, 0, obs.z);
+                    scene.add(spikeGroup);
+                    roomObjects.obstacles.push({ mesh: spikeGroup, type: 'spike', x: obs.x, z: obs.z, size: 3 });
+                    roomObjects.spikes.push({ mesh: spikeGroup, x: obs.x, z: obs.z });
+                } else {
+                    const bladeGeometry = new THREE.BoxGeometry(3, 0.2, 0.5);
+                    const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
+                    const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                    blade.position.set(obs.x, 1.5, obs.z);
+                    blade.castShadow = true;
+                    scene.add(blade);
+                    roomObjects.obstacles.push({ mesh: blade, type: 'blade', x: obs.x, z: obs.z, size: 3, rotation: 0 });
+                    roomObjects.blades.push({ mesh: blade, x: obs.x, z: obs.z, rotation: 0 });
                 }
             });
             console.log('Created', roomObjects.obstacles.length, 'obstacles');
@@ -1109,8 +1133,7 @@ bgMusic.play().catch(err => {
         playerState.jumpVelocity = 0;
     }
     roomObjects.obstacles.forEach(obs => {
-                if (obs.type !== 'box') return;
-                const boxSize = obs.size;
+                const boxSize = obs.size || 3;
                 const boxHalf = boxSize / 2;
                 const playerRadius = 1;
                 const minX = obs.x - boxHalf;
@@ -1123,7 +1146,7 @@ bgMusic.play().catch(err => {
                 const closestZ = newZ - clampedZ;
                 const distanceSquared = closestX * closestX + closestZ * closestZ;
                 if (distanceSquared < playerRadius * playerRadius) {
-                    const boxTop = boxSize;
+                    const boxTop = obs.type === 'spike' ? 0.8 : boxSize;
                     
                     if (newY >= boxTop - 0.3 && newY < boxTop + 0.5) {
                         newX = playerState.position.x;
@@ -1321,6 +1344,19 @@ playerState.velocity.z = 0;
                 }
             });
             
+            roomObjects.obstacles.forEach(obs => {
+                if (obs.type === 'spike' && !playerState.isJumping) {
+                    const dx = playerState.position.x - obs.x;
+                    const dz = playerState.position.z - obs.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 1.5) {
+                        gameState.gameOver = true;
+                        console.log('Hit obstacle spikes');
+                        showGameOver();
+                    }
+                }
+            });
+            
              if (roomObjects.villain) {
                  const villain = roomObjects.villain;
                  const dx = playerState.position.x - villain.mesh.position.x;
@@ -1348,6 +1384,11 @@ playerState.velocity.z = 0;
                     trap.rotation += deltaTime * 2;
                     trap.mesh.rotation.y = trap.rotation;
                 }
+            });
+            
+            roomObjects.blades.forEach(blade => {
+                blade.rotation += deltaTime * 2;
+                blade.mesh.rotation.y = blade.rotation;
             });
             
             roomObjects.keys.forEach(key => {
@@ -1441,11 +1482,10 @@ playerState.velocity.z = 0;
             const centerY = 50;
             
             roomObjects.obstacles.forEach(obs => {
-                if (obs.type !== 'box') return;
                 const x = centerX + obs.x * scale;
                 const y = centerY + obs.z * scale;
-                const size = obs.size * scale;
-                minimapCtx.fillStyle = '#555';
+                const size = 3 * scale;
+                minimapCtx.fillStyle = obs.type === 'spike' ? '#666' : '#888';
                 minimapCtx.fillRect(x - size/2, y - size/2, size, size);
             });
             
