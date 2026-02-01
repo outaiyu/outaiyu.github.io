@@ -542,8 +542,8 @@ bgMusic.play().catch(err => {
                 room.walls.forEach(wall => {
                     const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
-                        color: isFinalRoomWall ? 0xFFCC00 : 0x6a5a7a,
-                        emissive: isFinalRoomWall ? 0xFF9900 : 0x3a3a4a,
+                        color: isFinalRoomWall ? 0xFF1C1C : 0x6a5a7a,
+                        emissive: isFinalRoomWall ? 0xCC3300 : 0x3a3a4a,
                         emissiveIntensity: 0.2
                     });
                     if (wall.hasDoor) {
@@ -739,7 +739,8 @@ bgMusic.play().catch(err => {
                     emissiveIntensity: 0.2 
                 });
                 const hat = new THREE.Mesh(hatGeometry, hatMaterial);
-                hat.position.set(0, 2.5, 0);
+                hat.position.set(0, 2.8, 0);
+                hat.rotation.x = 0.1;
                 hat.castShadow = true;
                 waitressGroup.add(hat);
                 
