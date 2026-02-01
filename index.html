@@ -428,10 +428,13 @@
         canvas: document.getElementById("gameCanvas"),
         antialias: true
     });
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(window.devicePixelRatio);
     camera.position.set(0, 2, 5);
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 1);
+    light.castShadow = true;
     scene.add(light);
     console.log("Three.js initialized");
 }
@@ -464,8 +467,14 @@ bgMusic.play().catch(err => {
             });
             ball = new THREE.Mesh(ballGeometry, ballMaterial);
             ball.castShadow = true;
+            ball.receiveShadow = true;
             ball.position.y = 0;
             playerGroup.add(ball);
+            
+            const playerLight = new THREE.PointLight(0xFFFACD, 1, 10);
+            playerLight.castShadow = true;
+            playerLight.position.set(0, 1, 0);
+            playerGroup.add(playerLight);
             
             scene.add(playerGroup);
             playerGroup.position.set(0, 0, 100);
@@ -580,6 +589,8 @@ bgMusic.play().catch(err => {
                         const spikeGeometry = new THREE.ConeGeometry(0.2, 0.8, 4);
                         const spikeMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
                         const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                        spike.castShadow = true;
+                        spike.receiveShadow = true;
                         spike.position.set(i * 0.4 - 0.8, 0.4, 0);
                         spikeGroup.add(spike);
                     }
@@ -591,8 +602,9 @@ bgMusic.play().catch(err => {
                     const bladeGeometry = new THREE.BoxGeometry(3, 0.2, 0.5);
                     const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
                     const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
-                    blade.position.set(obs.x, 1.5, obs.z);
                     blade.castShadow = true;
+                    blade.receiveShadow = true;
+                    blade.position.set(obs.x, 1.5, obs.z);
                     scene.add(blade);
                     roomObjects.obstacles.push({ mesh: blade, type: 'blade', x: obs.x, z: obs.z, size: 3, rotation: 0 });
                     roomObjects.blades.push({ mesh: blade, x: obs.x, z: obs.z, rotation: 0 });
@@ -612,6 +624,7 @@ bgMusic.play().catch(err => {
                 const billMesh = new THREE.Mesh(billGeometry, billMaterial);
                 billMesh.position.y = 0.4;
                 billMesh.castShadow = true;
+                billMesh.receiveShadow = true;
                 moneyGroup.add(billMesh);
                 
                 const symbolGeometry = new THREE.BoxGeometry(0.15, 0.15, 0.06);
@@ -623,7 +636,13 @@ bgMusic.play().catch(err => {
                 const symbolMesh = new THREE.Mesh(symbolGeometry, symbolMaterial);
                 symbolMesh.position.y = 0.4;
                 symbolMesh.castShadow = true;
+                symbolMesh.receiveShadow = true;
                 moneyGroup.add(symbolMesh);
+                
+                const billLight = new THREE.PointLight(0x85BB65, 1, 8);
+                billLight.castShadow = true;
+                billLight.position.set(0, 1.5, 0);
+                moneyGroup.add(billLight);
                 
                 moneyGroup.position.set(key.x, 1.5, key.z);
                 moneyGroup.rotation.y = Math.PI / 4;
@@ -645,6 +664,7 @@ bgMusic.play().catch(err => {
                 const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
                 doorMesh.position.set(door.x, 3.5, door.z);
                 doorMesh.castShadow = true;
+                doorMesh.receiveShadow = true;
                 scene.add(doorMesh);
                 roomObjects.doors.push({ 
                     mesh: doorMesh, 
@@ -665,6 +685,7 @@ bgMusic.play().catch(err => {
                 const doorFrameMesh = new THREE.Mesh(doorFrameGeometry, doorFrameMaterial);
                 doorFrameMesh.position.set(door.x, 4, door.z);
                 doorFrameMesh.castShadow = true;
+                doorFrameMesh.receiveShadow = true;
                 scene.add(doorFrameMesh);
             });
             console.log('Created', roomObjects.doors.length, 'doors');
@@ -678,6 +699,8 @@ bgMusic.play().catch(err => {
                             const spikeGeometry = new THREE.ConeGeometry(0.2, 0.8, 4);
                             const spikeMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
                             const spike = new THREE.Mesh(spikeGeometry, spikeMaterial);
+                            spike.castShadow = true;
+                            spike.receiveShadow = true;
                             spike.position.set(i * 0.4 - 0.8, 0.4, 0);
                             spikeGroup.add(spike);
                         }
@@ -688,6 +711,8 @@ bgMusic.play().catch(err => {
                         const bladeGeometry = new THREE.BoxGeometry(3, 0.2, 0.5);
                         const bladeMaterial = new THREE.MeshPhongMaterial({ color: 0x888888 });
                         const blade = new THREE.Mesh(bladeGeometry, bladeMaterial);
+                        blade.castShadow = true;
+                        blade.receiveShadow = true;
                         blade.position.set(trap.x, 1.5, trap.z);
                         scene.add(blade);
                         roomObjects.traps.push({ mesh: blade, type: 'blade', x: trap.x, z: trap.z, rotation: 0 });
@@ -703,6 +728,8 @@ bgMusic.play().catch(err => {
                     const plateMaterial = new THREE.MeshPhongMaterial({ color: 0x666666 });
                     const plateMesh = new THREE.Mesh(plateGeometry, plateMaterial);
                     plateMesh.position.set(plate.x, 0.1, plate.z);
+                    plateMesh.castShadow = true;
+                    plateMesh.receiveShadow = true;
                     scene.add(plateMesh);
                     roomObjects.pressurePlates.push({ mesh: plateMesh, id: plate.id, x: plate.x, z: plate.z, pressed: false });
                 });
@@ -720,7 +747,13 @@ bgMusic.play().catch(err => {
     const waitressMesh = new THREE.Mesh(waitressBody, waitressMaterial);
     waitressMesh.position.y = 1.5;
     waitressMesh.castShadow = true;
+    waitressMesh.receiveShadow = true;
     waitressGroup.add(waitressMesh);
+    
+    const waitressLight = new THREE.PointLight(0xE60000, 1.5, 12);
+    waitressLight.castShadow = true;
+    waitressLight.position.set(0, 2.5, 0);
+    waitressGroup.add(waitressLight);
     const eye1Geometry = new THREE.SphereGeometry(0.25, 8, 8);
     const eyeMaterial = new THREE.MeshPhongMaterial({ 
         color: 0x000000, 
@@ -729,6 +762,8 @@ bgMusic.play().catch(err => {
     });
     const eye1 = new THREE.Mesh(eye1Geometry, eyeMaterial);
     eye1.position.set(-0.4, 1.8, 1.3);
+    eye1.castShadow = true;
+    eye1.receiveShadow = true;
     waitressGroup.add(eye1);
     
     const eye2Geometry = new THREE.SphereGeometry(0.25, 8, 8);
@@ -739,6 +774,8 @@ bgMusic.play().catch(err => {
     });
     const eye2 = new THREE.Mesh(eye2Geometry, eye2Material);
     eye2.position.set(0.4, 1.8, 1.3);
+    eye2.castShadow = true;
+    eye2.receiveShadow = true;
     waitressGroup.add(eye2);
     
     const hatGeometry = new THREE.ConeGeometry(1.2, 1.5, 32);
@@ -752,6 +789,7 @@ bgMusic.play().catch(err => {
     hat.position.set(0, 2.7, -1.2);
     hat.rotation.x = -Math.PI / 4;
     hat.castShadow = true;
+    hat.receiveShadow = true;
     waitressGroup.add(hat);
     
     const furGeometry = new THREE.SphereGeometry(0.4, 32, 32);
@@ -764,6 +802,7 @@ bgMusic.play().catch(err => {
     const fur = new THREE.Mesh(furGeometry, furMaterial);
     fur.position.set(0, 3.23, -1.73);
     fur.castShadow = true;
+    fur.receiveShadow = true;
     waitressGroup.add(fur);
     
     waitressGroup.position.set(0, 0, -90);
