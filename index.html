@@ -1121,7 +1121,7 @@ bgMusic.play().catch(err => {
     const velZ = playerState.velocity.z;
     if (keys.jump && !playerState.isJumping) {
         playerState.isJumping = true;
-        playerState.jumpVelocity = 12;
+        playerState.jumpVelocity = 18;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
@@ -1260,9 +1260,13 @@ playerState.position.z = Math.max(
       ball.rotation.x += playerState.velocity.z * 0.5;
       ball.rotation.z -= playerState.velocity.x * 0.5;
   }
-    playerState.velocity.x = 0;
+     playerState.velocity.x = 0;
     playerState.velocity.z = 0;
     
+    playerState.position.x = newX;
+    playerState.position.z = newZ;
+    playerState.position.y = newY;
+     
 }
         function checkCollisions() {
             if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
