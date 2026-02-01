@@ -1283,6 +1283,9 @@ bgMusic.play().catch(err => {
         if (obs.type === 'blade') {
             return;
         }
+        if (obs.type === 'spike') {
+            return;
+        }
         const boxSize = obs.size || 3;
         const boxHalf = boxSize / 2;
         const playerRadius = 1;
