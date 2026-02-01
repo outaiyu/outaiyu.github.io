@@ -531,9 +531,10 @@ bgMusic.play().catch(err => {
                 const doorWidth = 6;
                 room.walls.forEach(wall => {
                     const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
+                    const isMcDonaldsArea = wall.z >= 20 && wall.z <= 100;
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
-                        color: isFinalRoomWall ? 0xFFD700 : 0xFF1C1C,
-                        emissive: isFinalRoomWall ? 0xCC9900 : 0xCC3300,
+                        color: isFinalRoomWall ? 0xFFD700 : isMcDonaldsArea ? 0xFF1C1C : 0x8B7355,
+                        emissive: isFinalRoomWall ? 0xCC9900 : isMcDonaldsArea ? 0xCC3300 : 0x4A3728,
                         emissiveIntensity: 0.2
                     });
                     if (wall.hasDoor) {
