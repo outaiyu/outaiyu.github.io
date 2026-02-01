@@ -789,30 +789,22 @@ bgMusic.play().catch(err => {
                         shininess: 100
                     });
                     
-                    const leftDoorGeometry = new THREE.BoxGeometry(3, 7, 0.2);
-                    const leftDoorMesh = new THREE.Mesh(leftDoorGeometry, doorMaterial);
-                    leftDoorMesh.position.set(glassDoor.x - 1.5, 3.5, glassDoor.z);
-                    leftDoorMesh.castShadow = true;
-                    leftDoorMesh.receiveShadow = true;
-                    scene.add(leftDoorMesh);
-                    
-                    const rightDoorGeometry = new THREE.BoxGeometry(3, 7, 0.2);
-                    const rightDoorMesh = new THREE.Mesh(rightDoorGeometry, doorMaterial);
-                    rightDoorMesh.position.set(glassDoor.x + 1.5, 3.5, glassDoor.z);
-                    rightDoorMesh.castShadow = true;
-                    rightDoorMesh.receiveShadow = true;
-                    scene.add(rightDoorMesh);
+                    const doorGeometry = new THREE.BoxGeometry(6, 7, 0.2);
+                    const doorMesh = new THREE.Mesh(doorGeometry, doorMaterial);
+                    doorMesh.position.set(glassDoor.x, 3.5, glassDoor.z);
+                    doorMesh.castShadow = true;
+                    doorMesh.receiveShadow = true;
+                    scene.add(doorMesh);
                     
                     roomObjects.glassDoors.push({ 
-                        leftMesh: leftDoorMesh,
-                        rightMesh: rightDoorMesh,
+                        mesh: doorMesh,
                         x: glassDoor.x,
                         z: glassDoor.z,
                         isOpen: false,
                         openProgress: 0
                     });
                     roomObjects.doors.push({
-                        mesh: leftDoorMesh,
+                        mesh: doorMesh,
                         type: 'glass',
                         needsKey: null,
                         toRoom: null,
@@ -1351,31 +1343,23 @@ bgMusic.play().catch(err => {
             const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
             if (glassDoor && glassDoor.openProgress < 0.85) {
                 const slideAmount = glassDoor.openProgress * 5;
-                const leftDoorCenter = glassDoor.x - 1.5 - slideAmount;
-                const rightDoorCenter = glassDoor.x + 1.5 - slideAmount;
-                const w = 1.5;
+                const doorCenter = glassDoor.x - slideAmount;
+                const w = 3;
+                const minX = doorCenter - w;
+                const maxX = doorCenter + w;
                 const minZ = glassDoor.z - 0.5;
                 const maxZ = glassDoor.z + 0.5;
-                const leftMinX = leftDoorCenter - w;
-                const leftMaxX = leftDoorCenter + w;
-                const rightMinX = rightDoorCenter - w;
-                const rightMaxX = rightDoorCenter + w;
                 const wasOutside =
-                    playerState.position.x < leftMinX ||
-                    playerState.position.x > rightMaxX ||
+                    playerState.position.x < minX ||
+                    playerState.position.x > maxX ||
                     playerState.position.z < minZ ||
                     playerState.position.z > maxZ;
-                const wouldCollideLeft =
-                    newX > leftMinX - 0.8 &&
-                    newX < leftMaxX + 0.8 &&
+                const wouldCollide =
+                    newX > minX - 0.8 &&
+                    newX < maxX + 0.8 &&
                     newZ > minZ - 0.8 &&
                     newZ < maxZ + 0.8;
-                const wouldCollideRight =
-                    newX > rightMinX - 0.8 &&
-                    newX < rightMaxX + 0.8 &&
-                    newZ > minZ - 0.8 &&
-                    newZ < maxZ + 0.8;
-                if ((wouldCollideLeft || wouldCollideRight) && wasOutside) {
+                if (wouldCollide && wasOutside) {
                     if (Math.abs(velX) > Math.abs(velZ)) {
                         newX = playerState.position.x;
                     } else {
@@ -1499,24 +1483,22 @@ playerState.position.z = Math.max(
                         }
                         door.openProgress = Math.min(1, door.openProgress + 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.x = (door.x - 1.5) - slideAmount;
+                        door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.leftMesh.position.x = (door.x - 1.5) - slideAmount;
-                            glassDoor.rightMesh.position.x = (door.x + 1.5) - slideAmount;
+                            glassDoor.mesh.position.x = door.x - slideAmount;
                         }
                     } else if (door.isOpen && distance > 9) {
                         door.openProgress = Math.max(0, door.openProgress - 0.08);
                         const slideAmount = door.openProgress * 5;
-                        door.mesh.position.x = (door.x - 1.5) - slideAmount;
+                        door.mesh.position.x = door.x - slideAmount;
                         const glassDoor = roomObjects.glassDoors.find(gd => gd.x === door.x && gd.z === door.z);
                         if (glassDoor) {
                             glassDoor.openProgress = door.openProgress;
                             glassDoor.isOpen = door.isOpen;
-                            glassDoor.leftMesh.position.x = (door.x - 1.5) - slideAmount;
-                            glassDoor.rightMesh.position.x = (door.x + 1.5) - slideAmount;
+                            glassDoor.mesh.position.x = door.x - slideAmount;
                         }
                         if (door.openProgress === 0) {
                             door.isOpen = false;
