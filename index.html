@@ -533,9 +533,10 @@ bgMusic.play().catch(err => {
             console.log('Ground created');
             
             if (room.walls && room.walls.length > 0) {
+                const isFinalRoomWall = wall.z < -70;
                 const wallMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xFFCC00,
-                    emissive: 0xFF9900,
+                    color: isFinalRoomWall ? 0xFFCC00 : 0x6a5a7a,
+                    emissive: isFinalRoomWall ? 0xFF9900 : 0x3a3a4a,
                     emissiveIntensity: 0.2
                 });
                 const wallHeight = 8;
