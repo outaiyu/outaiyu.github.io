@@ -309,8 +309,10 @@
                 walls: [
                     { x: 0, z: 110, w: 70, ry: 0, hasDoor: false },
                     { x: 0, z: -110, w: 70, ry: 0, hasDoor: false },
-                    { x: -35, z: 0, w: 220, ry: Math.PI / 2, hasDoor: false },
-                    { x: 35, z: 0, w: 220, ry: Math.PI / 2, hasDoor: false },
+                    { x: -35, z: 85, w: 170, ry: Math.PI / 2, hasDoor: false },
+                    { x: 35, z: 85, w: 170, ry: Math.PI / 2, hasDoor: false },
+                    { x: -35, z: -85, w: 50, ry: Math.PI / 2, hasDoor: false },
+                    { x: 35, z: -85, w: 50, ry: Math.PI / 2, hasDoor: false },
                     { x: 0, z: 40, w: 70, ry: 0, hasDoor: true, needsKey: 'key1' },
                     { x: 0, z: -20, w: 70, ry: 0, hasDoor: true, needsKey: 'key2' },
                     { x: 0, z: -60, w: 70, ry: 0, hasDoor: true, needsKey: 'key3' },
@@ -536,10 +538,10 @@ bgMusic.play().catch(err => {
                 const wallHeight = 8;
                 const doorWidth = 6;
                 room.walls.forEach(wall => {
-                    const isFinalRoomWall = (wall.z >= -110 && wall.z <= -60) || (wall.x === -35 || wall.x === 35);
+                    const isFinalRoomWall = wall.z >= -110 && wall.z <= -60;
                     const wallMaterial = new THREE.MeshPhongMaterial({ 
-                        color: isFinalRoomWall ? 0x4A2C2A : 0x6a5a7a,
-                        emissive: isFinalRoomWall ? 0x2D1816 : 0x3a3a4a,
+                        color: isFinalRoomWall ? 0xFFCC00 : 0x6a5a7a,
+                        emissive: isFinalRoomWall ? 0xFF9900 : 0x3a3a4a,
                         emissiveIntensity: 0.2
                     });
                     if (wall.hasDoor) {
