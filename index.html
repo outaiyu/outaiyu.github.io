@@ -1492,10 +1492,12 @@ playerState.position.z = Math.max(
      playerState.velocity.x = 0;
      playerState.velocity.z = 0;
      
-     playerState.position.x = newX;
-     playerState.position.z = newZ;
-     playerState.position.y = newY - 1;
-     
+    playerState.position.x = newX;
+    playerState.position.z = newZ;
+    playerState.position.y = newY;
+    
+    console.log('Pos update: x=' + playerState.position.x.toFixed(2) + ' z=' + playerState.position.z.toFixed(2) + ' y=' + playerState.position.y.toFixed(2) + ' isJumping=' + playerState.isJumping + ' jumpVel=' + playerState.jumpVelocity);
+      
 }
         function checkCollisions() {
             if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
