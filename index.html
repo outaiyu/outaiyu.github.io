@@ -14,7 +14,8 @@
         #loadingScreen.hidden { display: none; }
         #loadingScreen h2 { font-size: 32px; color: #fff; margin-bottom: 20px; }
         #loadingScreen p { font-size: 16px; color: #aaa; }
-        #loadingScreen button { margin-top: 20px; padding: 15px 30px; font-size: 18px; background: #4a90d9; color: white; border: none; border-radius: 8px; cursor: pointer; }
+        #loadingScreen button { margin-top: 20px; padding: 15px 30px; font-size: 18px; background: #4a90d9; color: white; border: none; border-radius: 8px; cursor: pointer; pointer-events: auto; }
+        #loadingScreen button:hover { background: #5aa0e9; }
         #ui { position: fixed; top: 20px; left: 20px; pointer-events: none; z-index: 100; }
         #roomName { font-size: 28px; color: #ffd700; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
         #objective { font-size: 20px; color: #00ff88; margin-bottom: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
@@ -1315,10 +1316,10 @@ bgMusic.play().catch(err => {
                   const loadingScreen = document.getElementById('loadingScreen');
                   const startBtn = document.getElementById('startGameBtn');
                   
-                  const isLoadScreenVisible = loadingScreen && loadingScreen.style.display !== 'none';
-                  const isStartBtnVisible = startBtn && startBtn.style.display !== 'none';
+                  const isLoadScreenVisible = loadingScreen && (loadingScreen.style.display === 'flex' || loadingScreen.style.display === 'block');
+                  const isStartBtnVisible = startBtn && startBtn.style.display === 'block';
                   
-                  console.log('L1 pressed - loadScreenVisible:', isLoadScreenVisible, 'startBtnVisible:', isStartBtnVisible, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
+                  console.log('L1 pressed - loadScreen:', loadingScreen.style.display, 'btn:', startBtn.style.display, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
                   
                   if (isLoadScreenVisible && isStartBtnVisible) {
                       if (gameState.gameOver) {
