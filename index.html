@@ -832,7 +832,7 @@ bgMusic.play().catch(err => {
                     });
                     const topWallGeometry = new THREE.BoxGeometry(6, 8, 1);
                     const topWallMesh = new THREE.Mesh(topWallGeometry, topWallMaterial);
-                    topWallMesh.position.set(glassDoor.x, 12, glassDoor.z);
+                    topWallMesh.position.set(glassDoor.x, 22, glassDoor.z);
                     topWallMesh.castShadow = true;
                     topWallMesh.receiveShadow = true;
                     scene.add(topWallMesh);
