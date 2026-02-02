@@ -1308,10 +1308,12 @@ bgMusic.play().catch(err => {
     const velX = playerState.velocity.x;
     const velZ = playerState.velocity.z;
     if (keys.jump && !playerState.isJumping) {
-        console.log('JUMP TRIGGERED! isJumping:', playerState.isJumping);
         playerState.isJumping = true;
-        playerState.jumpVelocity = 25;
-        console.log('Set jumpVelocity to 25');
+        playerState.jumpVelocity = 12;
+    }
+    if (playerState.isJumping) {
+        newY += playerState.jumpVelocity * deltaTime;
+        playerState.jumpVelocity -= 15 * deltaTime;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
@@ -1497,7 +1499,10 @@ playerState.position.z = Math.max(
     playerState.position.y = newY;
     
     console.log('Pos update: x=' + playerState.position.x.toFixed(2) + ' z=' + playerState.position.z.toFixed(2) + ' y=' + playerState.position.y.toFixed(2) + ' isJumping=' + playerState.isJumping + ' jumpVel=' + playerState.jumpVelocity);
-      
+    playerState.position.x = newX;
+    playerState.position.z = newZ;
+    playerState.position.y = newY;
+    
 }
         function checkCollisions() {
             if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
