@@ -1722,6 +1722,9 @@ playerState.position.z = Math.max(
             const centerX = 60;
             const centerY = 60;
             
+            minimapCtx.fillStyle = '#ffcc00';
+            minimapCtx.fillRect(centerX - 35 * scale, centerY - 110 * scale, 70 * scale, 220 * scale);
+            
             roomObjects.walls.forEach(wall => {
                 const x = centerX + wall.x * scale;
                 const y = centerY + wall.z * scale;
