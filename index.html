@@ -637,7 +637,7 @@ bgMusic.play().catch(err => {
                 symbolMesh.receiveShadow = true;
                 moneyGroup.add(symbolMesh);
                 
-                const billLight = new THREE.PointLight(0x85BB65, 6, 12);
+                const billLight = new THREE.PointLight(0x85BB65, 3, 6);
                 billLight.castShadow = true;
                 billLight.position.set(0, 1.5, 0);
                 moneyGroup.add(billLight);
