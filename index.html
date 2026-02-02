@@ -1715,18 +1715,18 @@ playerState.position.z = Math.max(
             const minimapCanvas = document.getElementById('minimap');
             const minimapCtx = minimapCanvas.getContext('2d');
             minimapCtx.fillStyle = '#111';
-            minimapCtx.fillRect(0, 0, 100, 100);
+            minimapCtx.fillRect(0, 0, 120, 120);
             
             const room = rooms[gameState.currentRoom];
-            const scale = 80 / Math.max(room.size.width, room.size.depth);
-            const centerX = 50;
-            const centerY = 50;
+            const scale = 100 / Math.max(room.size.width, room.size.depth);
+            const centerX = 60;
+            const centerY = 60;
             
             roomObjects.obstacles.forEach(obs => {
                 const x = centerX + obs.x * scale;
                 const y = centerY + obs.z * scale;
                 const size = 3 * scale;
-                minimapCtx.fillStyle = obs.type === 'spike' ? '#666' : '#888';
+                minimapCtx.fillStyle = obs.type === 'spike' ? '#ff0000' : '#888888';
                 minimapCtx.fillRect(x - size/2, y - size/2, size, size);
             });
             
@@ -1734,7 +1734,7 @@ playerState.position.z = Math.max(
                 if (!key.collected) {
                     const x = centerX + key.x * scale;
                     const y = centerY + key.z * scale;
-                    minimapCtx.fillStyle = '#ffd700';
+                    minimapCtx.fillStyle = '#00ff00';
                     minimapCtx.beginPath();
                     minimapCtx.arc(x, y, 3, 0, Math.PI * 2);
                     minimapCtx.fill();
@@ -1745,12 +1745,12 @@ playerState.position.z = Math.max(
                 if (door.type === 'exit') {
                     const x = centerX + door.x * scale;
                     const y = centerY + door.z * scale;
-                    minimapCtx.fillStyle = gameState.inventory.includes(door.needsKey) || door.unlocked ? '#00ff00' : '#ff4444';
+                    minimapCtx.fillStyle = gameState.inventory.includes(door.needsKey) || door.unlocked ? '#00ff00' : '#ff0000';
                     minimapCtx.fillRect(x - 4, y - 4, 8, 8);
                 } else if (door.type === 'glass') {
                     const x = centerX + door.x * scale;
                     const y = centerY + door.z * scale;
-                    minimapCtx.fillStyle = door.isOpen ? '#AADDFF' : '#4488FF';
+                    minimapCtx.fillStyle = door.isOpen ? '#ffffff' : '#0088ff';
                     minimapCtx.fillRect(x - 4, y - 4, 8, 8);
                 }
             });
