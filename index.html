@@ -798,6 +798,18 @@ bgMusic.play().catch(err => {
                     doorMesh.receiveShadow = true;
                     scene.add(doorMesh);
                     
+                    const topWallMaterial = new THREE.MeshPhongMaterial({ 
+                        color: 0xFFD700,
+                        emissive: 0xCC9900,
+                        emissiveIntensity: 0.2
+                    });
+                    const topWallGeometry = new THREE.BoxGeometry(6, 8, 0.2);
+                    const topWallMesh = new THREE.Mesh(topWallGeometry, topWallMaterial);
+                    topWallMesh.position.set(glassDoor.x, 12, glassDoor.z);
+                    topWallMesh.castShadow = true;
+                    topWallMesh.receiveShadow = true;
+                    scene.add(topWallMesh);
+                    
                     roomObjects.glassDoors.push({ 
                         mesh: doorMesh,
                         x: glassDoor.x,
