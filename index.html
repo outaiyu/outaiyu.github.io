@@ -1757,7 +1757,7 @@ playerState.position.z = Math.max(
                 const y = centerY + wall.z * scale;
                 const isYellowWall = wall.z >= -110 && wall.z <= -60;
                 minimapCtx.fillStyle = isYellowWall ? '#ffd700' : '#8B7355';
-                const thickness = 4;
+                const thickness = 6;
                 if (wall.ry !== 0) {
                     const halfLen = (wall.w * scale) / 2;
                     const startX = x - thickness / 2;
