@@ -144,6 +144,7 @@
             <p>Change control scheme(this will change the input (keyboard/touchscreen)
             <div class="controlModeButtons">
                 <button id="modeKeyboard" class="controlModeBtn">⌨️ Keyboard</button>
+                <button id="modeGamepad" class="controlModeBtn">🎮 Gamepad</button>
                 <button id="modeMobile" class="controlModeBtn">📱 Touch</button>
             </div>
         </div>
@@ -156,6 +157,18 @@
                 <li><b>E</b> - Interact with waitress</li>
                 <li><b>I</b> - Show/hide these instructions</li>
                 <li><b>ESC</b> - Skip dialogue</li>
+            </ul>
+        </div>
+        <div class="section" id="gamepadControlsInfo" style="display: none;">
+            <h3>🎮 GAMEPAD CONTROLS</h3>
+            <ul>
+                <li><b>Left stick</b> - Move around</li>
+                <li><b>Right stick</b> - Look around</li>
+                <li><b>× / Cross</b> - Jump over hazards</li>
+                <li><b>○ / Circle</b> - Interact with waitress</li>
+                <li><b>Options</b> - Show/hide these instructions</li>
+                <li><b>×</b> - Continue dialogue</li>
+                <li><b>○</b> - Skip dialogue</li>
             </ul>
         </div>
         <div class="section" id="mobileControlsInfo">
@@ -243,6 +256,18 @@
             lastLookX: 0,
             lastLookY: 0
         };
+        
+        let gamepadData = {
+            active: false,
+            gamepadIndex: null,
+            moveX: 0,
+            moveY: 0,
+            lookX: 0,
+            lookY: 0,
+            lastLookX: 0,
+            lastLookY: 0
+        };
+        
         function isMobileDevice() {
             return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                    'ontouchstart' in window || 
@@ -253,6 +278,7 @@
             gameState.isMobile = (mode === 'mobile');
             
             document.getElementById('modeKeyboard').classList.remove('active');
+            document.getElementById('modeGamepad').classList.remove('active');
             document.getElementById('modeMobile').classList.remove('active');
             
             if (mode === 'mobile') {
@@ -261,13 +287,23 @@
                 document.getElementById('mobileControls').classList.add('active');
                 document.getElementById('dialogueContinue').textContent = 'Tap to continue';
                 document.getElementById('pcControls').style.display = 'none';
+                document.getElementById('gamepadControlsInfo').style.display = 'none';
                 document.getElementById('mobileControlsInfo').style.display = 'block';
+            } else if (mode === 'gamepad') {
+                document.getElementById('modeGamepad').classList.add('active');
+                document.getElementById('controls').classList.add('mobileHidden');
+                document.getElementById('mobileControls').classList.remove('active');
+                document.getElementById('dialogueContinue').textContent = 'Press × to continue';
+                document.getElementById('pcControls').style.display = 'none';
+                document.getElementById('gamepadControlsInfo').style.display = 'block';
+                document.getElementById('mobileControlsInfo').style.display = 'none';
             } else {
                 document.getElementById('modeKeyboard').classList.add('active');
                 document.getElementById('controls').classList.remove('mobileHidden');
                 document.getElementById('mobileControls').classList.remove('active');
                 document.getElementById('dialogueContinue').textContent = 'Press SPACE to continue';
                 document.getElementById('pcControls').style.display = 'block';
+                document.getElementById('gamepadControlsInfo').style.display = 'none';
                 document.getElementById('mobileControlsInfo').style.display = 'none';
             }
             
@@ -953,38 +989,44 @@ bgMusic.play().catch(err => {
             console.log('Room', roomIndex, 'created completely');
         }
  
-        function showDialogue(dialogueArray) {
-            gameState.dialogueQueue = [...dialogueArray];
-            gameState.showingDialogue = true;
-            if (gameState.isMobile) {
-                document.getElementById('dialogueTapArea').classList.add('active');
-            }
-            showNextDialogue();
-        }
+         function showDialogue(dialogueArray) {
+             gameState.dialogueQueue = [...dialogueArray];
+             gameState.showingDialogue = true;
+             if (gameState.isMobile) {
+                 document.getElementById('dialogueTapArea').classList.add('active');
+             }
+             if (gameState.controlMode === 'gamepad') {
+                 document.getElementById('dialogueContinue').textContent = 'Press × to continue';
+             }
+             showNextDialogue();
+         }
  
-        function showNextDialogue() {
-            if (gameState.dialogueQueue.length === 0) {
-                gameState.showingDialogue = false;
-                document.getElementById('dialogueBox').style.display = 'none';
-                if (gameState.isMobile) {
-                    document.getElementById('dialogueTapArea').classList.remove('active');
-                }
-                console.log('Dialogue finished');
-                updateObjective();
-                return;
-            }
-            const dialogue = gameState.dialogueQueue.shift();
-            document.getElementById('dialogueBox').style.display = 'block';
-            document.getElementById('dialogueSpeaker').textContent = dialogue.speaker;
-            document.getElementById('dialogueText').textContent = dialogue.text;
-            console.log('Showing dialogue:', dialogue.speaker, '-', dialogue.text);
-        }
+         function showNextDialogue() {
+             if (gameState.dialogueQueue.length === 0) {
+                 gameState.showingDialogue = false;
+                 document.getElementById('dialogueBox').style.display = 'none';
+                 if (gameState.isMobile) {
+                     document.getElementById('dialogueTapArea').classList.remove('active');
+                 }
+                 if (gameState.controlMode === 'gamepad') {
+                     document.getElementById('dialogueContinue').textContent = 'Press × to continue';
+                 }
+                 console.log('Dialogue finished');
+                 updateObjective();
+                 return;
+             }
+             const dialogue = gameState.dialogueQueue.shift();
+             document.getElementById('dialogueBox').style.display = 'block';
+             document.getElementById('dialogueSpeaker').textContent = dialogue.speaker;
+             document.getElementById('dialogueText').textContent = dialogue.text;
+             console.log('Showing dialogue:', dialogue.speaker, '-', dialogue.text);
+         }
  
         function setupControls() {
             console.log('Setting up controls...');
             
-            document.addEventListener('keydown', (e) => {
-                if (gameState.isMobile) {
+             document.addEventListener('keydown', (e) => {
+                 if (gameState.isMobile || gameState.controlMode === 'gamepad') {
                     if (e.code === 'KeyI') {
                         toggleInstructions();
                     }
@@ -1030,8 +1072,8 @@ bgMusic.play().catch(err => {
                 console.log('Key down:', e.code);
             });
             
-            document.addEventListener('keyup', (e) => {
-                if (gameState.isMobile) {
+             document.addEventListener('keyup', (e) => {
+                 if (gameState.isMobile || gameState.controlMode === 'gamepad') {
                     return;
                 }
                 
@@ -1044,7 +1086,7 @@ bgMusic.play().catch(err => {
                 console.log('Key up:', e.code);
             });
             
-            if (!gameState.isMobile) {
+             if (!gameState.isMobile && gameState.controlMode !== 'gamepad') {
                 document.getElementById('controls').classList.remove('mobileHidden');
                 document.getElementById('mobileControls').classList.remove('active');
                 
@@ -1238,6 +1280,104 @@ bgMusic.play().catch(err => {
              console.log('Mobile controls setup complete');
          }
   
+         function pollGamepad() {
+             if (!gamepadData.active || gamepadData.gamepadIndex === null) {
+                 return;
+             }
+             
+             const gamepad = navigator.getGamepads()[gamepadData.gamepadIndex];
+             if (!gamepad) {
+                 return;
+             }
+             
+             const deadzone = 0.15;
+             
+             const leftStickX = gamepad.axes[0];
+             const leftStickY = gamepad.axes[1];
+             const rightStickX = gamepad.axes[2];
+             const rightStickY = gamepad.axes[3];
+             
+             if (Math.abs(leftStickX) > deadzone) {
+                 gamepadData.moveX = leftStickX;
+             } else {
+                 gamepadData.moveX = 0;
+             }
+             
+             if (Math.abs(leftStickY) > deadzone) {
+                 gamepadData.moveY = leftStickY;
+             } else {
+                 gamepadData.moveY = 0;
+             }
+             
+             if (Math.abs(rightStickX) > deadzone) {
+                 gamepadData.lookX = rightStickX;
+             } else {
+                 gamepadData.lookX = 0;
+             }
+             
+             if (Math.abs(rightStickY) > deadzone) {
+                 gamepadData.lookY = rightStickY;
+             } else {
+                 gamepadData.lookY = 0;
+             }
+             
+             keys.forward = gamepadData.moveY < -deadzone;
+             keys.backward = gamepadData.moveY > deadzone;
+             keys.left = gamepadData.moveX < -deadzone;
+             keys.right = gamepadData.moveX > deadzone;
+             
+             yaw -= gamepadData.lookX * 0.05;
+             pitch -= gamepadData.lookY * 0.05;
+             pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
+             
+             keys.jump = gamepad.buttons[0].pressed;
+             
+             keys.interact = gamepad.buttons[1].pressed;
+             
+             if (gameState.controlMode === 'gamepad' && gameState.gameStarted) {
+                 const hasAllKeys = gameState.inventory.includes('key1') && 
+                                  gameState.inventory.includes('key2') && 
+                                  gameState.inventory.includes('key3') && 
+                                  gameState.inventory.includes('key4');
+                 
+                 if (keys.interact && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys) {
+                     roomObjects.villain.defeated = true;
+                     scene.remove(roomObjects.villain.mesh);
+                     roomObjects.villain = null;
+                     showDialogue(story.victory);
+                     setTimeout(() => {
+                         gameState.victory = true;
+                         document.getElementById('victoryScreen').style.display = 'flex';
+                     }, 5000);
+                 }
+                 
+                 if (gamepad.buttons[9].pressed) {
+                     toggleInstructions();
+                 }
+                 
+                 if (gameState.showingDialogue) {
+                     if (gamepad.buttons[0].pressed && !gamepadData.wasXPressed) {
+                         showNextDialogue();
+                         gamepadData.wasXPressed = true;
+                     }
+                     
+                     if (gamepad.buttons[1].pressed && !gamepadData.wasCirclePressed) {
+                         gameState.dialogueQueue = [];
+                         gameState.showingDialogue = false;
+                         document.getElementById('dialogueBox').style.display = 'none';
+                         gamepadData.wasCirclePressed = true;
+                     }
+                     
+                     if (!gamepad.buttons[0].pressed) {
+                         gamepadData.wasXPressed = false;
+                     }
+                     if (!gamepad.buttons[1].pressed) {
+                         gamepadData.wasCirclePressed = false;
+                     }
+                 }
+             }
+         }
+         
          function toggleInstructions() {
              const panel = document.getElementById('instructionsPanel');
              const isVisible = panel.style.display === 'block';
@@ -1249,14 +1389,33 @@ bgMusic.play().catch(err => {
              document.getElementById('instructionsPanel').style.display = 'none';
              gameState.showingInstructions = false;
          });
-         document.getElementById('modeKeyboard').addEventListener('click', () => {
-             setControlMode('keyboard');
-         });
-         document.getElementById('modeMobile').addEventListener('click', () => {
-             setControlMode('mobile');
-         });
-        
-          function updateMobileButtons() {
+          document.getElementById('modeKeyboard').addEventListener('click', () => {
+              setControlMode('keyboard');
+          });
+          document.getElementById('modeGamepad').addEventListener('click', () => {
+              setControlMode('gamepad');
+          });
+          document.getElementById('modeMobile').addEventListener('click', () => {
+              setControlMode('mobile');
+          });
+          
+          window.addEventListener('gamepadconnected', (e) => {
+              console.log('Gamepad connected:', e.gamepad.id);
+              gamepadData.active = true;
+              gamepadData.gamepadIndex = e.gamepad.index;
+              
+              if (gameState.controlMode === 'keyboard') {
+                  setControlMode('gamepad');
+              }
+          });
+          
+          window.addEventListener('gamepaddisconnected', (e) => {
+              console.log('Gamepad disconnected:', e.gamepad.id);
+              gamepadData.active = false;
+              gamepadData.gamepadIndex = null;
+          });
+         
+           function updateMobileButtons() {
               if (!gameState.isMobile) return;
              
               const hasAllKeys = gameState.inventory.includes('key1') && 
@@ -1283,7 +1442,7 @@ bgMusic.play().catch(err => {
         !gameState.gameStarted
     ) return;
     const room = rooms[gameState.currentRoom];
-    const speed = gameState.isMobile ? 6 : 12;
+    const speed = (gameState.isMobile || gameState.controlMode === 'gamepad') ? 6 : 12;
     const moveX = Math.sin(yaw) * speed * deltaTime;
     const moveZ = Math.cos(yaw) * speed * deltaTime;
     if (keys.forward) {
@@ -1650,8 +1809,8 @@ playerState.position.z = Math.max(
                                   gameState.inventory.includes('key4');
                  villain.canInteract = distance < 5 && hasAllKeys;
                  
-                 const prompt = document.getElementById('interactPrompt');
-                 if (gameState.isMobile) {
+                  const prompt = document.getElementById('interactPrompt');
+                  if (gameState.isMobile || gameState.controlMode === 'gamepad') {
                      prompt.style.display = 'none';
                      updateMobileButtons();
                  } else {
@@ -1824,21 +1983,25 @@ playerState.position.z = Math.max(
             };
         }
         
-        function animate() {
-            requestAnimationFrame(animate);
-            
-            const deltaTime = 0.016;
-            
-            if (gameState.gameStarted && !gameState.showingDialogue && !gameState.gameOver && !gameState.victory && !gameState.showingInstructions) {
-                updatePlayer(deltaTime);
-                checkCollisions();
-                updateCamera();
-            }
-            
-            updateTraps(deltaTime);
-            drawMinimap();
-            renderer.render(scene, camera);
-        }
+         function animate() {
+             requestAnimationFrame(animate);
+             
+             const deltaTime = 0.016;
+             
+             if (gameState.controlMode === 'gamepad') {
+                 pollGamepad();
+             }
+             
+             if (gameState.gameStarted && !gameState.showingDialogue && !gameState.gameOver && !gameState.victory && !gameState.showingInstructions) {
+                 updatePlayer(deltaTime);
+                 checkCollisions();
+                 updateCamera();
+             }
+             
+             updateTraps(deltaTime);
+             drawMinimap();
+             renderer.render(scene, camera);
+         }
         
         window.onload = () => {
             console.log('Window loaded, auto-detecting device...');
