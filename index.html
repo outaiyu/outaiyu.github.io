@@ -939,7 +939,7 @@ bgMusic.play().catch(err => {
             const woodFloorGeometry = new THREE.PlaneGeometry(70, 50);
             const woodFloor = new THREE.Mesh(woodFloorGeometry, woodFloorMaterial);
             woodFloor.rotation.x = -Math.PI / 2;
-            woodFloor.position.set(0, 0.01, -80);
+            woodFloor.position.set(0, 0.01, -85);
             woodFloor.receiveShadow = true;
             scene.add(woodFloor);
             
@@ -1749,7 +1749,7 @@ playerState.position.z = Math.max(
             const centerX = 60;
             const centerY = 60;
             
-            minimapCtx.fillStyle = '#ffcc00';
+            minimapCtx.fillStyle = '#8B4513';
             minimapCtx.fillRect(centerX - 35 * scale, centerY - 110 * scale, 70 * scale, 50 * scale);
             
             roomObjects.walls.forEach(wall => {
