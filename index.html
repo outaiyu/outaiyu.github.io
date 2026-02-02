@@ -212,19 +212,30 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script>
     let scene, camera, renderer;
-    let gameState = {
-        currentRoom: 0,
-        inventory: [],
-        showingDialogue: false,
-        dialogueQueue: [],
-        gameOver: false,
-        victory: false,
-        gameStarted: false,
-        controlMode: null,
-        isMobile: false,
-        showingInstructions: false,
-     instructionsToggling: false
-    };
+        let gameState = {
+            currentRoom: 0,
+            inventory: [],
+            showingDialogue: false,
+            dialogueQueue: [],
+            gameOver: false,
+            victory: false,
+            gameStarted: false,
+            controlMode: null,
+            isMobile: false,
+            showingInstructions: false,
+            instructionsToggling: false
+        };
+        
+        const DOMElements = {
+            loadingScreen: null,
+            startGameBtn: null,
+            dialogueBox: null,
+            dialogueSpeaker: null,
+            dialogueText: null,
+            objective: null,
+            victoryScreen: null,
+            inventoryItems: null
+        };
     let playerGroup, ball;
     
         const keys = {
@@ -312,7 +323,7 @@
                 document.getElementById('pcControls').style.display = 'none';
                 document.getElementById('gamepadControlsInfo').style.display = 'block';
                 document.getElementById('mobileControlsInfo').style.display = 'none';
-                console.log('Mobile controls hidden, gamepad mode active');
+                
             } else {
                 document.getElementById('modeKeyboard').classList.add('active');
                 document.getElementById('controls').classList.remove('mobileHidden');
@@ -486,15 +497,14 @@
     camera.position.set(0, 2, 5);
     const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
     scene.add(light);
-    console.log("Three.js initialized");
+    
 }
     function startGame() {
     const bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 0.3;
 bgMusic.play().catch(err => {
-    console.log("Music blocked until user interaction", err);
+    .catch(() => {})
 });
-    console.log("START GAME");
     init();
     setupControls();
     createPlayer();
@@ -505,7 +515,7 @@ bgMusic.play().catch(err => {
 }
  
         function createPlayer() {
-            console.log('Creating player...');
+            
             playerGroup = new THREE.Group();
             
             const ballGeometry = new THREE.SphereGeometry(1, 32, 32);
@@ -527,11 +537,11 @@ bgMusic.play().catch(err => {
             
             scene.add(playerGroup);
             playerGroup.position.set(0, 0, 100);
-            console.log('Player created at:', playerGroup.position);
+            
         }
  
         function clearRoom() {
-            console.log('Clearing room...');
+            
             roomObjects.obstacles.forEach(obj => scene.remove(obj.mesh));
             roomObjects.keys.forEach(obj => scene.remove(obj.mesh));
             roomObjects.doors.forEach(obj => scene.remove(obj.mesh));
@@ -551,11 +561,11 @@ bgMusic.play().catch(err => {
             }
             
             roomObjects = { obstacles: [], keys: [], doors: [], walls: [], villain: null, blades: [], spikes: [], traps: [] };
-            console.log('Room cleared');
+            
         }
  
         function createRoom(roomIndex) {
-            console.log('Creating room', roomIndex, ':', rooms[roomIndex].name);
+            
             clearRoom();
             const room = rooms[roomIndex];
             document.getElementById('roomName').textContent = room.name;
@@ -582,7 +592,7 @@ bgMusic.play().catch(err => {
             ground.rotation.x = -Math.PI / 2;
             ground.receiveShadow = true;
             scene.add(ground);
-            console.log('Ground created');
+            
             
             if (room.walls && room.walls.length > 0) {
                 const doorWidth = 6;
@@ -626,7 +636,7 @@ bgMusic.play().catch(err => {
                         roomObjects.walls.push({ mesh: wallMesh, x: wall.x, z: wall.z, w: wall.w, ry: wall.ry, hasDoor: false });
                     }
                 });
-                console.log('Created', roomObjects.walls.length, 'walls');
+                
                 
                 const corners = [
                     { x: -35, z: 110, h: 8, isYellow: false },
@@ -686,7 +696,7 @@ bgMusic.play().catch(err => {
                     roomObjects.blades.push({ mesh: blade, x: obs.x, z: obs.z, rotation: 0 });
                 }
             });
-            console.log('Created', roomObjects.obstacles.length, 'obstacles');
+            
             
             room.keys.forEach(key => {
                 if (gameState.inventory.includes(key.type)) return;
@@ -725,7 +735,7 @@ bgMusic.play().catch(err => {
                 scene.add(moneyGroup);
                 roomObjects.keys.push({ mesh: moneyGroup, type: key.type, x: key.x, z: key.z, collected: false });
             });
-            console.log('Created', roomObjects.keys.length, 'keys');
+            
             
             roomObjects.doors.forEach(door => {
                 if (door.type === 'glass') {
@@ -808,7 +818,7 @@ bgMusic.play().catch(err => {
                     scene.add(doorFrameMesh);
                 }
             });
-            console.log('Created', roomObjects.doors.length, 'doors');
+            
             
             roomObjects.traps = [];
             if (room.traps) {
@@ -838,7 +848,7 @@ bgMusic.play().catch(err => {
                         roomObjects.traps.push({ mesh: blade, type: 'blade', x: trap.x, z: trap.z, rotation: 0 });
                     }
                 });
-                console.log('Created', roomObjects.traps.length, 'traps');
+                
             }
             
             roomObjects.pressurePlates = [];
@@ -853,7 +863,7 @@ bgMusic.play().catch(err => {
                     scene.add(plateMesh);
                     roomObjects.pressurePlates.push({ mesh: plateMesh, id: plate.id, x: plate.x, z: plate.z, pressed: false });
                 });
-                console.log('Created', roomObjects.pressurePlates.length, 'pressure plates');
+                
             }
             
             roomObjects.glassDoors = [];
@@ -907,7 +917,7 @@ bgMusic.play().catch(err => {
                         openProgress: 0
                     });
                 });
-                console.log('Created', roomObjects.glassDoors.length, 'glass doors');
+                
             }
             
            if (room.villain) {
@@ -983,7 +993,7 @@ bgMusic.play().catch(err => {
     waitressGroup.rotation.y = 0;
     scene.add(waitressGroup);
     roomObjects.villain = { mesh: waitressGroup, defeated: false, canInteract: false };
-    console.log('Waitress created');
+    
 }
             
             const woodFloorMaterial = new THREE.MeshPhongMaterial({ color: 0x8B4513, emissive: 0x5C3317, emissiveIntensity: 0.1 });
@@ -1001,7 +1011,7 @@ bgMusic.play().catch(err => {
             playerGroup.position.set(playerState.position.x, 0, playerState.position.z);
             yaw = Math.PI;
             
-            console.log('Room', roomIndex, 'created completely');
+            
         }
  
          function showDialogue(dialogueArray) {
@@ -1017,16 +1027,27 @@ bgMusic.play().catch(err => {
          }
  
          function showNextDialogue() {
-             if (gameState.dialogueQueue.length === 0) {
-                 gameState.showingDialogue = false;
-                 document.getElementById('dialogueBox').style.display = 'none';
-                 if (gameState.isMobile) {
-                     document.getElementById('dialogueTapArea').classList.remove('active');
-                 }
+            if (gameState.dialogueQueue.length === 0) {
+                gameState.showingDialogue = false;
+                DOMElements.dialogueBox.style.display = 'none';
+                if (gameState.isMobile) {
+                    document.getElementById('dialogueTapArea').classList.remove('active');
+                }
+                if (gameState.controlMode === 'gamepad') {
+                    document.getElementById('dialogueContinue').textContent = 'Press × to continue';
+                }
+                updateObjective();
+                return;
+            }
+            const dialogue = gameState.dialogueQueue.shift();
+            DOMElements.dialogueBox.style.display = 'block';
+            DOMElements.dialogueSpeaker.textContent = dialogue.speaker;
+            DOMElements.dialogueText.textContent = dialogue.text;
+        }
                  if (gameState.controlMode === 'gamepad') {
                      document.getElementById('dialogueContinue').textContent = 'Press × to continue';
                  }
-                 console.log('Dialogue finished');
+                 
                  updateObjective();
                  return;
              }
@@ -1034,32 +1055,31 @@ bgMusic.play().catch(err => {
              document.getElementById('dialogueBox').style.display = 'block';
              document.getElementById('dialogueSpeaker').textContent = dialogue.speaker;
              document.getElementById('dialogueText').textContent = dialogue.text;
-             console.log('Showing dialogue:', dialogue.speaker, '-', dialogue.text);
+             
          }
  
         function setupControls() {
-            console.log('Setting up controls...');
             
-             document.addEventListener('keydown', (e) => {
-                 if (gameState.isMobile || gameState.controlMode === 'gamepad') {
-                     if (e.code === 'KeyI') {
-                         toggleInstructions();
-                     }
-                     if (gameState.controlMode === 'gamepad') {
-                         return;
-                     }
-                 }
-                 
-                 if (gameState.showingDialogue && e.code === 'Space') {
-                     showNextDialogue();
-                     return;
-                 }
-                 if (gameState.showingDialogue && e.code === 'Escape') {
-                     gameState.dialogueQueue = [];
-                     gameState.showingDialogue = false;
-                     document.getElementById('dialogueBox').style.display = 'none';
-                     return;
-                 }
+            document.addEventListener('keydown', (e) => {
+                if (gameState.isMobile || gameState.controlMode === 'gamepad') {
+                    if (e.code === 'KeyI') {
+                        toggleInstructions();
+                    }
+                    if (gameState.controlMode === 'gamepad') {
+                        return;
+                    }
+                }
+                
+                if (gameState.showingDialogue && e.code === 'Space') {
+                    showNextDialogue();
+                    return;
+                }
+                if (gameState.showingDialogue && e.code === 'Escape') {
+                    gameState.dialogueQueue = [];
+                    gameState.showingDialogue = false;
+                    document.getElementById('dialogueBox').style.display = 'none';
+                    return;
+                }
                 
                 if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = true;
                 if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = true;
@@ -1068,10 +1088,7 @@ bgMusic.play().catch(err => {
                 if (e.code === 'Space') keys.jump = true;
                 if (e.code === 'KeyE') {
                     keys.interact = true;
-                    const hasAllKeys = gameState.inventory.includes('key1') && 
-                                     gameState.inventory.includes('key2') && 
-                                     gameState.inventory.includes('key3') && 
-                                     gameState.inventory.includes('key4');
+                    const hasAllKeys = gameState.inventory.length === 4;
                     if (roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys) {
                         roomObjects.villain.defeated = true;
                         scene.remove(roomObjects.villain.mesh);
@@ -1086,11 +1103,10 @@ bgMusic.play().catch(err => {
                 if (e.code === 'KeyI') {
                     toggleInstructions();
                 }
-                console.log('Key down:', e.code);
             });
             
-             document.addEventListener('keyup', (e) => {
-                 if (gameState.isMobile || gameState.controlMode === 'gamepad') {
+            document.addEventListener('keyup', (e) => {
+                if (gameState.isMobile || gameState.controlMode === 'gamepad') {
                     return;
                 }
                 
@@ -1100,10 +1116,9 @@ bgMusic.play().catch(err => {
                 if (e.code === 'KeyD' || e.code === 'ArrowRight') keys.right = false;
                 if (e.code === 'Space') keys.jump = false;
                 if (e.code === 'KeyE') keys.interact = false;
-                console.log('Key up:', e.code);
             });
             
-             if (!gameState.isMobile && gameState.controlMode !== 'gamepad') {
+            if (!gameState.isMobile && gameState.controlMode !== 'gamepad') {
                 document.getElementById('controls').classList.remove('mobileHidden');
                 document.getElementById('mobileControls').classList.remove('active');
                 
@@ -1126,11 +1141,11 @@ bgMusic.play().catch(err => {
                 setupMobileControls();
             }
             
-            console.log('Controls setup complete');
+            
         }
  
         function setupMobileControls() {
-            console.log('Setting up mobile controls...');
+            
             
             const joystickArea = document.getElementById('joystickArea');
             const joystickBase = document.getElementById('joystickBase');
@@ -1294,7 +1309,7 @@ bgMusic.play().catch(err => {
                  }
              }, { passive: false });
              
-             console.log('Mobile controls setup complete');
+             
          }
   
           function pollGamepad() {
@@ -1308,34 +1323,32 @@ bgMusic.play().catch(err => {
               }
               
               const deadzone = 0.25;
-              
               const l1Pressed = gamepad.buttons[4].pressed;
+              const axes = gamepad.axes;
+              const buttons = gamepad.buttons;
               
               if (l1Pressed && !gamepadData.wasL1Pressed) {
                   const loadingScreen = document.getElementById('loadingScreen');
                   const startBtn = document.getElementById('startGameBtn');
-                  
                   const isLoadScreenVisible = loadingScreen && !loadingScreen.classList.contains('hidden');
                   const isStartBtnVisible = startBtn && startBtn.style.display === 'block';
                   
-                  console.log('L1 pressed - loadScreenVisible:', isLoadScreenVisible, 'btnVisible:', isStartBtnVisible, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
-                  
                   if (isLoadScreenVisible && isStartBtnVisible) {
                       if (gameState.gameOver) {
-                          console.log('Restarting game with L1');
                           location.reload();
                       } else if (!gameState.gameStarted) {
-                          console.log('Starting game with L1');
                           loadingScreen.style.display = 'none';
                           loadingScreen.classList.add('hidden');
                           gameState.gameStarted = true;
                           startGame();
                           const music = document.getElementById('bgMusic');
                           music.volume = 0.3;
-                          music.play().catch(e => console.log('Audio play error:', e));
-                          console.log('Game started, calling updateObjective...');
+                          music.play();
                           updateObjective();
                       }
+                  }
+                  gamepadData.wasL1Pressed = true;
+              }
                   }
                   gamepadData.wasL1Pressed = true;
               }
@@ -1344,53 +1357,20 @@ bgMusic.play().catch(err => {
                   gamepadData.wasL1Pressed = false;
               }
               
-              const leftStickX = gamepad.axes[0];
-              const leftStickY = gamepad.axes[1];
-              const rightStickX = gamepad.axes[2];
-              const rightStickY = gamepad.axes[3];
+              const leftStickX = axes[0];
+              const leftStickY = axes[1];
+              const rightStickX = axes[2];
+              const rightStickY = axes[3];
               
-              gamepadData.moveX = 0;
-              gamepadData.moveY = 0;
-              gamepadData.lookX = 0;
-              gamepadData.lookY = 0;
+              gamepadData.moveX = Math.abs(leftStickX) > deadzone ? leftStickX : 0;
+              gamepadData.moveY = Math.abs(leftStickY) > deadzone ? leftStickY : 0;
+              gamepadData.lookX = Math.abs(rightStickX) > deadzone ? rightStickX : 0;
+              gamepadData.lookY = Math.abs(rightStickY) > deadzone ? rightStickY : 0;
               
-              if (Math.abs(leftStickX) > deadzone) {
-                  gamepadData.moveX = leftStickX;
-              }
-              
-              if (Math.abs(leftStickY) > deadzone) {
-                  gamepadData.moveY = leftStickY;
-              }
-              
-              if (Math.abs(rightStickX) > deadzone) {
-                  gamepadData.lookX = rightStickX;
-              }
-              
-              if (Math.abs(rightStickY) > deadzone) {
-                  gamepadData.lookY = rightStickY;
-              }
-              
-              if (gamepadData.moveY < -deadzone) {
-                  keys.forward = true;
-                  keys.backward = false;
-              } else if (gamepadData.moveY > deadzone) {
-                  keys.forward = false;
-                  keys.backward = true;
-              } else {
-                  keys.forward = false;
-                  keys.backward = false;
-              }
-              
-              if (gamepadData.moveX < -deadzone) {
-                  keys.left = true;
-                  keys.right = false;
-              } else if (gamepadData.moveX > deadzone) {
-                  keys.left = false;
-                  keys.right = true;
-              } else {
-                  keys.left = false;
-                  keys.right = false;
-              }
+              keys.forward = gamepadData.moveY < -deadzone;
+              keys.backward = gamepadData.moveY > deadzone;
+              keys.left = gamepadData.moveX < -deadzone;
+              keys.right = gamepadData.moveX > deadzone;
               
               if (gamepadData.lookX !== 0) {
                   yaw -= gamepadData.lookX * 0.05;
@@ -1401,15 +1381,11 @@ bgMusic.play().catch(err => {
                   pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
               }
               
-              keys.jump = gamepad.buttons[0].pressed;
-              
-              keys.interact = gamepad.buttons[1].pressed;
+              keys.jump = buttons[0].pressed;
+              keys.interact = buttons[1].pressed;
               
               if (gameState.controlMode === 'gamepad' && gameState.gameStarted) {
-                  const hasAllKeys = gameState.inventory.includes('key1') && 
-                                   gameState.inventory.includes('key2') && 
-                                   gameState.inventory.includes('key3') && 
-                                   gameState.inventory.includes('key4');
+                  const hasAllKeys = gameState.inventory.length === 4;
                   
                   if (keys.interact && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys && !gamepadData.wasCirclePressed) {
                       gamepadData.lastInteractTime = Date.now();
@@ -1429,37 +1405,32 @@ bgMusic.play().catch(err => {
                       gamepadData.wasCirclePressed = false;
                   }
                   
-                  if (gamepad.buttons[9].pressed && !gamepadData.wasOptionsPressed) {
+                  if (buttons[9].pressed && !gamepadData.wasOptionsPressed) {
                       toggleInstructions();
                       gamepadData.wasOptionsPressed = true;
                   }
                   
-                  if (!gamepad.buttons[9].pressed) {
+                  if (!buttons[9].pressed) {
                       gamepadData.wasOptionsPressed = false;
                   }
                   
                   if (gameState.showingDialogue) {
-                      if (gamepad.buttons[0].pressed && !gamepadData.wasXPressed) {
+                      if (buttons[0].pressed && !gamepadData.wasXPressed) {
                           showNextDialogue();
                           gamepadData.wasXPressed = true;
                       }
                       
-                      const currentTime = Date.now();
-                      const timeSinceInteract = currentTime - gamepadData.lastInteractTime;
+                      const timeSinceInteract = Date.now() - gamepadData.lastInteractTime;
                       
-                      if (gamepad.buttons[1].pressed && !gamepadData.wasCircleDialoguePressed && timeSinceInteract > 500) {
+                      if (buttons[1].pressed && !gamepadData.wasCircleDialoguePressed && timeSinceInteract > 500) {
                           gameState.dialogueQueue = [];
                           gameState.showingDialogue = false;
                           document.getElementById('dialogueBox').style.display = 'none';
                           gamepadData.wasCircleDialoguePressed = true;
                       }
                       
-                      if (!gamepad.buttons[0].pressed) {
-                          gamepadData.wasXPressed = false;
-                      }
-                      if (!gamepad.buttons[1].pressed) {
-                          gamepadData.wasCircleDialoguePressed = false;
-                      }
+                      gamepadData.wasXPressed = !buttons[0].pressed && gamepadData.wasXPressed;
+                      gamepadData.wasCircleDialoguePressed = !buttons[1].pressed && gamepadData.wasCircleDialoguePressed;
                   }
               }
          }
@@ -1493,61 +1464,49 @@ bgMusic.play().catch(err => {
           });
           
           window.addEventListener('gamepadconnected', (e) => {
-              console.log('Gamepad connected:', e.gamepad.id);
               gamepadData.active = true;
               gamepadData.gamepadIndex = e.gamepad.index;
               
               const gamepadId = e.gamepad.id.toLowerCase();
               const isPS5 = gamepadId.includes('dualsense') || gamepadId.includes('ps5') || gamepadId.includes('wireless controller');
               
-              console.log('Is PS5 controller:', isPS5);
-              console.log('Current control mode:', gameState.controlMode);
-              
               if (gameState.controlMode === 'keyboard' || (isPS5 && gameState.controlMode !== 'mobile')) {
-                  console.log('Switching to gamepad mode');
                   setControlMode('gamepad');
               }
           });
           
           window.addEventListener('gamepaddisconnected', (e) => {
-              console.log('Gamepad disconnected:', e.gamepad.id);
               gamepadData.active = false;
               gamepadData.gamepadIndex = null;
           });
          
-           function updateMobileButtons() {
-               if (!gameState.isMobile) return;
-              
-               const hasAllKeys = gameState.inventory.includes('key1') && 
-                                gameState.inventory.includes('key2') && 
-                                gameState.inventory.includes('key3') && 
-                                gameState.inventory.includes('key4');
-               const infoBtn = document.getElementById('infoBtn');
-              
-               if (hasAllKeys && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated) {
-                   infoBtn.textContent = 'E';
-                   infoBtn.style.background = 'rgba(255, 180, 50, 0.6)';
-               } else {
-                   infoBtn.textContent = 'INFO';
-                   infoBtn.style.background = 'rgba(100, 150, 255, 0.6)';
-               }
-           }
-           
-           function updateGamepadButtons() {
-               if (gameState.controlMode !== 'gamepad') return;
-              
-               const hasAllKeys = gameState.inventory.includes('key1') && 
-                                gameState.inventory.includes('key2') && 
-                                gameState.inventory.includes('key3') && 
-                                gameState.inventory.includes('key4');
-               const gamepadBtn = document.getElementById('gamepadInteractBtn');
-              
-               if (hasAllKeys && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated) {
-                   gamepadBtn.classList.add('active');
-               } else {
-                   gamepadBtn.classList.remove('active');
-               }
-           }
+            function updateMobileButtons() {
+                if (!gameState.isMobile) return;
+               
+                const hasAllKeys = gameState.inventory.length === 4;
+                const infoBtn = document.getElementById('infoBtn');
+               
+                if (hasAllKeys && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated) {
+                    infoBtn.textContent = 'E';
+                    infoBtn.style.background = 'rgba(255, 180, 50, 0.6)';
+                } else {
+                    infoBtn.textContent = 'INFO';
+                    infoBtn.style.background = 'rgba(100, 150, 255, 0.6)';
+                }
+            }
+            
+            function updateGamepadButtons() {
+                if (gameState.controlMode !== 'gamepad') return;
+               
+                const hasAllKeys = gameState.inventory.length === 4;
+                const gamepadBtn = document.getElementById('gamepadInteractBtn');
+               
+                if (hasAllKeys && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated) {
+                    gamepadBtn.classList.add('active');
+                } else {
+                    gamepadBtn.classList.remove('active');
+                }
+            }
            
            document.getElementById('gamepadInteractBtn').addEventListener('click', (e) => {
                e.preventDefault();
@@ -1788,15 +1747,10 @@ playerState.position.z = Math.max(
      playerState.velocity.x = 0;
      playerState.velocity.z = 0;
      
-    playerState.position.x = newX;
-    playerState.position.z = newZ;
-    playerState.position.y = newY;
-    
-    console.log('Pos update: x=' + playerState.position.x.toFixed(2) + ' z=' + playerState.position.z.toFixed(2) + ' y=' + playerState.position.y.toFixed(2) + ' isJumping=' + playerState.isJumping + ' jumpVel=' + playerState.jumpVelocity);
-    playerState.position.x = newX;
-    playerState.position.z = newZ;
-    playerState.position.y = newY;
-    
+     playerState.position.x = newX;
+     playerState.position.z = newZ;
+     playerState.position.y = newY;
+     
 }
         function checkCollisions() {
             if (gameState.showingDialogue || gameState.gameOver || gameState.victory || gameState.showingInstructions || !gameState.gameStarted) return;
@@ -1807,41 +1761,41 @@ playerState.position.z = Math.max(
                     const dz = playerState.position.z - key.z;
                     const distance = Math.sqrt(dx * dx + dz * dz);
                     if (distance < 2) {
-                        console.log('=== KEY COLLECTED ===');
-                        console.log('Key type:', key.type);
-                        console.log('Inventory BEFORE:', gameState.inventory);
+                        
+                        
+                        
                         key.collected = true;
                         gameState.inventory.push(key.type);
                         const coinSound = document.getElementById('coinSound');
                         coinSound.volume = 1.0;
                         coinSound.currentTime = 0;
                         coinSound.play().then(() => {
-                            console.log('Coin sound played successfully');
+                            
                         }).catch(err => {
                             console.error('Coin sound play error:', err);
                             coinSound.play();
                         });
-                        console.log('Inventory AFTER:', gameState.inventory);
+                        
                     scene.remove(key.mesh);
                     roomObjects.keys.splice(i, 1);
-                    console.log('Removed key mesh from scene');
-                    console.log('Spliced key from array');
-                    console.log('Calling updateInventory...');
+                    
+                    
+                    
                     updateInventory();
-                    console.log('Calling updateDoors...');
+                    
                     updateDoors();
-                    console.log('Calling updateObjective...');
+                    
                     try {
                         updateObjective();
-                        console.log('updateObjective completed successfully');
+                        
                     } catch (e) {
                         console.error('updateObjective error:', e);
                     }
-                     console.log('Calling updateMobileButtons...');
+                     
                      updateMobileButtons();
-                     console.log('Calling updateGamepadButtons...');
+                     
                      updateGamepadButtons();
-                     console.log('=== KEY COLLECTION DONE ===');
+                     
                     break;
                 }
             }
@@ -1897,7 +1851,7 @@ playerState.position.z = Math.max(
                     const distance = Math.sqrt(dx * dx + dz * dz);
                     if (distance < 1.5 && !playerState.isJumping) {
                         gameState.gameOver = true;
-                        console.log('Hit spikes');
+                        
                         showGameOver();
                     }
                 } else if (trap.type === 'blade') {
@@ -1906,7 +1860,7 @@ playerState.position.z = Math.max(
                     const distance = Math.sqrt(dx * dx + dz * dz);
                     if (distance < 2.5 && !playerState.isJumping) {
                         gameState.gameOver = true;
-                        console.log('Hit blade');
+                        
                         showGameOver();
                     }
                 }
@@ -1919,7 +1873,7 @@ playerState.position.z = Math.max(
                     const distance = Math.sqrt(dx * dx + dz * dz);
                     if (distance < 1.5) {
                         gameState.gameOver = true;
-                        console.log('Hit obstacle spikes');
+                        
                         showGameOver();
                     }
                 }
@@ -1929,7 +1883,7 @@ playerState.position.z = Math.max(
                     const distance = Math.sqrt(dx * dx + dz * dz);
                     if (distance < 1.5) {
                         gameState.gameOver = true;
-                        console.log('Hit obstacle blade');
+                        
                         showGameOver();
                     }
                 }
@@ -1959,12 +1913,29 @@ playerState.position.z = Math.max(
               }
          }
   
-        function updateTraps(deltaTime) {
-            roomObjects.traps.forEach(trap => {
-                if (trap.type === 'blade') {
-                    trap.rotation += deltaTime * 2;
-                    trap.mesh.rotation.y = trap.rotation;
-                }
+         function updateTraps(deltaTime) {
+             const bladeRotationSpeed = deltaTime * 2;
+             const time = Date.now() * 0.003;
+             
+             roomObjects.traps.forEach(trap => {
+                 if (trap.type === 'blade') {
+                     trap.rotation += bladeRotationSpeed;
+                     trap.mesh.rotation.y = trap.rotation;
+                 }
+             });
+             
+             roomObjects.blades.forEach(blade => {
+                 blade.rotation += bladeRotationSpeed;
+                 blade.mesh.rotation.y = blade.rotation;
+             });
+             
+             roomObjects.keys.forEach(key => {
+                 if (!key.collected) {
+                     key.mesh.rotation.y += deltaTime;
+                     key.mesh.position.y = 1.5 + Math.sin(time) * 0.3;
+                 }
+             });
+         }
             });
             
             roomObjects.blades.forEach(blade => {
@@ -1999,20 +1970,18 @@ playerState.position.z = Math.max(
             camera.lookAt(lookX, lookY, lookZ);
         }
   
-        function updateInventory() {
-            const itemsDiv = document.getElementById('inventoryItems');
-            if (!itemsDiv) {
-                console.error('Inventory items element not found!');
-                return;
-            }
-            if (gameState.inventory.length === 0) {
-                itemsDiv.textContent = '$0';
-            } else {
-                itemsDiv.innerHTML = gameState.inventory.map(item =>
-                    '<div style="color: #85BB65; margin: 3px 0;">$' + item.replace('key', '') + '</div>'
-                ).join('');
-            }
-        }
+         function updateInventory() {
+             const itemsDiv = DOMElements.inventoryItems;
+             if (!itemsDiv) return;
+             
+             if (gameState.inventory.length === 0) {
+                 itemsDiv.textContent = '$0';
+             } else {
+                 itemsDiv.innerHTML = gameState.inventory.map(item =>
+                     '<div style="color: #85BB65; margin: 3px 0;">$' + item.replace('key', '') + '</div>'
+                 ).join('');
+             }
+         }
         
         function updateDoors() {
             roomObjects.doors.forEach(door => {
@@ -2045,7 +2014,7 @@ playerState.position.z = Math.max(
              camera.position.set(0, 2, 5);
              const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
              scene.add(light);
-             console.log("Early init complete - scene, camera, renderer ready");
+             
          }
          
          function init() {
@@ -2158,9 +2127,6 @@ playerState.position.z = Math.max(
                   updatePlayer(deltaTime);
                   checkCollisions();
                   updateCamera();
-              }
-              
-              if (gameState.gameStarted) {
                   updateTraps(deltaTime);
                   drawMinimap();
               }
@@ -2171,43 +2137,43 @@ playerState.position.z = Math.max(
           }
         
         window.onload = () => {
-            console.log('Window loaded, auto-detecting device...');
+            DOMElements.loadingScreen = document.getElementById('loadingScreen');
+            DOMElements.startGameBtn = document.getElementById('startGameBtn');
+            DOMElements.dialogueBox = document.getElementById('dialogueBox');
+            DOMElements.dialogueSpeaker = document.getElementById('dialogueSpeaker');
+            DOMElements.dialogueText = document.getElementById('dialogueText');
+            DOMElements.objective = document.getElementById('objective');
+            DOMElements.victoryScreen = document.getElementById('victoryScreen');
+            DOMElements.inventoryItems = document.getElementById('inventoryItems');
             
             const isMobile = isMobileDevice();
-            console.log('Auto-detected device:', isMobile ? 'Mobile' : 'Desktop');
             
             const gamepads = navigator.getGamepads();
             let hasPS5Controller = false;
-            console.log('Checking for gamepads...', gamepads.length, 'gamepads found');
             for (let i = 0; i < gamepads.length; i++) {
                 if (gamepads[i]) {
                     const gamepadId = gamepads[i].id.toLowerCase();
-                    console.log('Gamepad', i, ':', gamepads[i].id);
                     if (gamepadId.includes('dualsense') || gamepadId.includes('ps5') || gamepadId.includes('wireless controller')) {
                         hasPS5Controller = true;
                         gamepadData.active = true;
                         gamepadData.gamepadIndex = i;
-                        console.log('PS5 controller detected:', gamepads[i].id);
                         break;
                     }
                 }
             }
             
             if (hasPS5Controller) {
-                console.log('Setting control mode to: gamepad');
                 setControlMode('gamepad');
             } else if (isMobile) {
-                console.log('Setting control mode to: mobile');
                 setControlMode('mobile');
             } else {
-                console.log('Setting control mode to: keyboard');
                 setControlMode('keyboard');
             }
             
             const loadingScreen = document.getElementById('loadingScreen');
             const startBtn = document.getElementById('startGameBtn');
             
-            document.getElementById('loadingScreen').querySelector('h2').textContent = 'Hungry for Burger?';
+             document.getElementById('loadingScreen').querySelector('h2').textContent = 'Hungry for Burger?';
             document.getElementById('loadingScreen').querySelector('p').style.display = 'none';
             startBtn.style.display = 'block';
             
@@ -2215,17 +2181,16 @@ playerState.position.z = Math.max(
             
             startBtn.onclick = () => {
                 loadingScreen.style.display = 'none';
+                loadingScreen.classList.add('hidden');
                 gameState.gameStarted = true;
                 startGame();
                 const music = document.getElementById('bgMusic');
                 music.volume = 0.3;
-                music.play().catch(e => console.log('Audio play error:', e));
-                console.log('Game started, calling updateObjective...');
+                music.play().catch(() => {});
                 updateObjective();
             };
             
             animate();
-            console.log('Animation loop started (before game starts)');
         };
         
         window.onresize = () => {
@@ -2249,18 +2214,18 @@ playerState.position.z = Math.max(
             el.textContent = text;
         }
         window.debugInv = function() {
-            console.log('=== DEBUG INVENTORY ===');
-            console.log('Inventory array:', gameState.inventory);
+            
+            
             console.log('Has key1?', gameState.inventory.includes('key1'));
             console.log('Has key2?', gameState.inventory.includes('key2'));
             console.log('Has key3?', gameState.inventory.includes('key3'));
             console.log('Has key4?', gameState.inventory.includes('key4'));
-            console.log('=== END DEBUG ===');
+            
         }
         window.forceUpdate = function() {
-            console.log('=== FORCE UPDATE ===');
+            
             updateObjective();
-            console.log('=== END FORCE ===');
+            
         }
      </script>
 </body>
