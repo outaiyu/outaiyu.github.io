@@ -502,9 +502,7 @@
     function startGame() {
     const bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 0.3;
-bgMusic.play().catch(err => {
-    .catch(() => {})
-});
+bgMusic.play().catch(() => {});
     init();
     setupControls();
     createPlayer();
