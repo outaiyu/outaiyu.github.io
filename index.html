@@ -576,61 +576,34 @@ bgMusic.play().catch(err => {
                     }
                 });
                 console.log('Created', roomObjects.walls.length, 'walls');
-            }
-            
-            const cornerMaterial = new THREE.MeshPhongMaterial({ 
-                color: 0x8B7355,
-                emissive: 0x4A3728,
-                emissiveIntensity: 0.2
-            });
-            
-            const corners = [
-                { x: -35, z: 110 },
-                { x: 35, z: 110 },
-                { x: -35, z: 25 },
-                { x: 35, z: 25 },
-                { x: -35, z: -85 },
-                { x: 35, z: -85 },
-                { x: -35, z: -110 },
-                { x: 35, z: -110 }
-            ];
-            
-            corners.forEach(corner => {
-                const isYellowCorner = corner.z >= -110 && corner.z <= -60;
-                const cornerMaterial = isYellowCorner ? 
-                    new THREE.MeshPhongMaterial({ 
-                        color: 0xFFD700,
-                        emissive: 0xCC9900,
+                
+                const corners = [
+                    { x: -35, z: 110, h: 8, isYellow: false },
+                    { x: 35, z: 110, h: 8, isYellow: false },
+                    { x: -35, z: 25, h: 8, isYellow: false },
+                    { x: 35, z: 25, h: 8, isYellow: false },
+                    { x: -35, z: -85, h: 8, isYellow: false },
+                    { x: 35, z: -85, h: 8, isYellow: false },
+                    { x: -35, z: -60, h: 16, isYellow: true },
+                    { x: 35, z: -60, h: 16, isYellow: true },
+                    { x: -35, z: -110, h: 16, isYellow: true },
+                    { x: 35, z: -110, h: 16, isYellow: true }
+                ];
+                
+                corners.forEach(corner => {
+                    const cornerMaterial = new THREE.MeshPhongMaterial({ 
+                        color: corner.isYellow ? 0xFFD700 : 0x8B7355,
+                        emissive: corner.isYellow ? 0xCC9900 : 0x4A3728,
                         emissiveIntensity: 0.2
-                    }) : cornerMaterial;
-                const cornerGeometry = new THREE.BoxGeometry(1, 8, 1);
-                const cornerMesh = new THREE.Mesh(cornerGeometry, cornerMaterial);
-                cornerMesh.position.set(corner.x, 4, corner.z);
-                cornerMesh.castShadow = true;
-                cornerMesh.receiveShadow = true;
-                scene.add(cornerMesh);
-            });
-            
-            const yellowCorners = [
-                { x: -35, z: -60 },
-                { x: 35, z: -60 },
-                { x: -35, z: -110 },
-                { x: 35, z: -110 }
-            ];
-            
-            yellowCorners.forEach(corner => {
-                const yellowCornerMaterial = new THREE.MeshPhongMaterial({ 
-                    color: 0xFFD700,
-                    emissive: 0xCC9900,
-                    emissiveIntensity: 0.2
+                    });
+                    const cornerGeometry = new THREE.BoxGeometry(1, corner.h, 1);
+                    const cornerMesh = new THREE.Mesh(cornerGeometry, cornerMaterial);
+                    cornerMesh.position.set(corner.x, corner.h / 2, corner.z);
+                    cornerMesh.castShadow = true;
+                    cornerMesh.receiveShadow = true;
+                    scene.add(cornerMesh);
                 });
-                const cornerGeometry = new THREE.BoxGeometry(1, 16, 1);
-                const cornerMesh = new THREE.Mesh(cornerGeometry, yellowCornerMaterial);
-                cornerMesh.position.set(corner.x, 8, corner.z);
-                cornerMesh.castShadow = true;
-                cornerMesh.receiveShadow = true;
-                scene.add(cornerMesh);
-            });
+            }
             
             roomObjects.blades = [];
             roomObjects.spikes = [];
