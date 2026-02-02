@@ -1315,15 +1315,25 @@ bgMusic.play().catch(err => {
                   const loadingScreen = document.getElementById('loadingScreen');
                   const startBtn = document.getElementById('startGameBtn');
                   
-                  if (loadingScreen.style.display !== 'none' && startBtn.style.display !== 'none') {
+                  const isLoadScreenVisible = loadingScreen && loadingScreen.style.display !== 'none';
+                  const isStartBtnVisible = startBtn && startBtn.style.display !== 'none';
+                  
+                  console.log('L1 pressed - loadScreenVisible:', isLoadScreenVisible, 'startBtnVisible:', isStartBtnVisible, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
+                  
+                  if (isLoadScreenVisible && isStartBtnVisible) {
                       if (gameState.gameOver) {
                           console.log('Restarting game with L1');
                           location.reload();
                       } else if (!gameState.gameStarted) {
                           console.log('Starting game with L1');
-                          if (window.startGameHandler) {
-                              window.startGameHandler();
-                          }
+                          loadingScreen.style.display = 'none';
+                          gameState.gameStarted = true;
+                          startGame();
+                          const music = document.getElementById('bgMusic');
+                          music.volume = 0.3;
+                          music.play().catch(e => console.log('Audio play error:', e));
+                          console.log('Game started, calling updateObjective...');
+                          updateObjective();
                       }
                   }
                   gamepadData.wasL1Pressed = true;
