@@ -488,7 +488,7 @@
     scene.add(light);
     console.log("Three.js initialized");
 }
-function startGame() {
+    function startGame() {
     const bgMusic = document.getElementById("bgMusic");
 bgMusic.volume = 0.3;
 bgMusic.play().catch(err => {
@@ -502,7 +502,6 @@ bgMusic.play().catch(err => {
     updateObjective();
     showDialogue(story.intro);
     updateMobileButtons();
-    animate();
 }
  
         function createPlayer() {
@@ -2026,7 +2025,29 @@ playerState.position.z = Math.max(
             });
         }
         
-        function updateObjective() {
+         function initEarly() {
+             scene = new THREE.Scene();
+             camera = new THREE.PerspectiveCamera(
+                 75,
+                 window.innerWidth / window.innerHeight,
+                 0.1,
+                 1000
+             );
+             renderer = new THREE.WebGLRenderer({
+                 canvas: document.getElementById("gameCanvas"),
+                 antialias: true
+             });
+             renderer.shadowMap.enabled = true;
+             renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+             renderer.setSize(window.innerWidth, window.innerHeight);
+             renderer.setPixelRatio(window.devicePixelRatio);
+             camera.position.set(0, 2, 5);
+             const light = new THREE.HemisphereLight(0xffffff, 0x444444, 0.6);
+             scene.add(light);
+             console.log("Early init complete - scene, camera, renderer ready");
+         }
+         
+         function init() {
             const objectiveEl = document.getElementById('objective');
             if (!objectiveEl) {
                 console.error('Objective element NOT FOUND!');
@@ -2123,25 +2144,25 @@ playerState.position.z = Math.max(
             };
         }
         
-         function animate() {
-             requestAnimationFrame(animate);
-             
-             const deltaTime = 0.016;
-             
-             if (gameState.controlMode === 'gamepad') {
-                 pollGamepad();
-             }
-             
-             if (gameState.gameStarted && !gameState.showingDialogue && !gameState.gameOver && !gameState.victory && !gameState.showingInstructions) {
-                 updatePlayer(deltaTime);
-                 checkCollisions();
-                 updateCamera();
-             }
-             
-             updateTraps(deltaTime);
-             drawMinimap();
-             renderer.render(scene, camera);
-         }
+          function animate() {
+              requestAnimationFrame(animate);
+              
+              const deltaTime = 0.016;
+              
+              if (gameState.controlMode === 'gamepad') {
+                  pollGamepad();
+              }
+              
+              if (gameState.gameStarted && !gameState.showingDialogue && !gameState.gameOver && !gameState.victory && !gameState.showingInstructions) {
+                  updatePlayer(deltaTime);
+                  checkCollisions();
+                  updateCamera();
+              }
+              
+              if (renderer && scene && camera) {
+                  renderer.render(scene, camera);
+              }
+          }
         
         window.onload = () => {
             console.log('Window loaded, auto-detecting device...');
@@ -2184,6 +2205,8 @@ playerState.position.z = Math.max(
             document.getElementById('loadingScreen').querySelector('p').style.display = 'none';
             startBtn.style.display = 'block';
             
+            initEarly();
+            
             startBtn.onclick = () => {
                 loadingScreen.style.display = 'none';
                 gameState.gameStarted = true;
@@ -2195,7 +2218,8 @@ playerState.position.z = Math.max(
                 updateObjective();
             };
             
-            window.startGameHandler = startBtn.onclick;
+            animate();
+            console.log('Animation loop started (before game starts)');
         };
         
         window.onresize = () => {
