@@ -1315,10 +1315,10 @@ bgMusic.play().catch(err => {
                   const loadingScreen = document.getElementById('loadingScreen');
                   const startBtn = document.getElementById('startGameBtn');
                   
-                  const isLoadScreenVisible = loadingScreen && (loadingScreen.style.display === 'flex' || loadingScreen.style.display === 'block');
+                  const isLoadScreenVisible = loadingScreen && !loadingScreen.classList.contains('hidden');
                   const isStartBtnVisible = startBtn && startBtn.style.display === 'block';
                   
-                  console.log('L1 pressed - loadScreen:', loadingScreen.style.display, 'btn:', startBtn.style.display, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
+                  console.log('L1 pressed - loadScreenVisible:', isLoadScreenVisible, 'btnVisible:', isStartBtnVisible, 'gameStarted:', gameState.gameStarted, 'gameOver:', gameState.gameOver);
                   
                   if (isLoadScreenVisible && isStartBtnVisible) {
                       if (gameState.gameOver) {
@@ -1327,6 +1327,7 @@ bgMusic.play().catch(err => {
                       } else if (!gameState.gameStarted) {
                           console.log('Starting game with L1');
                           loadingScreen.style.display = 'none';
+                          loadingScreen.classList.add('hidden');
                           gameState.gameStarted = true;
                           startGame();
                           const music = document.getElementById('bgMusic');
@@ -2157,6 +2158,11 @@ playerState.position.z = Math.max(
                   updatePlayer(deltaTime);
                   checkCollisions();
                   updateCamera();
+              }
+              
+              if (gameState.gameStarted) {
+                  updateTraps(deltaTime);
+                  drawMinimap();
               }
               
               if (renderer && scene && camera) {
