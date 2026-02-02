@@ -1308,8 +1308,10 @@ bgMusic.play().catch(err => {
     const velX = playerState.velocity.x;
     const velZ = playerState.velocity.z;
     if (keys.jump && !playerState.isJumping) {
+        console.log('JUMP TRIGGERED! isJumping:', playerState.isJumping);
         playerState.isJumping = true;
         playerState.jumpVelocity = 25;
+        console.log('Set jumpVelocity to 25');
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
