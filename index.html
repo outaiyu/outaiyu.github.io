@@ -1776,12 +1776,7 @@ playerState.position.z = Math.max(
                         const coinSound = document.getElementById('coinSound');
                         coinSound.volume = 1.0;
                         coinSound.currentTime = 0;
-                        coinSound.play().then(() => {
-                            
-                        }).catch(err => {
-                            console.error('Coin sound play error:', err);
-                            coinSound.play();
-                        });
+                        coinSound.play().catch(() => {});
                         
                     scene.remove(key.mesh);
                     roomObjects.keys.splice(i, 1);
