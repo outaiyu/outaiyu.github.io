@@ -1500,20 +1500,25 @@ playerState.position.z = Math.max(
             for (let i = roomObjects.keys.length - 1; i >= 0; i--) {
                 const key = roomObjects.keys[i];
                 if (key.collected) continue;
-                const dx = playerState.position.x - key.x;
-                const dz = playerState.position.z - key.z;
-                const distance = Math.sqrt(dx * dx + dz * dz);
-                if (distance < 2) {
-                    console.log('=== KEY COLLECTED ===');
-                    console.log('Key type:', key.type);
-                    console.log('Inventory BEFORE:', gameState.inventory);
-                    key.collected = true;
-                    gameState.inventory.push(key.type);
-                    const coinSound = document.getElementById('coinSound');
-                    coinSound.volume = 0.5;
-                    coinSound.currentTime = 0;
-                    coinSound.play().catch(err => console.log('Coin sound play error:', err));
-                    console.log('Inventory AFTER:', gameState.inventory);
+                    const dx = playerState.position.x - key.x;
+                    const dz = playerState.position.z - key.z;
+                    const distance = Math.sqrt(dx * dx + dz * dz);
+                    if (distance < 2) {
+                        console.log('=== KEY COLLECTED ===');
+                        console.log('Key type:', key.type);
+                        console.log('Inventory BEFORE:', gameState.inventory);
+                        key.collected = true;
+                        gameState.inventory.push(key.type);
+                        const coinSound = document.getElementById('coinSound');
+                        coinSound.volume = 1.0;
+                        coinSound.currentTime = 0;
+                        coinSound.play().then(() => {
+                            console.log('Coin sound played successfully');
+                        }).catch(err => {
+                            console.error('Coin sound play error:', err);
+                            coinSound.play();
+                        });
+                        console.log('Inventory AFTER:', gameState.inventory);
                     scene.remove(key.mesh);
                     roomObjects.keys.splice(i, 1);
                     console.log('Removed key mesh from scene');
