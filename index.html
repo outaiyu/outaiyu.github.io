@@ -1918,29 +1918,15 @@ playerState.position.z = Math.max(
                  blade.mesh.rotation.y = blade.rotation;
              });
              
-             roomObjects.keys.forEach(key => {
-                 if (!key.collected) {
-                     key.mesh.rotation.y += deltaTime;
-                     key.mesh.position.y = 1.5 + Math.sin(time) * 0.3;
-                 }
-             });
-         }
-            });
-            
-            roomObjects.blades.forEach(blade => {
-                blade.rotation += deltaTime * 2;
-                blade.mesh.rotation.y = blade.rotation;
-            });
-            
-            roomObjects.keys.forEach(key => {
-                if (!key.collected) {
-                    key.mesh.rotation.y += deltaTime;
-                    key.mesh.position.y = 1.5 + Math.sin(Date.now() * 0.003) * 0.3;
-                }
-            });
-        }
-  
-        function updateCamera() {
+              roomObjects.keys.forEach(key => {
+                  if (!key.collected) {
+                      key.mesh.rotation.y += deltaTime;
+                      key.mesh.position.y = 1.5 + Math.sin(time) * 0.3;
+                  }
+              });
+          }
+   
+         function updateCamera() {
             const cameraDistance = 12;
             const cameraHeight = 10;
             
