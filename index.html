@@ -469,7 +469,7 @@ bgMusic.play().catch(err => {
             ball.position.y = 0;
             playerGroup.add(ball);
             
-            const playerLight = new THREE.PointLight(0xFFFACD, 3, 20);
+            const playerLight = new THREE.PointLight(0xFFFACD, 1, 30);
             playerLight.castShadow = true;
             playerLight.position.set(0, 2, 0);
             playerGroup.add(playerLight);
