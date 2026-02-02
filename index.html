@@ -1037,22 +1037,24 @@ bgMusic.play().catch(err => {
             
              document.addEventListener('keydown', (e) => {
                  if (gameState.isMobile || gameState.controlMode === 'gamepad') {
-                    if (e.code === 'KeyI') {
-                        toggleInstructions();
-                    }
-                    return;
-                }
-                
-                if (gameState.showingDialogue && e.code === 'Space') {
-                    showNextDialogue();
-                    return;
-                }
-                if (gameState.showingDialogue && e.code === 'Escape') {
-                    gameState.dialogueQueue = [];
-                    gameState.showingDialogue = false;
-                    document.getElementById('dialogueBox').style.display = 'none';
-                    return;
-                }
+                     if (e.code === 'KeyI') {
+                         toggleInstructions();
+                     }
+                     if (gameState.controlMode === 'gamepad') {
+                         return;
+                     }
+                 }
+                 
+                 if (gameState.showingDialogue && e.code === 'Space') {
+                     showNextDialogue();
+                     return;
+                 }
+                 if (gameState.showingDialogue && e.code === 'Escape') {
+                     gameState.dialogueQueue = [];
+                     gameState.showingDialogue = false;
+                     document.getElementById('dialogueBox').style.display = 'none';
+                     return;
+                 }
                 
                 if (e.code === 'KeyW' || e.code === 'ArrowUp') keys.forward = true;
                 if (e.code === 'KeyS' || e.code === 'ArrowDown') keys.backward = true;
@@ -1290,55 +1292,74 @@ bgMusic.play().catch(err => {
              console.log('Mobile controls setup complete');
          }
   
-         function pollGamepad() {
-             if (!gamepadData.active || gamepadData.gamepadIndex === null) {
-                 return;
-             }
-             
-             const gamepad = navigator.getGamepads()[gamepadData.gamepadIndex];
-             if (!gamepad) {
-                 return;
-             }
-             
-             const deadzone = 0.15;
-             
-             const leftStickX = gamepad.axes[0];
-             const leftStickY = gamepad.axes[1];
-             const rightStickX = gamepad.axes[2];
-             const rightStickY = gamepad.axes[3];
-             
-             if (Math.abs(leftStickX) > deadzone) {
-                 gamepadData.moveX = leftStickX;
-             } else {
-                 gamepadData.moveX = 0;
-             }
-             
-             if (Math.abs(leftStickY) > deadzone) {
-                 gamepadData.moveY = leftStickY;
-             } else {
-                 gamepadData.moveY = 0;
-             }
-             
-             if (Math.abs(rightStickX) > deadzone) {
-                 gamepadData.lookX = rightStickX;
-             } else {
-                 gamepadData.lookX = 0;
-             }
-             
-             if (Math.abs(rightStickY) > deadzone) {
-                 gamepadData.lookY = rightStickY;
-             } else {
-                 gamepadData.lookY = 0;
-             }
-             
-              keys.forward = gamepadData.moveY < -deadzone;
-              keys.backward = gamepadData.moveY > deadzone;
-              keys.left = gamepadData.moveX < -deadzone;
-              keys.right = gamepadData.moveX > deadzone;
+          function pollGamepad() {
+              if (!gamepadData.active || gamepadData.gamepadIndex === null) {
+                  return;
+              }
               
-              yaw -= gamepadData.lookX * 0.05;
-              pitch -= gamepadData.lookY * 0.05;
-              pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
+              const gamepad = navigator.getGamepads()[gamepadData.gamepadIndex];
+              if (!gamepad) {
+                  return;
+              }
+              
+              const deadzone = 0.25;
+              
+              const leftStickX = gamepad.axes[0];
+              const leftStickY = gamepad.axes[1];
+              const rightStickX = gamepad.axes[2];
+              const rightStickY = gamepad.axes[3];
+              
+              gamepadData.moveX = 0;
+              gamepadData.moveY = 0;
+              gamepadData.lookX = 0;
+              gamepadData.lookY = 0;
+              
+              if (Math.abs(leftStickX) > deadzone) {
+                  gamepadData.moveX = leftStickX;
+              }
+              
+              if (Math.abs(leftStickY) > deadzone) {
+                  gamepadData.moveY = leftStickY;
+              }
+              
+              if (Math.abs(rightStickX) > deadzone) {
+                  gamepadData.lookX = rightStickX;
+              }
+              
+              if (Math.abs(rightStickY) > deadzone) {
+                  gamepadData.lookY = rightStickY;
+              }
+              
+              if (gamepadData.moveY < -deadzone) {
+                  keys.forward = true;
+                  keys.backward = false;
+              } else if (gamepadData.moveY > deadzone) {
+                  keys.forward = false;
+                  keys.backward = true;
+              } else {
+                  keys.forward = false;
+                  keys.backward = false;
+              }
+              
+              if (gamepadData.moveX < -deadzone) {
+                  keys.left = true;
+                  keys.right = false;
+              } else if (gamepadData.moveX > deadzone) {
+                  keys.left = false;
+                  keys.right = true;
+              } else {
+                  keys.left = false;
+                  keys.right = false;
+              }
+              
+              if (gamepadData.lookX !== 0) {
+                  yaw -= gamepadData.lookX * 0.05;
+              }
+              
+              if (gamepadData.lookY !== 0) {
+                  pitch -= gamepadData.lookY * 0.05;
+                  pitch = Math.max(-Math.PI / 4, Math.min(Math.PI / 3, pitch));
+              }
               
               keys.jump = gamepad.buttons[0].pressed;
               
