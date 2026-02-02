@@ -803,7 +803,7 @@ bgMusic.play().catch(err => {
                         emissive: 0xCC9900,
                         emissiveIntensity: 0.2
                     });
-                    const topWallGeometry = new THREE.BoxGeometry(6, 8, 0.2);
+                    const topWallGeometry = new THREE.BoxGeometry(6, 8, 1);
                     const topWallMesh = new THREE.Mesh(topWallGeometry, topWallMaterial);
                     topWallMesh.position.set(glassDoor.x, 12, glassDoor.z);
                     topWallMesh.castShadow = true;
