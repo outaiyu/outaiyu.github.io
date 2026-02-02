@@ -945,7 +945,7 @@ bgMusic.play().catch(err => {
             
             playerState.position.x = 0;
             playerState.position.z = 100;
-            playerState.position.y = 1;
+            playerState.position.y = 2;
             playerState.velocity = { x: 0, y: 0, z: 0 };
             playerGroup.position.set(playerState.position.x, 0, playerState.position.z);
             yaw = Math.PI;
@@ -1309,11 +1309,11 @@ bgMusic.play().catch(err => {
     const velZ = playerState.velocity.z;
     if (keys.jump && !playerState.isJumping) {
         playerState.isJumping = true;
-        playerState.jumpVelocity = 18;
+        playerState.jumpVelocity = 25;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
-        playerState.jumpVelocity -= 30 * deltaTime;
+        playerState.jumpVelocity -= 25 * deltaTime;
     }
     if (newY < 1) {
         newY = 1;
