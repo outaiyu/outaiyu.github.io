@@ -466,7 +466,7 @@ bgMusic.play().catch(err => {
             ball = new THREE.Mesh(ballGeometry, ballMaterial);
             ball.castShadow = false;
             ball.receiveShadow = true;
-            ball.position.y = 0;
+            ball.position.y = 1;
             playerGroup.add(ball);
             
             const playerLight = new THREE.PointLight(0xFFFACD, 8, 15);
@@ -1479,20 +1479,20 @@ playerState.position.z = Math.max(
     Math.min(maxZ - PLAYER_RADIUS, newZ)
 );
      playerGroup.position.set(
-                playerState.position.x,
-                newY - 1,
-                playerState.position.z
-            );
+                 playerState.position.x,
+                 newY - 1,
+                 playerState.position.z
+             );
     if (keys.forward || keys.backward || keys.left || keys.right) {
       ball.rotation.x += playerState.velocity.z * 0.5;
       ball.rotation.z -= playerState.velocity.x * 0.5;
   }
      playerState.velocity.x = 0;
-    playerState.velocity.z = 0;
-    
-    playerState.position.x = newX;
-    playerState.position.z = newZ;
-    playerState.position.y = newY;
+     playerState.velocity.z = 0;
+     
+     playerState.position.x = newX;
+     playerState.position.z = newZ;
+     playerState.position.y = newY - 1;
      
 }
         function checkCollisions() {
