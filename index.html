@@ -315,6 +315,7 @@
                 document.getElementById('gamepadControlsInfo').style.display = 'none';
                 document.getElementById('mobileControlsInfo').style.display = 'block';
                 document.getElementById('gamepadInteractBtn').classList.remove('active');
+                document.getElementById('gamepadInteractBtn').style.display = 'none';
             } else if (mode === 'gamepad') {
                 document.getElementById('modeGamepad').classList.add('active');
                 document.getElementById('controls').classList.add('mobileHidden');
@@ -323,7 +324,7 @@
                 document.getElementById('pcControls').style.display = 'none';
                 document.getElementById('gamepadControlsInfo').style.display = 'block';
                 document.getElementById('mobileControlsInfo').style.display = 'none';
-                
+                document.getElementById('gamepadInteractBtn').style.display = 'block';
             } else {
                 document.getElementById('modeKeyboard').classList.add('active');
                 document.getElementById('controls').classList.remove('mobileHidden');
@@ -332,9 +333,8 @@
                 document.getElementById('pcControls').style.display = 'block';
                 document.getElementById('gamepadControlsInfo').style.display = 'none';
                 document.getElementById('mobileControlsInfo').style.display = 'none';
+                document.getElementById('gamepadInteractBtn').style.display = 'none';
             }
-            
-            console.log('Control mode set to:', mode, '(mobile:', gameState.isMobile + ')');
         }
  
         const story = {
@@ -1314,11 +1314,23 @@ bgMusic.play().catch(err => {
   
           function pollGamepad() {
               if (!gamepadData.active || gamepadData.gamepadIndex === null) {
+                  keys.forward = false;
+                  keys.backward = false;
+                  keys.left = false;
+                  keys.right = false;
+                  keys.jump = false;
+                  keys.interact = false;
                   return;
               }
               
               const gamepad = navigator.getGamepads()[gamepadData.gamepadIndex];
               if (!gamepad) {
+                  keys.forward = false;
+                  keys.backward = false;
+                  keys.left = false;
+                  keys.right = false;
+                  keys.jump = false;
+                  keys.interact = false;
                   return;
               }
               
@@ -1346,9 +1358,6 @@ bgMusic.play().catch(err => {
                           music.play();
                           updateObjective();
                       }
-                  }
-                  gamepadData.wasL1Pressed = true;
-              }
                   }
                   gamepadData.wasL1Pressed = true;
               }
