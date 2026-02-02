@@ -1445,7 +1445,7 @@ bgMusic.play().catch(err => {
         const dx = newX - villainX;
         const dz = newZ - villainZ;
         const distance = Math.sqrt(dx * dx + dz * dz);
-        const minDistance = 1 + villainRadius;
+        const minDistance = 2 + villainRadius;
         if (distance < minDistance) {
             const overlap = minDistance - distance;
             if (distance > 0.001) {
@@ -1480,7 +1480,7 @@ playerState.position.z = Math.max(
 );
      playerGroup.position.set(
                  playerState.position.x,
-                 newY - 1,
+                 newY - 2,
                  playerState.position.z
              );
     if (keys.forward || keys.backward || keys.left || keys.right) {
