@@ -1757,12 +1757,15 @@ playerState.position.z = Math.max(
                 const y = centerY + wall.z * scale;
                 const isYellowWall = wall.z >= -110 && wall.z <= -60;
                 minimapCtx.fillStyle = isYellowWall ? '#ffd700' : '#8B7355';
+                const thickness = 4;
                 if (wall.ry !== 0) {
                     const halfLen = (wall.w * scale) / 2;
-                    minimapCtx.fillRect(x - 2, y - halfLen, 4, wall.w * scale);
+                    const startX = x - thickness / 2;
+                    minimapCtx.fillRect(startX, y - halfLen, thickness, wall.w * scale);
                 } else {
                     const halfLen = (wall.w * scale) / 2;
-                    minimapCtx.fillRect(x - halfLen, y - 2, wall.w * scale, 4);
+                    const startY = y - thickness / 2;
+                    minimapCtx.fillRect(x - halfLen, startY, wall.w * scale, thickness);
                 }
             });
             
