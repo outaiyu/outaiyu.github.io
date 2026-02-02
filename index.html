@@ -1024,8 +1024,8 @@ bgMusic.play().catch(() => {});
              showNextDialogue();
          }
  
-         function showNextDialogue() {
-            if (gameState.dialogueQueue.length === 0) {
+          function showNextDialogue() {
+             if (gameState.dialogueQueue.length === 0) {
                 gameState.showingDialogue = false;
                 DOMElements.dialogueBox.style.display = 'none';
                 if (gameState.isMobile) {
@@ -1042,21 +1042,8 @@ bgMusic.play().catch(() => {});
             DOMElements.dialogueSpeaker.textContent = dialogue.speaker;
             DOMElements.dialogueText.textContent = dialogue.text;
         }
-                 if (gameState.controlMode === 'gamepad') {
-                     document.getElementById('dialogueContinue').textContent = 'Press × to continue';
-                 }
-                 
-                 updateObjective();
-                 return;
-             }
-             const dialogue = gameState.dialogueQueue.shift();
-             document.getElementById('dialogueBox').style.display = 'block';
-             document.getElementById('dialogueSpeaker').textContent = dialogue.speaker;
-             document.getElementById('dialogueText').textContent = dialogue.text;
-             
-         }
- 
-        function setupControls() {
+  
+         function setupControls() {
             
             document.addEventListener('keydown', (e) => {
                 if (gameState.isMobile || gameState.controlMode === 'gamepad') {
