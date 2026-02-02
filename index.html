@@ -171,6 +171,7 @@
                 <li><b>Right stick</b> - Look around</li>
                 <li><b>× / Cross</b> - Jump over hazards</li>
                 <li><b>○ / Circle</b> - Interact with waitress</li>
+                <li><b>L1</b> - Start / Restart game</li>
                 <li><b>Options</b> - Show/hide these instructions</li>
                 <li><b>×</b> - Continue dialogue</li>
                 <li><b>○</b> - Skip dialogue</li>
@@ -276,7 +277,8 @@
             wasXPressed: false,
             wasCirclePressed: false,
             wasCircleDialoguePressed: false,
-            lastInteractTime: 0
+            lastInteractTime: 0,
+            wasL1Pressed: false
         };
         
         function isMobileDevice() {
@@ -1307,6 +1309,30 @@ bgMusic.play().catch(err => {
               
               const deadzone = 0.25;
               
+              const l1Pressed = gamepad.buttons[4].pressed;
+              
+              if (l1Pressed && !gamepadData.wasL1Pressed) {
+                  const loadingScreen = document.getElementById('loadingScreen');
+                  const startBtn = document.getElementById('startGameBtn');
+                  
+                  if (loadingScreen.style.display !== 'none' && startBtn.style.display !== 'none') {
+                      if (gameState.gameOver) {
+                          console.log('Restarting game with L1');
+                          location.reload();
+                      } else if (!gameState.gameStarted) {
+                          console.log('Starting game with L1');
+                          if (window.startGameHandler) {
+                              window.startGameHandler();
+                          }
+                      }
+                  }
+                  gamepadData.wasL1Pressed = true;
+              }
+              
+              if (!l1Pressed) {
+                  gamepadData.wasL1Pressed = false;
+              }
+              
               const leftStickX = gamepad.axes[0];
               const leftStickY = gamepad.axes[1];
               const rightStickX = gamepad.axes[2];
@@ -2157,6 +2183,8 @@ playerState.position.z = Math.max(
                 console.log('Game started, calling updateObjective...');
                 updateObjective();
             };
+            
+            window.startGameHandler = startBtn.onclick;
         };
         
         window.onresize = () => {
