@@ -1722,54 +1722,26 @@ playerState.position.z = Math.max(
             const centerX = 60;
             const centerY = 60;
             
-            roomObjects.obstacles.forEach(obs => {
-                const x = centerX + obs.x * scale;
-                const y = centerY + obs.z * scale;
-                const size = 3 * scale;
-                minimapCtx.fillStyle = obs.type === 'spike' ? '#ff0000' : '#888888';
-                minimapCtx.fillRect(x - size/2, y - size/2, size, size);
-            });
-            
-            roomObjects.keys.forEach(key => {
-                if (!key.collected) {
-                    const x = centerX + key.x * scale;
-                    const y = centerY + key.z * scale;
-                    minimapCtx.fillStyle = '#00ff00';
-                    minimapCtx.beginPath();
-                    minimapCtx.arc(x, y, 3, 0, Math.PI * 2);
-                    minimapCtx.fill();
-                }
-            });
-            
-            roomObjects.doors.forEach(door => {
-                if (door.type === 'exit') {
-                    const x = centerX + door.x * scale;
-                    const y = centerY + door.z * scale;
-                    minimapCtx.fillStyle = gameState.inventory.includes(door.needsKey) || door.unlocked ? '#00ff00' : '#ff0000';
-                    minimapCtx.fillRect(x - 4, y - 4, 8, 8);
-                } else if (door.type === 'glass') {
-                    const x = centerX + door.x * scale;
-                    const y = centerY + door.z * scale;
-                    minimapCtx.fillStyle = door.isOpen ? '#ffffff' : '#0088ff';
-                    minimapCtx.fillRect(x - 4, y - 4, 8, 8);
+            roomObjects.walls.forEach(wall => {
+                const x = centerX + wall.x * scale;
+                const y = centerY + wall.z * scale;
+                const isYellowWall = wall.z >= -110 && wall.z <= -60;
+                minimapCtx.fillStyle = isYellowWall ? '#ffd700' : '#8B7355';
+                if (wall.ry !== 0) {
+                    const halfLen = (wall.w * scale) / 2;
+                    minimapCtx.fillRect(x - 2, y - halfLen, 4, wall.w * scale);
+                } else {
+                    const halfLen = (wall.w * scale) / 2;
+                    minimapCtx.fillRect(x - halfLen, y - 2, wall.w * scale, 4);
                 }
             });
             
             const playerX = centerX + playerState.position.x * scale;
             const playerY = centerY + playerState.position.z * scale;
-            minimapCtx.fillStyle = '#6aa8e0';
+            minimapCtx.fillStyle = '#ffffff';
             minimapCtx.beginPath();
             minimapCtx.arc(playerX, playerY, 4, 0, Math.PI * 2);
             minimapCtx.fill();
-            
-            if (roomObjects.villain && roomObjects.villain.mesh) {
-                const vX = centerX + roomObjects.villain.mesh.position.x * scale;
-                const vY = centerY + roomObjects.villain.mesh.position.z * scale;
-                minimapCtx.fillStyle = '#6666aa';
-                minimapCtx.beginPath();
-                minimapCtx.arc(vX, vY, 5, 0, Math.PI * 2);
-                minimapCtx.fill();
-            }
         }
         
         function showGameOver() {
