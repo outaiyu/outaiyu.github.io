@@ -1313,11 +1313,11 @@ bgMusic.play().catch(err => {
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
-        playerState.jumpVelocity -= 10 * deltaTime;
+        playerState.jumpVelocity -= 0 * deltaTime;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
-        playerState.jumpVelocity -= 25 * deltaTime;
+        playerState.jumpVelocity -= 15 * deltaTime;
     }
     if (newY < 1) {
         newY = 1;
