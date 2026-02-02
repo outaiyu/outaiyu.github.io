@@ -275,7 +275,8 @@
             wasOptionsPressed: false,
             wasXPressed: false,
             wasCirclePressed: false,
-            wasCircleDialoguePressed: false
+            wasCircleDialoguePressed: false,
+            lastInteractTime: 0
         };
         
         function isMobileDevice() {
@@ -299,6 +300,7 @@
                 document.getElementById('pcControls').style.display = 'none';
                 document.getElementById('gamepadControlsInfo').style.display = 'none';
                 document.getElementById('mobileControlsInfo').style.display = 'block';
+                document.getElementById('gamepadInteractBtn').classList.remove('active');
             } else if (mode === 'gamepad') {
                 document.getElementById('modeGamepad').classList.add('active');
                 document.getElementById('controls').classList.add('mobileHidden');
@@ -307,6 +309,7 @@
                 document.getElementById('pcControls').style.display = 'none';
                 document.getElementById('gamepadControlsInfo').style.display = 'block';
                 document.getElementById('mobileControlsInfo').style.display = 'none';
+                console.log('Mobile controls hidden, gamepad mode active');
             } else {
                 document.getElementById('modeKeyboard').classList.add('active');
                 document.getElementById('controls').classList.remove('mobileHidden');
@@ -1372,15 +1375,17 @@ bgMusic.play().catch(err => {
                                    gameState.inventory.includes('key4');
                   
                   if (keys.interact && roomObjects.villain && roomObjects.villain.canInteract && !roomObjects.villain.defeated && hasAllKeys && !gamepadData.wasCirclePressed) {
+                      gamepadData.lastInteractTime = Date.now();
                       roomObjects.villain.defeated = true;
                       scene.remove(roomObjects.villain.mesh);
                       roomObjects.villain = null;
                       showDialogue(story.victory);
+                      gamepadData.wasCirclePressed = true;
+                      gamepadData.wasCircleDialoguePressed = true;
                       setTimeout(() => {
                           gameState.victory = true;
                           document.getElementById('victoryScreen').style.display = 'flex';
                       }, 5000);
-                      gamepadData.wasCirclePressed = true;
                   }
                   
                   if (!keys.interact) {
@@ -1402,7 +1407,10 @@ bgMusic.play().catch(err => {
                           gamepadData.wasXPressed = true;
                       }
                       
-                      if (gamepad.buttons[1].pressed && !gamepadData.wasCircleDialoguePressed) {
+                      const currentTime = Date.now();
+                      const timeSinceInteract = currentTime - gamepadData.lastInteractTime;
+                      
+                      if (gamepad.buttons[1].pressed && !gamepadData.wasCircleDialoguePressed && timeSinceInteract > 500) {
                           gameState.dialogueQueue = [];
                           gameState.showingDialogue = false;
                           document.getElementById('dialogueBox').style.display = 'none';
@@ -1455,7 +1463,11 @@ bgMusic.play().catch(err => {
               const gamepadId = e.gamepad.id.toLowerCase();
               const isPS5 = gamepadId.includes('dualsense') || gamepadId.includes('ps5') || gamepadId.includes('wireless controller');
               
+              console.log('Is PS5 controller:', isPS5);
+              console.log('Current control mode:', gameState.controlMode);
+              
               if (gameState.controlMode === 'keyboard' || (isPS5 && gameState.controlMode !== 'mobile')) {
+                  console.log('Switching to gamepad mode');
                   setControlMode('gamepad');
               }
           });
@@ -2102,9 +2114,11 @@ playerState.position.z = Math.max(
             
             const gamepads = navigator.getGamepads();
             let hasPS5Controller = false;
+            console.log('Checking for gamepads...', gamepads.length, 'gamepads found');
             for (let i = 0; i < gamepads.length; i++) {
                 if (gamepads[i]) {
                     const gamepadId = gamepads[i].id.toLowerCase();
+                    console.log('Gamepad', i, ':', gamepads[i].id);
                     if (gamepadId.includes('dualsense') || gamepadId.includes('ps5') || gamepadId.includes('wireless controller')) {
                         hasPS5Controller = true;
                         gamepadData.active = true;
@@ -2116,10 +2130,13 @@ playerState.position.z = Math.max(
             }
             
             if (hasPS5Controller) {
+                console.log('Setting control mode to: gamepad');
                 setControlMode('gamepad');
             } else if (isMobile) {
+                console.log('Setting control mode to: mobile');
                 setControlMode('mobile');
             } else {
+                console.log('Setting control mode to: keyboard');
                 setControlMode('keyboard');
             }
             
