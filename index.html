@@ -1309,11 +1309,11 @@ bgMusic.play().catch(err => {
     const velZ = playerState.velocity.z;
     if (keys.jump && !playerState.isJumping) {
         playerState.isJumping = true;
-        playerState.jumpVelocity = 12;
+        playerState.jumpVelocity = 18;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
-        playerState.jumpVelocity -= 15 * deltaTime;
+        playerState.jumpVelocity -= 20 * deltaTime;
     }
     if (playerState.isJumping) {
         newY += playerState.jumpVelocity * deltaTime;
