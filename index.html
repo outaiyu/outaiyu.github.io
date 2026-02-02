@@ -1736,6 +1736,17 @@ playerState.position.z = Math.max(
                 }
             });
             
+            roomObjects.keys.forEach(key => {
+                if (!key.collected) {
+                    const x = centerX + key.x * scale;
+                    const y = centerY + key.z * scale;
+                    minimapCtx.fillStyle = '#00ff00';
+                    minimapCtx.beginPath();
+                    minimapCtx.arc(x, y, 3, 0, Math.PI * 2);
+                    minimapCtx.fill();
+                }
+            });
+            
             const playerX = centerX + playerState.position.x * scale;
             const playerY = centerY + playerState.position.z * scale;
             minimapCtx.fillStyle = '#ffffff';
