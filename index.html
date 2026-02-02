@@ -469,7 +469,7 @@ bgMusic.play().catch(err => {
             ball.position.y = 0;
             playerGroup.add(ball);
             
-            const playerLight = new THREE.PointLight(0xFFFACD, 8, 15);
+            const playerLight = new THREE.PointLight(0xFFFACD, 5, 12);
             playerLight.castShadow = true;
             playerLight.position.set(0, 2, 0);
             playerGroup.add(playerLight);
@@ -1480,7 +1480,7 @@ playerState.position.z = Math.max(
 );
      playerGroup.position.set(
                  playerState.position.x,
-                 newY - 1,
+                 newY,
                  playerState.position.z
              );
     if (keys.forward || keys.backward || keys.left || keys.right) {
