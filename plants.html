@@ -12,28 +12,32 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --primary: #76b900;
-            --primary-dark: #5a8700;
+            --primary: #00ff88;
+            --primary-dark: #00cc66;
+            --primary-glow: rgba(0, 255, 136, 0.3);
             --accent: #00d4ff;
+            --accent-glow: rgba(0, 212, 255, 0.3);
             --success: #00e676;
             --warning: #ff9800;
             --danger: #ef4444;
-            --dark: #0a0e27;
-            --dark-lighter: #1a1a1a;
-            --text: #f1f5f9;
-            --text-muted: #a0aec0;
-            --border: rgba(255,255,255,0.1);
+            --dark: #05070a;
+            --dark-card: #0d1117;
+            --dark-lighter: #161b22;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --border: rgba(0, 255, 136, 0.15);
+            --border-glow: rgba(0, 255, 136, 0.4);
         }
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: #0d1117;
+            background: linear-gradient(135deg, #05070a 0%, #0d1117 50%, #161b22 100%);
             color: var(--text);
             min-height: 100vh;
             position: relative;
             overflow-x: hidden;
         }
         body.simplified-mode {
-            background: #0d1117;
+            background: #05070a;
         }
         body.simplified-mode #bgElements {
             display: none !important;
@@ -82,36 +86,6 @@
             box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3) !important;
         }
         
-        .bg-grid {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: 
-                linear-gradient(rgba(118, 185, 0, 0.02) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(118, 185, 0, 0.02) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: gridMove 30s linear infinite;
-            pointer-events: none;
-            z-index: 1;
-            will-change: background-position;
-        }
-        @keyframes gridMove {
-            0% { background-position: 0 0; }
-            100% { background-position: 50px 50px; }
-        }
-        .bg-dots {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: radial-gradient(rgba(118, 185, 0, 0.15) 1px, transparent 1px);
-            background-size: 30px 30px;
-            pointer-events: none;
-            z-index: 1;
-        }
         body::before {
             content: '';
             position: fixed;
@@ -158,10 +132,10 @@
             75% { transform: translate3d(60px, 40px, 0) rotate(270deg) scale(1.05); opacity: 0.4; }
         }
         @keyframes colorCycle {
-            0%, 100% { color: #76b900; }
-            25% { color: #ff9800; }
-            50% { color: #ffd700; }
-            75% { color: #00d4ff; }
+            0%, 100% { color: var(--primary); }
+            25% { color: var(--accent); }
+            50% { color: var(--primary); }
+            75% { color: var(--accent); }
         }
         .floating-leaf {
             position: fixed;
@@ -194,11 +168,26 @@
         .floating-leaf:nth-child(19) { top: 60%; left: 25%; animation-delay: -7s; animation-duration: 10s; }
         .floating-leaf:nth-child(20) { top: 90%; right: 12%; animation-delay: -8.5s; animation-duration: 11s; }
         .header {
-            background: rgba(13, 17, 23, 0.95);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid rgba(118, 185, 0, 0.2);
-            padding: 2rem 2rem;
-            box-shadow: 0 4px 30px rgba(118, 185, 0, 0.1);
+            background: rgba(5, 7, 10, 0.98);
+            backdrop-filter: blur(20px);
+            border-bottom: 2px solid var(--border);
+            padding: 1.5rem 2rem;
+            box-shadow: 0 4px 30px var(--primary-glow), inset 0 1px 0 rgba(0, 255, 136, 0.05);
+            position: relative;
+        }
+        .header::before {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--primary), var(--accent), var(--primary), transparent);
+            animation: borderPulse 3s ease-in-out infinite;
+        }
+        @keyframes borderPulse {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
         }
         .header-content {
             max-width: 1200px;
@@ -210,7 +199,7 @@
         .logo {
             font-size: 2rem;
             font-weight: 800;
-            background: linear-gradient(135deg, #76b900 0%, #5a8700 100%);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
@@ -218,6 +207,8 @@
             -webkit-background-clip: text;
             background-position: 0 50%;
             animation: shimmer 3s ease-in-out infinite;
+            text-shadow: 0 0 30px var(--primary-glow);
+            filter: drop-shadow(0 0 10px var(--primary-glow));
         }
         @keyframes shimmer {
             0% { background-position: 0% 50%; }
@@ -238,13 +229,15 @@
             font-size: 3rem;
             font-weight: 800;
             margin-bottom: 1rem;
-            background: var(--gradient-1);
+            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             background-size: 200% auto;
             background-position: 0 center;
             animation: gradientMove 3s ease-in-out infinite;
+            text-shadow: 0 0 40px var(--primary-glow);
+            filter: drop-shadow(0 0 20px var(--primary-glow));
         }
         @keyframes gradientMove {
             0%, 100% { background-position: 0% center; }
@@ -264,18 +257,34 @@
             margin: 0 auto 2rem;
         }
         .stat-card {
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid rgba(118, 185, 0, 0.2);
+            background: rgba(13, 17, 23, 0.95);
+            border: 2px solid var(--border);
             border-radius: 16px;
             padding: 1.5rem;
             text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
             will-change: transform;
+            position: relative;
+            overflow: hidden;
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
+            transition: left 0.5s ease;
+        }
+        .stat-card:hover::before {
+            left: 100%;
         }
         .stat-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px var(--primary-glow), 0 0 0 2px var(--border-glow);
+            border-color: var(--primary);
         }
         .stat-number {
             font-size: 3rem;
@@ -288,377 +297,177 @@
             text-transform: uppercase;
             letter-spacing: 0.1em;
         }
-        .stat-high { border-left: 4px solid var(--danger); }
-        .stat-medium { border-left: 4px solid var(--warning); }
-        .stat-low { border-left: 4px solid var(--success); }
-        .stat-total { border-left: 4px solid var(--accent); }
+        .stat-high { border-left: 4px solid #ef4444; position: relative; }
+        .stat-high::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
+        .stat-medium { border-left: 4px solid #f97316; position: relative; }
+        .stat-medium::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #f97316 0%, #ea580c 100%); box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
+        .stat-low { border-left: 4px solid var(--primary); position: relative; }
+        .stat-low::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 0 15px var(--primary-glow); }
+        .stat-total { border-left: 4px solid var(--accent); position: relative; }
+        .stat-total::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--accent) 0%, var(--primary) 100%); box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.25rem;
+            color: white;
+            background: #333;
+            padding: 5px 12px;
+            border-radius: 6px;
+        }
+        .stat-high .stat-number { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
+        .stat-medium .stat-number { background: linear-gradient(135deg, #ff9800 0%, #f59e0b 100%); box-shadow: 0 0 15px rgba(255, 152, 0, 0.4); }
+        .stat-low .stat-number { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 0 15px var(--primary-glow); }
+        .stat-total .stat-number { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); box-shadow: 0 0 15px var(--primary-glow); }
         .filters {
             display: flex;
-            gap: 1rem;
+            gap: 2rem;
             justify-content: center;
             flex-wrap: wrap;
-            padding: 1rem 2rem;
+            padding: 1.5rem 2rem;
             position: relative;
             z-index: 10;
         }
-        .filter-btn {
-            padding: 1rem 2rem;
-            background: rgba(26, 26, 26, 0.95);
-            border: 2px solid rgba(118, 185, 0, 0.2);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-            will-change: transform, background-color;
-        }
-        .filter-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(118, 185, 0, 0.3);
-        }
-        .filter-btn.active {
-            background: var(--accent);
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
-        }
-        .search-container {
-            max-width: 600px;
-            margin: 0 auto 2rem;
-            position: relative;
-        }
-        .search-input {
+        .filter-group {
             width: 100%;
-            padding: 1rem 1.5rem;
-            background: rgba(26, 26, 26, 0.95);
-            border: 2px solid rgba(118, 185, 0, 0.2);
-            border-radius: 12px;
-            color: var(--text);
-            font-size: 1.1rem;
-            transition: border-color 0.3s ease, box-shadow 0.3s ease;
-        }
-        .search-input:focus {
-            outline: none;
-            border-color: var(--accent);
-            box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
-        }
-        .search-input::placeholder {
-            color: var(--text-muted);
-        }
-        .map-section {
-            max-width: 1050px;
-            margin: 0 auto 2rem;
-            position: relative;
-        }
-        .map-container {
-            height: 1000px;
-            width: 1000px;
-            margin: 0 auto;
-            background: rgba(26, 26, 26, 0.95);
-            border-radius: 50%;
-            border: 5px solid rgba(118, 185, 0, 0.4);
-            overflow: hidden;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(118, 185, 0, 0.1);
-            position: relative;
-            z-index: 1;
-        }
-        body.developer-mode .map-container {
-            border: 5px solid #ff6b6b;
-        }
-        .radius-indicator {
-            position: absolute;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(118, 185, 0, 0.9);
-            color: white;
-            padding: 0.75rem 1.2rem;
-            border-radius: 20px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            z-index: 1000;
-        }
-        #map {
-            height: 100%;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-        .leaflet-container {
-            background: rgba(26, 26, 26, 0.95) !important;
-        }
-        .map-legend {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(10px);
-            border-radius: 12px;
-            padding: 1rem;
-            z-index: 500;
-            pointer-events: none;
-        }
-        .legend-title {
-            font-size: 0.9rem;
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-            color: white;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
-            font-size: 0.85rem;
-            color: white;
-        }
-        .legend-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-        .plants-section {
-            max-width: 1200px;
-            margin: 0 auto 2rem;
-        }
-        .plants-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-            padding: 0 1rem;
-            contain: layout style;
-        }
-        .plant-card {
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid rgba(118, 185, 0, 0.15);
+            min-width: unset;
+            margin-bottom: 1rem;
+            background: rgba(13, 17, 23, 0.95);
+            border: 2px solid var(--border);
             border-radius: 16px;
             padding: 1.5rem;
-            cursor: pointer;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.3s ease;
-            will-change: transform, opacity;
-            contain: layout paint;
-        }
-        .plant-card.loaded {
-            opacity: 1;
-        }
-        .plant-card:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-            border-color: var(--accent);
-        }
-        .plant-card.high-risk { border-left: 4px solid var(--danger); }
-        .plant-card.medium-risk { border-left: 4px solid var(--warning); }
-        .plant-card.low-risk { border-left: 4px solid var(--success); }
-        .plant-card.hidden { display: none; }
-        .plant-header {
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
             display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 1rem;
-        }
-        .plant-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 0.5rem;
-        }
-        .plant-chinese {
-            font-size: 1rem;
-            color: var(--text-muted);
-            margin-bottom: 0.25rem;
-        }
-        .plant-meta {
-            display: flex;
-            gap: 1rem;
-            align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 1rem;
+            gap: 0.75rem;
+            justify-content: center;
         }
-        .plant-badge {
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            font-size: 0.75rem;
+        .filter-group:last-child {
+            margin-bottom: 0;
+        }
+        .filter-title {
+            font-size: 1rem;
             font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(118, 185, 0, 0.3);
+        }
+        .filter-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(22, 27, 34, 0.9);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .plant-badge.high-risk { background: var(--danger); }
-        .plant-badge.medium-risk { background: var(--warning); }
-        .plant-badge.low-risk { background: var(--success); }
-        .plant-distance {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 8px;
-            color: white;
-            font-size: 0.85rem;
-            font-weight: 600;
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: var(--primary);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+            opacity: 0.1;
         }
-        .plant-details {
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
+        .filter-btn:hover::before {
+            width: 300px;
+            height: 300px;
         }
-        .detail-item {
-            display: flex;
-            margin-bottom: 0.75rem;
-            align-items: flex-start;
+        .filter-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px var(--primary-glow), 0 0 0 2px var(--border-glow);
+            border-color: var(--primary);
         }
-        .detail-icon {
-            font-size: 1.1rem;
-            margin-right: 0.75rem;
-            opacity: 0.8;
-        }
-        .detail-label {
-            min-width: 100px;
-            color: var(--text-muted);
-            font-size: 0.9rem;
-            font-weight: 500;
-        }
-        .detail-value {
-            color: var(--text);
-            font-size: 1rem;
-        }
-        .no-plants {
-            text-align: center;
-            padding: 4rem 2rem;
-            color: var(--text-muted);
-        }
-        .no-plants-icon {
-            font-size: 4rem;
-            margin-bottom: 1rem;
-            opacity: 0.3;
-        }
-        @media (max-width: 768px) {
-            .floating-leaf {
-                font-size: 2rem;
-            }
-            .version-toggle {
-                padding: 0.4rem 0.6rem;
-                gap: 0.3rem;
-            }
-            .version-label {
-                font-size: 1rem;
-                padding: 0.15rem 0.3rem;
-            }
-            .header-content {
-                gap: 1rem;
-            }
-            .hero h1 {
-                font-size: 2rem;
-            }
-            #devModeIndicator {
-                font-size: 0.75rem !important;
-                padding: 0.5rem 1rem !important;
-            }
-            .map-container {
-                width: 700px;
-                height: 700px;
-            }
-            .map-section {
-                max-width: 750px;
-            }
-            .radius-indicator {
-                font-size: 0.75rem;
-                padding: 0.4rem 0.8rem;
-            }
-        }
-        .version-toggle {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid rgba(118, 185, 0, 0.2);
-            border-radius: 12px;
-        }
-        .version-label {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-muted);
-            transition: color 0.3s ease;
-            cursor: pointer;
-            padding: 0.2rem 0.4rem;
-            border-radius: 6px;
-        }
-        .version-label:hover {
-            color: var(--primary);
-            background: rgba(118, 185, 0, 0.1);
-        }
-        .version-label.active {
-            color: var(--primary);
-            background: rgba(118, 185, 0, 0.15);
-        }
-        body.developer-mode .version-label {
-            color: #ff6b6b;
-        }
-        body.developer-mode .version-label.active {
-            color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.15);
-        }
-        .leaflet-contextmenu {
-            background: rgba(13, 17, 23, 0.98);
-            border: 2px solid rgba(118, 185, 0, 0.4);
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-            min-width: 160px;
-        }
-        .leaflet-contextmenu-item {
-            color: #f1f5f9;
-            padding: 10px 16px;
-            font-size: 0.95rem;
-            border-bottom: 1px solid rgba(118, 185, 0, 0.1);
-            transition: background 0.2s, transform 0.2s;
-        }
-        .leaflet-contextmenu-item:last-child {
-            border-bottom: none;
-        }
-        .leaflet-contextmenu-item:hover {
-            background: linear-gradient(135deg, rgba(118, 185, 0, 0.2) 0%, rgba(118, 185, 0, 0.3) 100%);
-            color: #76b900;
-        }
-        .leaflet-popup-content-wrapper {
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid rgba(118, 185, 0, 0.3);
-            border-radius: 12px;
-            color: #f1f5f9;
-        }
-        .leaflet-popup-tip {
-            background: rgba(26, 26, 26, 0.95);
-            border: 1px solid rgba(118, 185, 0, 0.3);
-        }
-        .leaflet-popup-content {
-            color: #f1f5f9;
-        }
-        .leaflet-popup-content-wrapper.custom-popup {
-            background: rgba(255, 255, 255, 0.98);
-            border: 2px solid rgba(118, 185, 0, 0.5);
-            border-radius: 16px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15), 0 0 20px rgba(118, 185, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-        .leaflet-popup-content-wrapper.custom-popup .leaflet-popup-tip {
-            background: rgba(255, 255, 255, 0.98);
-            border: 2px solid rgba(118, 185, 0, 0.5);
-            border-left: 2px solid rgba(118, 185, 0, 0.5);
-        }
-        .leaflet-popup-content-wrapper.custom-popup button {
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-        .leaflet-popup-content-wrapper.custom-popup button:hover {
+        .filter-btn.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px var(--primary-glow), 0 0 30px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(118, 185, 0, 0.4);
         }
-        .leaflet-control-layers {
-            background: rgba(13, 17, 23, 0.95) !important;
-            border: 2px solid rgba(118, 185, 0, 0.3) !important;
-            border-radius: 12px !important;
-            backdrop-filter: blur(10px);
+        .filter-btn.active::before {
+            display: none;
+        }
+        .filter-btn.risk-4 {
+            border-color: #ef4444;
+            color: #fca5a5;
+        }
+        .filter-btn.risk-4:hover {
+            border-color: #ef4444;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+        .filter-btn.risk-4.active {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            border-color: #ef4444;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
+        }
+        .filter-btn.risk-3 {
+            border-color: #ff6b00;
+            color: #fdba74;
+        }
+        .filter-btn.risk-3:hover {
+            border-color: #ff6b00;
+            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.4), 0 0 15px rgba(255, 107, 0, 0.3);
+        }
+        .filter-btn.risk-3.active {
+            background: linear-gradient(135deg, #ff6b00 0%, #f97316 100%);
+            border-color: #ff6b00;
+            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.3);
+        }
+        .filter-btn.risk-2 {
+            border-color: #fbbf24;
+            color: #fde68a;
+        }
+        .filter-btn.risk-2:hover {
+            border-color: #fbbf24;
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4), 0 0 15px rgba(251, 191, 36, 0.3);
+        }
+        .filter-btn.risk-2.active {
+            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+            border-color: #fbbf24;
+            color: #1a1a1a;
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.3);
+        }
+        .filter-btn.risk-1 {
+            border-color: var(--primary);
+            color: #86efac;
+        }
+        .filter-btn.risk-1:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px var(--primary-glow), 0 0 15px var(--primary-glow);
+        }
+        .filter-btn.risk-1.active {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border-color: var(--primary);
+            box-shadow: 0 8px 24px var(--primary-glow), 0 0 40px var(--primary-glow);
+        }
+        .filter-btn.risk-0 {
+            border-color: #6b7280;
+            color: #9ca3af;
+        }
+        .filter-btn.risk-0:hover {
+            border-color: #9ca3af;
+            box-shadow: 0 8px 24px rgba(107, 114, 128, 0.4);
+        }
+        .filter-btn.risk-0.active {
+            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+            border-color: #9ca3af;
+            box-shadow: 0 8px 24px rgba(107, 114, 128, 0.5);
         }
         .leaflet-control-layers-expanded {
             padding: 12px !important;
@@ -679,7 +488,258 @@
             cursor: pointer;
         }
         #map {
-            transition: opacity 0.3s ease;
+            transition: opacity 0.3s ease, box-shadow 0.3s ease;
+            height: 600px;
+            width: 100%;
+            border-radius: 16px;
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(0, 255, 136, 0.1);
+        }
+        #map:hover {
+            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 255, 136, 0.1);
+        }
+        .map-section {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        .map-container {
+            position: relative;
+            background: rgba(13, 17, 23, 0.98);
+            border: 2px solid var(--border);
+            border-radius: 20px;
+            padding: 1.5rem;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 136, 0.05), 0 0 60px rgba(0, 255, 136, 0.05);
+        }
+        .map-controls-container {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .map-legend {
+            flex: 0 0 auto;
+            background: rgba(13, 17, 23, 0.98);
+            border: 2px solid var(--border);
+            border-radius: 16px;
+            padding: 1.25rem;
+            min-width: 240px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
+        }
+        .map-legend::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
+            border-radius: 16px 16px 0 0;
+        }
+        .map-legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+        .legend-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 1rem;
+            text-align: center;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid rgba(118, 185, 0, 0.3);
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(22, 27, 34, 0.6);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        .legend-item:hover {
+            background: rgba(22, 27, 34, 0.9);
+            border-color: var(--primary);
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
+        }
+        .legend-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 0 12px currentColor;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+        .legend-item span {
+            font-size: 0.85rem;
+            color: #f1f5f9;
+        }
+        .radius-indicator {
+            position: absolute;
+            bottom: 1.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.9) 0%, rgba(0, 255, 136, 0.9) 100%);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 25px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.4), 0 0 30px rgba(0, 255, 136, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            backdrop-filter: blur(10px);
+        }
+        .radius-indicator::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(45deg, var(--accent), var(--primary), var(--accent));
+            border-radius: 25px;
+            z-index: -1;
+            animation: rotateBorder 3s linear infinite;
+        }
+        .search-container {
+            max-width: 800px;
+            margin: 0 auto 2rem;
+            padding: 0 2rem;
+            position: relative;
+        }
+        .search-input {
+            width: 100%;
+            padding: 1rem 3rem 1rem 1.5rem;
+            background: rgba(13, 17, 23, 0.95);
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px var(--primary-glow), 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-input:hover {
+            border-color: rgba(0, 255, 136, 0.5);
+        }
+        .clear-search-btn {
+            position: absolute;
+            right: 3rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(118, 185, 0, 0.2);
+            border: none;
+            color: #76b900;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+        }
+        .clear-search-btn:hover {
+            background: #76b900;
+            color: white;
+        }
+        .count-display {
+            text-align: center;
+            padding: 1rem;
+            color: #a0aec0;
+            font-size: 0.9rem;
+        }
+        .count-display span {
+            color: #76b900;
+            font-weight: 700;
+        }
+        .upload-container {
+            max-width: 800px;
+            margin: 0 auto 3rem;
+            padding: 0 2rem;
+            text-align: center;
+        }
+        .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border: none;
+            border-radius: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px var(--primary-glow), 0 0 40px rgba(0, 255, 136, 0.1);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        .upload-btn:hover::before {
+            left: 100%;
+        }
+        .upload-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 32px var(--primary-glow), 0 0 60px rgba(0, 255, 136, 0.2);
+        }
+        .upload-hint {
+            margin-top: 1rem;
+            color: #a0aec0;
+            font-size: 0.85rem;
+        }
+        .clear-all-btn {
+            margin-left: 1rem;
+            padding: 0.8rem 1.5rem;
+            background: rgba(13, 17, 23, 0.95);
+            color: #ef4444;
+            border: 2px solid #ef4444;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
+        }
+        .clear-all-btn:hover {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border-color: #ef4444;
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5), 0 0 30px rgba(239, 68, 68, 0.3);
+            transform: translateY(-2px);
         }
         .user-marker {
             box-shadow: 0 4px 12px rgba(0, 212, 255, 0.6);
@@ -709,12 +769,227 @@
         .leaflet-marker-icon {
             border-radius: 50% !important;
         }
+        .leaflet-popup-content-wrapper {
+            background: rgba(13, 17, 23, 0.98) !important;
+            border: 2px solid var(--border) !important;
+            border-radius: 16px !important;
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 30px var(--primary-glow) !important;
+        }
+        .leaflet-popup-tip {
+            background: rgba(13, 17, 23, 0.98) !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button {
+            color: var(--primary) !important;
+            font-size: 24px !important;
+        }
+        .leaflet-container a.leaflet-popup-close-button:hover {
+            color: var(--accent) !important;
+        }
+        .custom-popup .leaflet-popup-content {
+            margin: 0 !important;
+            color: var(--text) !important;
+        }
+        .leaflet-control-zoom a {
+            background: rgba(13, 17, 23, 0.95) !important;
+            border: 2px solid var(--border) !important;
+            color: var(--primary) !important;
+            border-radius: 8px !important;
+            transition: all 0.3s ease !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background: var(--primary) !important;
+            color: white !important;
+            box-shadow: 0 4px 12px var(--primary-glow) !important;
+        }
+        @keyframes techGlow {
+            0%, 100% { box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow); }
+            50% { box-shadow: 0 0 30px var(--primary-glow), 0 0 60px var(--primary-glow); }
+        }
+        @media (max-width: 1200px) {
+            .header-content {
+                padding: 0 1rem;
+            }
+            .logo {
+                font-size: 1.5rem;
+            }
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            .map-section {
+                padding: 0 1rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                padding: 0 1rem;
+            }
+        }
+        @media (max-width: 1024px) {
+            .map-controls-container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .map-legend {
+                width: 100%;
+                min-width: unset;
+            }
+            .map-legend-items {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            .legend-item {
+                flex: 1 1 auto;
+                min-width: 140px;
+                justify-content: center;
+            }
+            #map {
+                height: 500px;
+            }
+        }
+        @media (max-width: 768px) {
+            .header {
+                padding: 1rem;
+            }
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            .logo {
+                font-size: 1.3rem;
+            }
+            .hero {
+                padding: 2rem 1rem;
+            }
+            .hero h1 {
+                font-size: 1.8rem;
+            }
+            .hero p {
+                font-size: 0.95rem;
+            }
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            .stat-card {
+                padding: 1rem;
+            }
+            .stat-number {
+                font-size: 2rem;
+            }
+            .stat-label {
+                font-size: 0.7rem;
+            }
+            .filters {
+                padding: 1rem;
+            }
+            .filter-group {
+                padding: 1rem;
+            }
+            .filter-btn {
+                padding: 0.6rem 1rem;
+                font-size: 0.8rem;
+            }
+            #map {
+                height: 400px;
+            }
+            .map-container {
+                padding: 1rem;
+            }
+            .radius-indicator {
+                padding: 0.5rem 1rem;
+                font-size: 0.75rem;
+                bottom: 1rem;
+            }
+            .legend-item {
+                flex-direction: column;
+                text-align: center;
+                padding: 0.5rem;
+                min-width: 100px;
+            }
+            .legend-item span {
+                font-size: 0.75rem;
+            }
+            .legend-dot {
+                width: 20px;
+                height: 20px;
+            }
+            .search-container {
+                padding: 0 1rem;
+            }
+            .search-input {
+                padding: 0.8rem 2.5rem 0.8rem 1rem;
+                font-size: 0.9rem;
+            }
+            .upload-container {
+                padding: 0 1rem;
+            }
+            .upload-btn {
+                padding: 0.8rem 1.5rem;
+                font-size: 0.9rem;
+            }
+            .clear-all-btn {
+                margin-left: 0.5rem;
+                padding: 0.6rem 1rem;
+                font-size: 0.75rem;
+            }
+            .count-display {
+                padding: 0.75rem;
+                font-size: 0.85rem;
+            }
+            .floating-leaf {
+                font-size: 1.5rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .logo {
+                font-size: 1.1rem;
+            }
+            .hero h1 {
+                font-size: 1.5rem;
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            .filter-group {
+                padding: 0.75rem;
+            }
+            .filter-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 0.5rem 0.75rem;
+                font-size: 0.75rem;
+            }
+            #map {
+                height: 350px;
+            }
+            .map-legend-items {
+                flex-direction: column;
+            }
+            .legend-item {
+                width: 100%;
+                flex-direction: row;
+                justify-content: flex-start;
+            }
+            .upload-btn {
+                width: 100%;
+                justify-content: center;
+            }
+            .clear-all-btn {
+                width: 100%;
+                margin-left: 0;
+                margin-top: 0.5rem;
+            }
+            .upload-container {
+                display: flex;
+                flex-direction: column;
+            }
+        }
     </style>
 </head>
 <body>
     <div id="bgElements">
-        <div class="bg-grid"></div>
-        <div class="bg-dots"></div>
         <div class="floating-leaf">🍃</div>
         <div class="floating-leaf">🌿</div>
         <div class="floating-leaf">🍂</div>
@@ -738,10 +1013,6 @@
     <div class="header">
         <div class="header-content">
             <div class="logo">Hillsboro <span>Allergenic Plants</span></div>
-            <div class="version-toggle">
-                <span class="version-label" data-mode="simplified">Simple</span>
-                <span class="version-label active" data-mode="full">Full</span>
-            </div>
         </div>
     </div>
     
@@ -769,103 +1040,118 @@
         </div>
     </div>
     
-    <div class="search-container">
-        <input type="text" class="search-input" id="search-input" placeholder="Search plants by name...">
-    </div>
-    
     <div class="filters">
-        <button class="filter-btn active" data-filter="all">All Plants</button>
-        <button class="filter-btn" data-filter="HIGH">High Risk</button>
-        <button class="filter-btn" data-filter="MEDIUM">Medium Risk</button>
-        <button class="filter-btn" data-filter="LOW">Low Risk</button>
-    </div>
-    
-    <div class="map-section">
-        <div class="map-container">
-            <div id="map"></div>
-            <div class="radius-indicator">2 Mile Detection Zone</div>
-            <div class="map-legend">
-                <div class="legend-title">Risk Levels</div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background: #ef4444;"></div>
-                    <span>High</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background: #ff9800;"></div>
-                    <span>Medium</span>
-                </div>
-                <div class="legend-item">
-                    <div class="legend-dot" style="background: #00e676;"></div>
-                    <span>Low</span>
-                </div>
-            </div>
-            <div id="map-loading" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.8); z-index: 999; align-items: center; justify-content: center;">
-                <div style="color: #76b900; font-size: 1.2rem; font-weight: 600;">Loading map...</div>
-            </div>
+        <div class="filter-group">
+            <h4 class="filter-title">🌿 Allergen Level (CARE-S)</h4>
+            <button class="filter-btn active" data-filter="all">All Plants</button>
+            <button class="filter-btn risk-4" data-filter="VERY_HIGH">Level 4 (Very High)</button>
+            <button class="filter-btn risk-3" data-filter="HIGH">Level 3 (High)</button>
+            <button class="filter-btn risk-2" data-filter="MEDIUM">Level 2 (Medium)</button>
+            <button class="filter-btn risk-1" data-filter="LOW">Level 1 (Low)</button>
+            <button class="filter-btn risk-0" data-filter="NONE">Level 0 (None)</button>
         </div>
     </div>
     
-    <div class="plants-section">
-        <div class="plants-grid" id="plants-grid"></div>
+    <div class="map-section">
+        <div class="map-controls-container">
+            <div class="map-legend">
+                <div class="legend-title">🌿 CARE-S Allergen Levels</div>
+                <div class="map-legend-items">
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #ff0000; border: 3px solid #cc0000;"></div>
+                        <span><strong>Level 4</strong> - Very High</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #ff6600; border: 3px solid #cc5200;"></div>
+                        <span><strong>Level 3</strong> - High</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #ffcc00; border: 3px solid #cca300;"></div>
+                        <span><strong>Level 2</strong> - Medium</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #00cc00; border: 3px solid #009900;"></div>
+                        <span><strong>Level 1</strong> - Low</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background: #666666; border: 3px solid #444444;"></div>
+                        <span><strong>Level 0</strong> - None</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="map-container">
+            <div id="map"></div>
+            <div id="map-loading" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.8); z-index: 999; align-items: center; justify-content: center;">
+                <div style="color: #76b900; font-size: 1.2rem; font-weight: 600;">Loading map...</div>
+            </div>
+            <div class="radius-indicator">2 Mile Detection Zone</div>
+            <div id="search-result" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #333; font-size: 0.9rem; text-align: center;"></div>
+        </div>
+    </div>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" class="search-input" id="search-input" placeholder="Search plants by name...">
+        <button class="clear-search-btn" id="clear-search-btn" title="Clear search">✕</button>
+    </div>
+    
+    <div id="plant-count-display" class="count-display">
+        Showing <span id="visible-count">0</span> of <span id="total-count">0</span> plants
+    </div>
+    
+    <div class="upload-container">
+        <label for="image-upload" class="upload-btn">
+            📁 Upload Plant Images (.jpg)
+        </label>
+        <input type="file" id="image-upload" accept=".jpg,.jpeg" multiple style="display: none;">
+        <div class="upload-hint">Format: name-lat-lon.jpg (e.g., Oak-45.532154--122.90878.jpg)</div>
+        <button class="clear-all-btn" id="clear-all-btn" title="Remove all uploaded plants">🗑 Clear All</button>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.js" crossorigin=""></script>
     <script>
-        var plantsData = [
-            {id: 1, name: "Birch", chinese: "桦树", type: "Tree", rate: "HIGH", source: "birch", note: "Most common allergen in northern latitudes (15-20% of hay fever)", grows: "Wet areas, stream banks, moist forests", see: "Hillsboro parks, Brookwood Park, Tanner Creek", season: "Mar-May (Spring)"},
-            {id: 2, name: "Alder", chinese: "桤木", type: "Tree", rate: "HIGH", source: "alder", note: "Major wind-pollinated allergen", grows: "Wet areas, floodplains, stream banks", see: "Banks of Tualatin River, wetland areas", season: "Feb-Apr (Early Spring)"},
-            {id: 3, name: "Cedar", chinese: "雪松", type: "Tree", rate: "HIGH", source: "cedar", note: "Common in Pacific Northwest", grows: "Low to mid elevation forests, wet areas", see: "Forest Park areas, Tualatin Mountains", season: "Dec-Mar (Winter)"},
-            {id: 4, name: "Ryegrass", chinese: "黑麦草", type: "Grass", rate: "HIGH", source: "ryegrass", note: "Major grass allergen (90% of grass allergies)", grows: "Lawns, pastures, roadsides", see: "Everywhere: parks, lawns, agricultural fields", season: "May-Jul (Late Spring/Summer)"},
-            {id: 5, name: "Timothy Grass", chinese: "猫尾草", type: "Grass", rate: "HIGH", source: "timothy", note: "Common grass allergen", grows: "Meadows, pastures, fields", see: "Rural areas, farmland edges", season: "May-Jul (Late Spring/Summer)"},
-            {id: 6, name: "Ragweed", chinese: "豚草", type: "Weed", rate: "HIGH", source: "ragweed", note: "Peak season: Late summer/early fall (Aug-Oct)", grows: "Disturbed soil, roadsides, fields", see: "Roadsides, vacant lots, agricultural edges", season: "Aug-Oct (Late Summer/Fall)"},
-            {id: 7, name: "Mugwort", chinese: "艾草", type: "Weed", rate: "HIGH", source: "mugwort", note: "Wind-pollinated, common allergen", grows: "Disturbed areas, roadsides", see: "Vacant lots, field edges, waste areas", season: "Aug-Oct (Late Summer/Fall)"},
-            {id: 8, name: "Nettle", chinese: "荨麻", type: "Weed", rate: "HIGH", source: "nettle", note: "Wind-pollinated + contact allergen (skin rash)", grows: "Moist areas, stream banks, forests", see: "Forest trails, creek beds, shady areas", season: "Jun-Aug (Summer)"},
-            {id: 9, name: "Pine", chinese: "松树", type: "Tree", rate: "HIGH", source: "pine", note: "Wind-pollinated, produces light yellow pollen", grows: "Dry, sandy, well-drained soil", see: "Coastal ranges, hills around Hillsboro", season: "Apr-Jun (Spring)"},
-            {id: 10, name: "Oak", chinese: "橡树", type: "Tree", rate: "HIGH", source: "oak", note: "Pollinates in spring (March-May)", grows: "Dry slopes, open areas", see: "Oak savannas, rural Hillsboro edges", season: "Apr-Jun (Spring)"},
-            {id: 11, name: "Willow", chinese: "柳树", type: "Tree", rate: "HIGH", source: "willow", note: "Wind-pollinated, allergenic", grows: "Stream banks, wet areas", see: "Tualatin River banks, wetlands", season: "Feb-Apr (Early Spring)"},
-            {id: 12, name: "Poplar", chinese: "杨树", type: "Tree", rate: "HIGH", source: "poplar", note: "Wind-pollinated, allergenic", grows: "Moist areas, floodplains", see: "Riparian zones, river corridors", season: "Mar-May (Spring)"},
-            {id: 13, name: "Elm", chinese: "榆树", type: "Tree", rate: "HIGH", source: "elm", note: "Pollinates in spring (Feb-Apr)", grows: "Urban areas, parks, roadsides", see: "Hillsboro downtown, neighborhood streets", season: "Feb-Apr (Early Spring)"},
-            {id: 14, name: "Maple", chinese: "枫树", type: "Tree", rate: "HIGH", source: "maple", note: "Pollinates in spring", grows: "Forests, mixed woodlands", see: "Forest edges, urban parks", season: "Feb-Apr (Early Spring)"},
-            {id: 15, name: "Plantain", chinese: "车前草", type: "Weed", rate: "HIGH", source: "plantain", note: "Wind-pollinated, common allergen", grows: "Lawns, roadsides, disturbed areas", see: "Sidewalks, lawns, parking lots", season: "Jun-Aug (Summer)"},
-            {id: 16, name: "Bermuda Grass", chinese: "百慕大草", type: "Grass", rate: "HIGH", source: "bermuda", note: "Pollinates in summer", grows: "Lawns, roadsides, disturbed soil", see: "Sunny areas, sports fields, golf courses", season: "Jun-Aug (Summer)"},
-            {id: 17, name: "Bigleaf Maple", chinese: "大叶枫", type: "Tree", rate: "MEDIUM", source: "bigleaf_maple", note: "Wind-pollinated, but less allergenic than birch", grows: "Moist forests, stream banks", see: "Tualatin River valley, canyons", season: "Feb-Apr (Early Spring)"},
-            {id: 18, name: "Western Redcedar", chinese: "西方红雪松", type: "Tree", rate: "MEDIUM", source: "redcedar", note: "Produces pollen, native to Pacific Northwest", grows: "Wet coastal forests, bogs", see: "West Hills, moist ravines", season: "Dec-Mar (Winter)"},
-            {id: 19, name: "Mountain Ash", chinese: "山灰梣", type: "Tree", rate: "MEDIUM", source: "mountain_ash", note: "Wind-pollinated, moderate allergen", grows: "Mountain forests, clearings", see: "Higher elevations, forest clearings", season: "Apr-Jun (Spring)"},
-            {id: 20, name: "Salal (Red Alder)", chinese: "红桤木", type: "Tree", rate: "MEDIUM", source: "salal", note: "Wind-pollinated, allergen", grows: "Coastal forests, clearings", see: "Forest edges, logged areas", season: "Feb-Apr (Early Spring)"},
-            {id: 21, name: "Pacific Ninebark", chinese: "太平洋九层皮", type: "Tree", rate: "MEDIUM", source: "ninebark", note: "Wind-pollinated, distinctive peeling bark", grows: "Stream banks, moist forests", see: "Tualatin River corridors", season: "May-Jul (Late Spring)"},
-            {id: 22, name: "Sitka Spruce", chinese: "西加云杉", type: "Tree", rate: "MEDIUM", source: "sitka_spruce", note: "Wind-pollinated, common Christmas tree", grows: "Coastal forests, foggy areas", see: "Oregon Coast, coastal ranges", season: "Apr-Jun (Spring)"},
-            {id: 23, name: "Cascara", chinese: "卡斯卡拉", type: "Tree", rate: "MEDIUM", source: "cascara", note: "Wind-pollinated, native to Oregon", grows: "Moist forests, woodlands", see: "Mixed forests, stream corridors", season: "Apr-Jun (Spring)"},
-            {id: 24, name: "Golden Chinkapin", chinese: "金合欢", type: "Tree", rate: "MEDIUM", source: "golden_chinkapin", note: "Wind-pollinated, showy yellow flowers", grows: "Dry forests, slopes", see: "Cascade foothills, dry ridges", season: "Mar-May (Spring)"},
-            {id: 25, name: "Red-flowering Currant", chinese: "红花醋栗", type: "Shrub", rate: "LOW", source: "currant", note: "Insect-pollinated, low airborne pollen", grows: "Forest edges, woodlands", see: "Forest Park trails, woodland areas", season: "Mar-May (Spring)"},
-            {id: 26, name: "Oregon Grape", chinese: "俄勒冈葡萄", type: "Shrub", rate: "LOW", source: "oregon_grape", note: "Insect-pollinated, low airborne pollen", grows: "Dry forests, woodlands", see: "Forest understory, urban landscaping", season: "Mar-May (Spring)"},
-            {id: 27, name: "Rose Spirea", chinese: "玫红绣线菊", type: "Shrub", rate: "LOW", source: "rose_spirea", note: "Insect-pollinated, pink flower spikes", grows: "Stream banks, wet areas", see: "Riparian areas, wetland edges", season: "May-Jul (Late Spring)"},
-            {id: 28, name: "Dogwood", chinese: "狗木", type: "Tree", rate: "LOW", source: "dogwood", note: "Insect-pollinated, showy spring flowers", grows: "Moist forests, woodlands", see: "Forest understory, park trails", season: "Apr-Jun (Spring)"},
-            {id: 29, name: "Douglas Fir", chinese: "花旗松", type: "Tree", rate: "LOW", source: "douglas_fir", note: "Wind-pollinated, male cones produce pollen", grows: "Mid to high elevation forests", see: "Forest Park, coastal ranges", season: "Mar-May (Spring)"},
-            {id: 30, name: "Serviceberry", chinese: "花楸", type: "Shrub", rate: "LOW", source: "serviceberry", note: "Insect-pollinated, edible berries", grows: "Forest edges, clearings", see: "Open woodlands, forest margins", season: "Mar-May (Spring)"},
-            {id: 31, name: "Snowberry", chinese: "雪果", type: "Shrub", rate: "LOW", source: "snowberry", note: "Insect-pollinated, edible berries", grows: "Forest edges, clearings", see: "Woodland edges, disturbed areas", season: "Jun-Aug (Summer)"},
-            {id: 32, name: "Ocean Spray", chinese: "海洋雾", type: "Shrub", rate: "LOW", source: "ocean_spray", note: "Insect-pollinated, native coastal plant", grows: "Dry slopes, forest edges", see: "Rocky outcrops, dry woodland edges", season: "May-Jul (Late Spring)"},
-            {id: 33, name: "Indian Plum", chinese: "印第安李", type: "Tree", rate: "LOW", source: "indian_plum", note: "Insect-pollinated, spring blooms", grows: "Forest edges, woodlands", see: "Early spring forest understory", season: "Feb-Apr (Early Spring)"},
-            {id: 34, name: "Red Elderberry", chinese: "红接骨木", type: "Shrub", rate: "LOW", source: "red_elderberry", note: "Insect-pollinated, edible berries for birds", grows: "Moist forests, stream banks", see: "Forest trails, creek corridors", season: "Mar-May (Spring)"},
-            {id: 35, name: "Tall Oregon Grape", chinese: "高俄勒冈葡萄", type: "Vine", rate: "LOW", source: "tall_oregon_grape", note: "Climbing vine, insect-pollinated", grows: "Dry forests, woodlands", see: "Forest understory, dry slopes", season: "Mar-May (Spring)"},
-            {id: 36, name: "Bearberry", chinese: "熊果", type: "Shrub", rate: "LOW", source: "bearberry", note: "Insect-pollinated, edible berries", grows: "Dry areas, coastal dunes", see: "Coastal dunes, sandy slopes", season: "May-Jul (Late Spring)"},
-            {id: 37, name: "Salmonberry", chinese: "鲑果", type: "Shrub", rate: "LOW", source: "salmonberry", note: "Insect-pollinated, edible berries", grows: "Moist forests, stream banks", see: "Forest trails, riparian areas", season: "Apr-Jun (Spring)"},
-            {id: 38, name: "Thimbleberry", chinese: "浆果", type: "Shrub", rate: "LOW", source: "thimbleberry", note: "Insect-pollinated, edible berries", grows: "Moist forests, clearings", see: "Forest clearings, roadsides", season: "Jun-Aug (Summer)"},
-            {id: 39, name: "Huckleberry", chinese: "越橘", type: "Shrub", rate: "LOW", source: "huckleberry", note: "Insect-pollinated, edible berries", grows: "Moist forests, mountain slopes", see: "Forest understory, higher elevations", season: "Jun-Aug (Summer)"},
-            {id: 40, name: "Devilsclub", chinese: "魔杖", type: "Shrub", rate: "LOW", source: "devilsclub", note: "Insect-pollinated, distinctive seed heads", grows: "Moist coastal forests", see: "Deep forests, shaded ravines", season: "Jun-Aug (Summer)"},
-            {id: 41, name: "Blue Elder", chinese: "蓝接骨木", type: "Shrub", rate: "LOW", source: "blue_elder", note: "Insect-pollinated, edible berries", grows: "Forest edges, disturbed areas", see: "Woodland margins, open areas", season: "Jun-Aug (Summer)"},
-            {id: 42, name: "Nootka Rose", chinese: "努特卡玫瑰", type: "Shrub", rate: "LOW", source: "nootka_rose", note: "Insect-pollinated, beautiful pink flowers", grows: "Forest edges, clearings", see: "Woodland edges, roadsides", season: "May-Jul (Late Spring)"},
-            {id: 43, name: "Mock Orange", chinese: "橙子", type: "Shrub", rate: "LOW", source: "mock_orange", note: "Insect-pollinated, orange fruits", grows: "Forest edges, woodlands", see: "Forest trails, open woodlands", season: "May-Jul (Late Spring)"},
-            {id: 44, name: "Kinnikinnick", chinese: "金尼基尼克", type: "Tree", rate: "LOW", source: "kinnikinnick", note: "Insect-pollinated, red catkins in spring", grows: "Dry, sandy areas, coastal", see: "Dunes, dry rocky slopes", season: "May-Jul (Late Spring)"},
-            {id: 45, name: "Zelkova", chinese: "榉树", type: "Tree", rate: "MEDIUM", source: "zelkova", note: "Wind-pollinated, allergenic pollen in spring", grows: "Urban areas, parks, moist soils", see: "Hillsboro neighborhoods, city parks", season: "Mar-May (Spring)"},
-            {id: 46, name: "Lawn Daisy", chinese: "雏菊", type: "Weed", rate: "LOW", source: "lawn_daisy", note: "Insect-pollinated, low allergen but can cause mild reactions", grows: "Lawns, grassy areas, disturbed soil", see: "School lawns, residential yards, parks", season: "May-Oct (Late Spring/Fall)"}
-        ];
-        
         var QUATAMA_LOCATION = { lat: 45.532785, lon: -122.908591 };
         var TWO_MILES_KM =3.21869;
         var map, userMarker, radiusCircle, plantMarkers = [];
-        var currentFilter = 'all';
+        var allMarkers = [];
+        var currentRiskFilter = 'all';
         var currentTileLayer;
+        var allPlants = [];
+
+        var plantFiles = [
+            {id: 1, name: "Sequoiadendron giganteum", lat: 45.5321752959445, lon: -122.91326032434674, filename: "2026021801-Sequoiadendron giganteum-45.5321752959445, -122.91326032434674.jpg"},
+            {id: 2, name: "Viburnum davidii", lat: 45.53282563722502, lon: -122.91291608990245, filename: "2026021802-Viburnum davidii-45.53282563722502, -122.91291608990245.jpg"},
+            {id: 3, name: "Erica carne", lat: 45.53396638810642, lon: -122.91235732086496, filename: "2026021803-Erica carne-45.53396638810642, -122.91235732086496.jpg"},
+            {id: 4, name: "Ficaria verna", lat: 45.53398377090098, lon: -122.91249346982507, filename: "2026021804-Ficaria verna-45.53398377090098, -122.91249346982507.jpg"},
+            {id: 5, name: "Cornus sericea", lat: 45.53393812614244, lon: -122.91240900121086, filename: "2026021805-Cornus sericea-45.53393812614244, -122.91240900121086.jpg"},
+            {id: 6, name: "Family Lamiaceae", lat: 45.531645855028884, lon: -122.91298434253892, filename: "2026021806-Family Lamiaceae-45.531645855028884, -122.91298434253892.jpg"},
+            {id: 7, name: "Bellis perennis", lat: 45.532409356253886, lon: -122.90898097539352, filename: "2026021807-Bellis perennis-45.532409356253886, -122.90898097539352.jpg"},
+            {id: 8, name: "Trachycarpus fortunei", lat: 45.5313410531488, lon: -122.9129241172142, filename: "2026021808-Trachycarpus fortunei-45.5313410531488, -122.9129241172142.jpg"},
+            {id: 9, name: "Nandina domestica", lat: 45.53170593394621, lon: -122.9130829748173, filename: "2026021809-Nandina domestica-45.53170593394621, -122.9130829748173.jpg"},
+            {id: 10, name: "Genus Rosa", lat: 45.53311272658652, lon: -122.91262446891169, filename: "2026021810-Genus Rosa-45.53311272658652, -122.91262446891169.jpg"},
+            {id: 11, name: "Berberis aquifolium", lat: 45.53307765167972, lon: -122.91259585487556, filename: "2026021811-Berberis aquifolium-45.53307765167972, -122.91259585487556.jpg"},
+            {id: 12, name: "Berberis aquifolium", lat: 45.533192713938924, lon: -122.91269440974315, filename: "2026021811-Berberis aquifolium-45.533192713938924, -122.91269440974315.jpg"},
+            {id: 13, name: "Cornus sericea", lat: 45.53336430634478, lon: -122.91277511045735, filename: "2026021812-Cornus sericea-45.53336430634478, -122.91277511045735.jpg"},
+            {id: 14, name: "Phylum Bryophyta", lat: 45.53390788276676, lon: -122.91240636459491, filename: "2026021813-Phylum Bryophyta-45.53390788276676, -122.91240636459491.jpg"},
+            {id: 15, name: "Phalaris arundinacea", lat: 45.53394405066908, lon: -122.91239496520566, filename: "2026021814-Phalaris arundinacea-45.53394405066908, -122.91239496520566.jpg"},
+            {id: 16, name: "Genus Narcissus", lat: 45.533957202627356, lon: -122.91235070875766, filename: "2026021815-Genus Narcissus-45.533957202627356, -122.91235070875766.jpg"},
+            {id: 17, name: "Genus Quercus", lat: 45.53350914966736, lon: -122.91306710945696, filename: "2026021816-Genus Quercus-45.53350914966736, -122.91306710945696.jpg"},
+            {id: 18, name: "Cornus sericea", lat: 45.533431483781975, lon: -122.91289219725729, filename: "2026021817-Cornus sericea-45.533431483781975, -122.91289219725729.jpg"}
+        ];
+
+        function getPlantColor(name) {
+            var lowerName = name.toLowerCase();
+            if (lowerName.includes('pinus') || lowerName.includes('salix') || lowerName.includes('cupressus') || lowerName.includes('taxus')) {
+                return { fill: '#ff6b00', level: 'Level 3 - High' };
+            } else if (lowerName.includes('zelkova') || lowerName.includes('calocedrus') || lowerName.includes('rubus') || lowerName.includes('berberis')) {
+                return { fill: '#fbbf24', level: 'Level 2 - Medium' };
+            } else if (lowerName.includes('magnolia') || lowerName.includes('cenchrus') || lowerName.includes('buxus') || lowerName.includes('sonchus')) {
+                return { fill: '#00ff88', level: 'Level 1 - Low' };
+            }
+            return { fill: '#6b7280', level: 'Level 0 - None' };
+        }
         
         function toDMS(decimal, isLat) {
             var dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
@@ -913,31 +1199,31 @@
                                 maxWidth: 320
                             })
                             .setLatLng(e.latlng)
-                            .setContent(
-                                '<div style="color: #333; min-width: 280px;">' +
-                                    '<div style="text-align: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(118, 185, 0, 0.3);">' +
-                                        '<span style="font-size: 1.4rem; font-weight: 700; color: #76b900;">📍 Location</span>' +
+                                .setContent(
+                                '<div style="color: #e6edf3; min-width: 300px;">' +
+                                    '<div style="text-align: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0, 255, 136, 0.3);">' +
+                                        '<span style="font-size: 1.4rem; font-weight: 700; color: #00ff88;">📍 Location</span>' +
                                     '</div>' +
                                     '<div style="display: grid; gap: 10px;">' +
-                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(118, 185, 0, 0.1); padding: 10px; border-radius: 8px;">' +
-                                            '<span style="color: #666; font-size: 0.85rem;">Latitude</span>' +
-                                            '<span style="color: #0066cc; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lat + '</span>' +
+                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 10px; border-radius: 8px;">' +
+                                            '<span style="color: #8b949e; font-size: 0.85rem;">Latitude</span>' +
+                                            '<span style="color: #00d4ff; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lat + '</span>' +
                                         '</div>' +
-                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(118, 185, 0, 0.1); padding: 10px; border-radius: 8px;">' +
-                                            '<span style="color: #666; font-size: 0.85rem;">Longitude</span>' +
-                                            '<span style="color: #0066cc; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lng + '</span>' +
+                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 10px; border-radius: 8px;">' +
+                                            '<span style="color: #8b949e; font-size: 0.85rem;">Longitude</span>' +
+                                            '<span style="color: #00d4ff; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lng + '</span>' +
                                         '</div>' +
                                     '</div>' +
-                                    '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(118, 185, 0, 0.3);">' +
-                                        '<span style="color: #666; font-size: 0.75rem; display: block; margin-bottom: 6px;">DECIMAL DEGREES</span>' +
-                                        '<code style="display: block; background: rgba(118, 185, 0, 0.1); color: #5a8700; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all;">' + lat + ', ' + lng + '</code>' +
+                                    '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 255, 136, 0.3);">' +
+                                        '<span style="color: #8b949e; font-size: 0.75rem; display: block; margin-bottom: 6px;">DECIMAL DEGREES</span>' +
+                                        '<code style="display: block; background: rgba(0, 255, 136, 0.1); color: #00ff88; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all;">' + lat + ', ' + lng + '</code>' +
                                     '</div>' +
                                     '<div style="margin-top: 10px;">' +
-                                        '<span style="color: #666; font-size: 0.75rem; display: block; margin-bottom: 6px;">DEGREES/MINUTES/SECONDS</span>' +
-                                        '<code style="display: block; background: rgba(0, 102, 204, 0.1); color: #0066cc; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; word-break: break-all;">' + dmsLat + ', ' + dmsLng + '</code>' +
+                                        '<span style="color: #8b949e; font-size: 0.75rem; display: block; margin-bottom: 6px;">DEGREES/MINUTES/SECONDS</span>' +
+                                        '<code style="display: block; background: rgba(0, 212, 255, 0.1); color: #00d4ff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; word-break: break-all;">' + dmsLat + ', ' + dmsLng + '</code>' +
                                     '</div>' +
                                     '<div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">' +
-                                        '<button onclick="copyToClipboard(\'' + lat + ', ' + lng + '\', this)" style="background: linear-gradient(135deg, #76b900 0%, #5a8700 100%); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s;">📋 Copy Decimal</button>' +
+                                        '<button onclick="copyToClipboard(\'' + lat + ', ' + lng + '\', this)" style="background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s;">📋 Copy Decimal</button>' +
                                         '<button onclick="copyToClipboard(\'' + dmsLat + ', ' + dmsLng + '\', this)" style="background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s;">📋 Copy DMS</button>' +
                                     '</div>' +
                                 '</div>'
@@ -995,72 +1281,23 @@
                 collapsed: false
             }).addTo(map);
             
+            var layerControl = document.querySelector('.leaflet-control-layers');
+            if (layerControl) {
+                var layerTitle = document.createElement('div');
+                layerTitle.innerHTML = '🗺️ Map Style';
+                layerTitle.style.cssText = 'font-weight: 700; color: #00ff88; margin-bottom: 12px; font-size: 1rem; text-align: center; padding: 10px; border-bottom: 2px solid rgba(0, 255, 136, 0.3); text-transform: uppercase; letter-spacing: 0.05em;';
+                layerControl.insertBefore(layerTitle, layerControl.firstChild);
+                
+                layerControl.style.background = 'rgba(13, 17, 23, 0.98)';
+                layerControl.style.border = '2px solid rgba(0, 255, 136, 0.3)';
+                layerControl.style.borderRadius = '16px';
+                layerControl.style.padding = '16px';
+                layerControl.style.boxShadow = '0 12px 48px rgba(0, 0, 0, 0.6), 0 0 30px rgba(0, 255, 136, 0.1)';
+                layerControl.style.maxWidth = '220px';
+            }
+            
             addUserMarker();
-            addOakTreeMarker();
-            addPineTreeMarker();
-            addZelkovaTreeMarker();
-            addLawnDaisyMarker();
-            updateStats();
-        }
-        
-        function addOakTreeMarker() {
-            var oakLocation = { lat: 45.532154, lon: -122.90878 };
-            
-            var oakMarker = L.circleMarker([oakLocation.lat, oakLocation.lon], {
-                radius: 14,
-                fillColor: '#8B4513',
-                color: '#228B22',
-                weight: 4,
-                opacity: 1,
-                fillOpacity: 1,
-                className: 'oak-marker'
-            }).addTo(map);
-            oakMarker.bindPopup('<div style="background: linear-gradient(135deg, #76b900 0%, #5a8700 100%); color: #fff; padding: 16px; border-radius: 12px; min-width: 200px;"><strong>Oak Tree</strong><br><br>Lat: 45.532154<br>Lon: -122.90878<br><br><span style="background: #fff; color: #ef4444; font-weight: 600; padding: 4px 8px; border-radius: 4px; display: inline-block;">High Allergen Risk</span></div>');
-        }
-        
-        function addPineTreeMarker() {
-            var pineLocation = { lat: 45.532389, lon: -122.907272 };
-            
-            var pineMarker = L.circleMarker([pineLocation.lat, pineLocation.lon], {
-                radius: 14,
-                fillColor: '#2E8B57',
-                color: '#228B22',
-                weight: 4,
-                opacity: 1,
-                fillOpacity: 1,
-                className: 'pine-marker'
-            }).addTo(map);
-            pineMarker.bindPopup('<div style="background: linear-gradient(135deg, #2E8B57 0%, #228B22 100%); color: #fff; padding: 16px; border-radius: 12px; min-width: 200px;"><strong>Pine Tree</strong><br><br>Lat: 45.532389<br>Lon: -122.907272<br><br><span style="background: #fff; color: #ef4444; font-weight: 600; padding: 4px 8px; border-radius: 4px; display: inline-block;">High Allergen Risk</span></div>');
-        }
-        
-        function addZelkovaTreeMarker() {
-            var zelkovaLocation = { lat: 45.531934, lon: -122.90826 };
-            
-            var zelkovaMarker = L.circleMarker([zelkovaLocation.lat, zelkovaLocation.lon], {
-                radius: 14,
-                fillColor: '#8B4513',
-                color: '#A0522D',
-                weight: 4,
-                opacity: 1,
-                fillOpacity: 1,
-                className: 'zelkova-marker'
-            }).addTo(map);
-            zelkovaMarker.bindPopup('<div style="background: linear-gradient(135deg, #ff9800 0%, #f39c12 100%); color: #fff; padding: 16px; border-radius: 12px; min-width: 200px;"><strong>Zelkova Tree</strong><br><br>Lat: 45.531934<br>Lon: -122.90826<br><br><span style="background: #fff; color: #ff9800; font-weight: 600; padding: 4px 8px; border-radius: 4px; display: inline-block;">Medium Allergen Risk</span></div>');
-        }
-        
-        function addLawnDaisyMarker() {
-            var lawnDaisyLocation = { lat: 45.532487, lon: -122.908958 };
-            
-            var lawnDaisyMarker = L.circleMarker([lawnDaisyLocation.lat, lawnDaisyLocation.lon], {
-                radius: 14,
-                fillColor: '#FFFACD',
-                color: '#FFB6C1',
-                weight: 4,
-                opacity: 1,
-                fillOpacity: 1,
-                className: 'lawn-daisy-marker'
-            }).addTo(map);
-            lawnDaisyMarker.bindPopup('<div style="background: linear-gradient(135deg, #00e676 0%, #00c851 100%); color: #fff; padding: 16px; border-radius: 12px; min-width: 200px;"><strong>Lawn Daisy</strong><br><br>Lat: 45.532487<br>Lon: -122.908958<br><br><span style="background: #fff; color: #00e676; font-weight: 600; padding: 4px 8px; border-radius: 4px; display: inline-block;">Low Allergen Risk</span></div>');
+            addPlantMarkers();
         }
         
         function addUserMarker() {
@@ -1072,6 +1309,8 @@
             });
             
             userMarker = L.marker([QUATAMA_LOCATION.lat, QUATAMA_LOCATION.lon], { icon: schoolIcon }).addTo(map);
+            userMarker.plantName = 'Quatama School';
+            allMarkers.push(userMarker);
             
             radiusCircle = L.circle([QUATAMA_LOCATION.lat, QUATAMA_LOCATION.lon], {
                 color: '#00d4ff',
@@ -1081,148 +1320,145 @@
                 weight: 3
             }).addTo(map);
             
-            userMarker.bindPopup('<div style="color: #333;"><strong>Quatama Elementary School</strong><br>2 mile detection zone</div>');
+            userMarker.bindPopup('<div style="background: rgba(13, 17, 23, 0.98); color: #e6edf3; min-width: 250px; font-family: Arial, sans-serif; padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.3); text-align: center;"><div style="font-size: 2.5rem; margin-bottom: 12px;">🏫</div><h3 style="margin: 0; color: #00ff88; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">Quatama Elementary School</h3><p style="margin: 0; color: #8b949e; font-size: 0.9rem;">2 mile detection zone</p></div>');
         }
         
         function addPlantMarkers() {
-            var colors = {
-                'HIGH': '#ef4444',
-                'MEDIUM': '#ff9800',
-                'LOW': '#00e676'
-            };
-            
-            plantsData.forEach(function(plant) {
-                var coords = generateCoords(plant.id);
-                plant.coords = coords;
+            plantFiles.forEach(function(plant) {
+                var colorInfo = getPlantColor(plant.name);
                 
-                var marker = L.circleMarker(coords, {
-                    radius: 14,
-                    fillColor: colors[plant.rate],
+                var marker = L.circleMarker([plant.lat, plant.lon], {
+                    radius: 12,
+                    fillColor: colorInfo.fill,
                     color: '#ffffff',
                     weight: 3,
                     opacity: 1,
                     fillOpacity: 1,
-                    className: 'plant-marker-' + plant.rate.toLowerCase()
+                    className: 'plant-marker'
                 }).addTo(map);
                 
-                var popupContent = '<div style="background: rgba(255,255,255,0.95); color: #333; min-width: 220px; font-family: Arial, sans-serif; padding: 12px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);"><div style="padding: 0.5rem;"><strong>' + plant.name + '</strong> <small>(' + plant.chinese + ')</small><br><br>' +
-                                '<strong>Type:</strong> ' + plant.type + '<br>' +
-                                '<strong>Risk:</strong> <span style="color: ' + colors[plant.rate] + '; font-weight: 600;">' + plant.rate + '</span><br>' +
-                                '<strong>Season:</strong> ' + plant.season + '<br>' +
-                                '<strong>Where:</strong> ' + plant.see + '<br><br>' +
-                                '<em style="color: #666;">' + plant.note + '</em></div>';
-                
-                marker.bindPopup(popupContent);
-                plantMarkers.push({ marker: marker, plant: plant });
-            });
-        }
-        
-        function generateCoords(id) {
-            var angle = (id - 1) * (2 * Math.PI / 44);
-            var distance = 0.01 + (id % 3) * 0.005;
-            var lat = QUATAMA_LOCATION.lat + Math.cos(angle) * distance;
-            var lon = QUATAMA_LOCATION.lon + Math.sin(angle) * distance;
-            return [lat, lon];
-        }
-        
-        function updateStats() {
-            document.getElementById('total-count').textContent = plantsData.length;
-            document.getElementById('high-count').textContent = plantsData.filter(function(p) { return p.rate === 'HIGH'; }).length;
-            document.getElementById('medium-count').textContent = plantsData.filter(function(p) { return p.rate === 'MEDIUM'; }).length;
-            document.getElementById('low-count').textContent = plantsData.filter(function(p) { return p.rate === 'LOW'; }).length;
-        }
-        
-        function renderPlants(filter, search) {
-            var grid = document.getElementById('plants-grid');
-            grid.innerHTML = '';
-            
-            var filtered = plantsData.filter(function(plant) {
-                var matchesFilter = filter === 'all' || plant.rate === filter;
-                var matchesSearch = !search || plant.name.toLowerCase().includes(search.toLowerCase()) || plant.chinese.includes(search);
-                return matchesFilter && matchesSearch;
-            });
-            
-            if (filtered.length === 0) {
-                grid.innerHTML = '<div class="no-plants"><div class="no-plants-icon">🔍</div><p>No plants found matching your criteria</p></div>';
-                return;
-            }
-            
-            filtered.forEach(function(plant) {
-                var card = document.createElement('div');
-                card.className = 'plant-card ' + plant.rate.toLowerCase() + '-risk';
-                
-                card.innerHTML = '<div class="plant-header">' +
-                                '<div>' +
-                                '<div class="plant-title">' + plant.name + '</div>' +
-                                '<div class="plant-chinese">' + plant.chinese + '</div>' +
+                var popupContent = '<div style="background: rgba(13, 17, 23, 0.98); color: #e6edf3; min-width: 300px; font-family: Arial, sans-serif; padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.3);">' +
+                                '<div style="display: flex; flex-direction: column; gap: 12px;">' +
+                                '<img src="' + plant.filename + '" alt="' + plant.name + '" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 2px solid rgba(0, 255, 136, 0.2); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%22 x=%2250%22 style=%22fill:%238b949e; font-size:12px%22>Image not available</text></svg>\'; this.style.height=\'40px\';">' +
+                                '<div style="text-align: center; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 136, 0.2);">' +
+                                '<h3 style="margin: 0; color: #00ff88; font-size: 1.1rem; font-weight: 700;">' + plant.name + '</h3>' +
                                 '</div>' +
-                                '<span class="plant-badge ' + plant.rate.toLowerCase() + '-risk">' + plant.rate + '</span>' +
+                                '<div style="display: grid; gap: 8px; font-size: 0.9rem;">' +
+                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
+                                '<span style="color: #8b949e;">Allergen Level:</span>' +
+                                '<span style="color: ' + colorInfo.fill + '; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">' + colorInfo.level + '</span>' +
                                 '</div>' +
-                                '<div class="plant-meta">' +
-                                '<span class="plant-distance">🌱 ' + plant.type + '</span>' +
-                                '<span class="plant-distance">📅 ' + plant.season.split(' ')[0] + '</span>' +
+                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
+                                '<span style="color: #8b949e;">Latitude:</span>' +
+                                '<span style="color: #00d4ff; font-family: monospace; font-weight: 600;">' + plant.lat.toFixed(6) + '</span>' +
                                 '</div>' +
-                                '<div class="plant-details">' +
-                                '<div class="detail-item">' +
-                                '<span class="detail-icon">📍</span>' +
-                                '<span class="detail-label">Where:</span>' +
-                                '<span class="detail-value">' + plant.see + '</span>' +
+                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
+                                '<span style="color: #8b949e;">Longitude:</span>' +
+                                '<span style="color: #00d4ff; font-family: monospace; font-weight: 600;">' + plant.lon.toFixed(6) + '</span>' +
                                 '</div>' +
-                                '<div class="detail-item">' +
-                                '<span class="detail-icon">🌿</span>' +
-                                '<span class="detail-label">Grows:</span>' +
-                                '<span class="detail-value">' + plant.grows + '</span>' +
+                                '</div>' +
                                 '</div>' +
                                 '</div>';
                 
-                card.onclick = function() {
-                    map.setView(plant.coords, 14);
-                    plantMarkers.forEach(function(item) {
-                        if (item.plant.id === plant.id) {
-                            item.marker.openPopup();
-                        }
-                    });
-                };
-                
-                grid.appendChild(card);
+                marker.bindPopup(popupContent);
+                marker.plantName = plant.name;
+                marker.plantId = plant.id;
+                plantMarkers.push({ marker: marker, plant: plant });
+                 allMarkers.push(marker);
+                allPlants.push(plant);
             });
+            
+            document.getElementById('total-count').textContent = allPlants.length;
+            document.getElementById('visible-count').textContent = allPlants.length;
+        }
+        
+        function renderPlants(riskFilter, search) {
+            var filtered = [];
+            
+            if (riskFilter === 'all') {
+                filtered = allPlants;
+            } else {
+                filtered = allPlants.filter(function(plant) {
+                    var colorInfo = getPlantColor(plant.name);
+                    var plantLevel = colorInfo.level;
+                    
+                    if (riskFilter === 'VERY_HIGH' && plantLevel.includes('Very High')) return true;
+                    if (riskFilter === 'HIGH' && plantLevel.includes('High')) return true;
+                    if (riskFilter === 'MEDIUM' && plantLevel.includes('Medium')) return true;
+                    if (riskFilter === 'LOW' && plantLevel.includes('Low')) return true;
+                    if (riskFilter === 'NONE' && plantLevel.includes('None')) return true;
+                    return false;
+                });
+            }
+            
+            if (search && search.trim() !== '') {
+                var lowerSearch = search.toLowerCase();
+                filtered = filtered.filter(function(plant) {
+                    return plant.name.toLowerCase().includes(lowerSearch);
+                });
+            }
+            
+            plantMarkers.forEach(function(item) {
+                if (item && item.marker && item.marker._map) {
+                    var isVisible = filtered.some(function(plant) { return plant.id === item.plant.id; });
+                    if (!isVisible) {
+                        map.removeLayer(item.marker);
+                    }
+                }
+            });
+            
+            filtered.forEach(function(plant) {
+                var existingMarker = plantMarkers.find(function(item) { return item.plant.id === plant.id; });
+                if (existingMarker && existingMarker.marker && !existingMarker.marker._map) {
+                    map.addLayer(existingMarker.marker);
+                }
+            });
+            
+            document.getElementById('visible-count').textContent = filtered.length;
+            
+            var searchResult = document.getElementById('search-result');
+            if (filtered.length === 0 && search) {
+                if (searchResult) {
+                    searchResult.style.display = 'block';
+                    searchResult.innerHTML = '🔍 No plant found matching "' + search + '"';
+                }
+            } else {
+                if (searchResult) {
+                    searchResult.style.display = 'none';
+                }
+            }
         }
         
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             renderPlants('all', '');
             
-            document.querySelectorAll('.filter-btn').forEach(function(btn) {
+            var filterButtons = document.querySelectorAll('.filter-btn[data-filter]');
+            
+            filterButtons.forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+                    filterButtons.forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
-                    currentFilter = this.getAttribute('data-filter');
+                    currentRiskFilter = this.getAttribute('data-filter');
                     var search = document.getElementById('search-input').value;
-                    renderPlants(currentFilter, search);
+                    renderPlants(currentRiskFilter, search);
                 });
             });
             
             document.getElementById('search-input').addEventListener('input', function(e) {
-                renderPlants(currentFilter, e.target.value);
+                renderPlants(currentRiskFilter, e.target.value);
             });
             
-            document.querySelectorAll('.version-label').forEach(function(label) {
-                label.addEventListener('click', function() {
-                    document.querySelectorAll('.version-label').forEach(function(l) { l.classList.remove('active'); });
-                    this.classList.add('active');
-                    
-                    if (this.getAttribute('data-mode') === 'simplified') {
-                        document.body.classList.add('simplified-mode');
-                    } else {
-                        document.body.classList.remove('simplified-mode');
-                    }
-                });
+            document.getElementById('clear-search-btn').addEventListener('click', function() {
+                document.getElementById('search-input').value = '';
+                document.getElementById('search-input').focus();
+                renderPlants(currentRiskFilter, '');
             });
         });
         
         window.addEventListener('resize', function() {
             if (map) {
-                setTimeout(function() { map.invalidateSize(); }, 250);
+                map.invalidateSize();
             }
         });
     </script>
