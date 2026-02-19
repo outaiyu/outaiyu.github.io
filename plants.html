@@ -358,6 +358,68 @@
         .filter-toggle.open .filter-toggle-icon {
             transform: rotate(90deg);
         }
+        .section-toggle {
+            display: flex;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .search-container .section-toggle {
+            background: linear-gradient(135deg, var(--accent) 0%, #0099cc 100%);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+        .section-toggle:hover {
+            box-shadow: 0 8px 24px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+        .search-container .section-toggle:hover {
+            box-shadow: 0 8px 24px var(--accent-glow);
+        }
+        .section-toggle-text {
+            flex: 1;
+        }
+        .section-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        .section-toggle.open .section-toggle-icon {
+            transform: rotate(90deg);
+        }
+        .search-content {
+            transition: all 0.4s ease;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .search-content.open {
+            max-height: 1000px;
+            opacity: 1;
+        }
+        .map-legend-wrapper {
+            flex: 0 0 auto;
+        }
+        .map-legend {
+            transition: all 0.4s ease;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+        }
+        .map-legend.open {
+            max-height: 1000px;
+            opacity: 1;
+        }
         .filter-group {
             transition: all 0.4s ease;
             max-height: 0;
@@ -1103,8 +1165,13 @@
     
     <div class="map-section">
         <div class="map-controls-container">
-            <div class="map-legend">
-                <div class="legend-title">🌿 CARE-S Allergen Levels</div>
+            <div class="map-legend-wrapper">
+                <div class="section-toggle" id="legend-toggle">
+                    <span class="section-toggle-text">🗺️ Map Style & Legend</span>
+                    <span class="section-toggle-icon">▶</span>
+                </div>
+                <div class="map-legend" id="map-legend">
+                    <div class="legend-title">🌿 CARE-S Allergen Levels</div>
                 <div class="map-legend-items">
                     <div class="legend-item">
                         <div class="legend-dot" style="background: #ff0000; border: 3px solid #cc0000;"></div>
@@ -1128,6 +1195,8 @@
                     </div>
                 </div>
             </div>
+                </div>
+            </div>
         </div>
         <div class="map-container">
             <div id="map"></div>
@@ -1141,8 +1210,14 @@
     </div>
     
     <div class="search-container">
-        <input type="text" class="search-input" id="search-input" placeholder="Search plants by name...">
-        <button class="clear-search-btn" id="clear-search-btn" title="Clear search">✕</button>
+        <div class="section-toggle" id="search-toggle">
+            <span class="section-toggle-text">🔍 Search Plants</span>
+            <span class="section-toggle-icon">▶</span>
+        </div>
+        <div class="search-content" id="search-content">
+            <input type="text" class="search-input" id="search-input" placeholder="Search plants by name...">
+            <button class="clear-search-btn" id="clear-search-btn" title="Clear search">✕</button>
+        </div>
     </div>
     
     <div id="plant-count-display" class="count-display">
@@ -1510,6 +1585,24 @@
                     var filterGroup = document.getElementById('filter-group');
                     filterToggle.classList.toggle('open');
                     filterGroup.classList.toggle('open');
+                });
+            }
+
+            var searchToggle = document.getElementById('search-toggle');
+            if (searchToggle) {
+                searchToggle.addEventListener('click', function() {
+                    var searchContent = document.getElementById('search-content');
+                    searchToggle.classList.toggle('open');
+                    searchContent.classList.toggle('open');
+                });
+            }
+
+            var legendToggle = document.getElementById('legend-toggle');
+            if (legendToggle) {
+                legendToggle.addEventListener('click', function() {
+                    var mapLegend = document.getElementById('map-legend');
+                    legendToggle.classList.toggle('open');
+                    mapLegend.classList.toggle('open');
                 });
             }
         });
