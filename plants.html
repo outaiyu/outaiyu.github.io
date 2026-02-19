@@ -356,13 +356,17 @@
             transition: transform 0.3s ease;
         }
         .filter-toggle.open .filter-toggle-icon {
-            transform: rotate(180deg);
+            transform: rotate(90deg);
         }
         .filter-group {
             transition: all 0.4s ease;
             max-height: 0;
             overflow: hidden;
             opacity: 0;
+        }
+        .filter-group.open {
+            max-height: 1000px;
+            opacity: 1;
         }
         .filter-group {
             width: 100%;
@@ -1084,7 +1088,7 @@
     <div class="filters">
         <div class="filter-toggle" id="filter-toggle">
             <span class="filter-toggle-text">🌿 Filter Plants</span>
-            <span class="filter-toggle-icon">▼</span>
+            <span class="filter-toggle-icon">▶</span>
         </div>
         <div class="filter-group" id="filter-group">
             <h4 class="filter-title">🌿 Allergen Level (CARE-S)</h4>
