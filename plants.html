@@ -327,6 +327,45 @@
             position: relative;
             z-index: 10;
         }
+        .filter-toggle {
+            display: none;
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            border: 2px solid var(--primary);
+            border-radius: 12px;
+            color: white;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--primary-glow);
+            justify-content: space-between;
+            align-items: center;
+        }
+        .filter-toggle:hover {
+            box-shadow: 0 8px 24px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+        .filter-toggle-text {
+            flex: 1;
+        }
+        .filter-toggle-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        .filter-toggle.open .filter-toggle-icon {
+            transform: rotate(180deg);
+        }
+        .filter-group {
+            transition: all 0.4s ease;
+        }
+        @media (min-width: 769px) {
+            .filter-group {
+                max-height: 1000px;
+                opacity: 1;
+            }
+        }
         .filter-group {
             width: 100%;
             min-width: unset;
@@ -879,10 +918,20 @@
                 font-size: 0.7rem;
             }
             .filters {
-                padding: 1rem;
+                padding: 0.5rem 1rem;
+            }
+            .filter-toggle {
+                display: flex;
             }
             .filter-group {
                 padding: 1rem;
+                max-height: 0;
+                overflow: hidden;
+                opacity: 0;
+            }
+            .filter-group.open {
+                max-height: 1000px;
+                opacity: 1;
             }
             .filter-btn {
                 padding: 0.6rem 1rem;
@@ -1041,7 +1090,11 @@
     </div>
     
     <div class="filters">
-        <div class="filter-group">
+        <div class="filter-toggle" id="filter-toggle">
+            <span class="filter-toggle-text">🌿 Filter Plants</span>
+            <span class="filter-toggle-icon">▼</span>
+        </div>
+        <div class="filter-group" id="filter-group">
             <h4 class="filter-title">🌿 Allergen Level (CARE-S)</h4>
             <button class="filter-btn active" data-filter="all">All Plants</button>
             <button class="filter-btn risk-4" data-filter="VERY_HIGH">Level 4 (Very High)</button>
@@ -1454,6 +1507,15 @@
                 document.getElementById('search-input').focus();
                 renderPlants(currentRiskFilter, '');
             });
+
+            var filterToggle = document.getElementById('filter-toggle');
+            if (filterToggle) {
+                filterToggle.addEventListener('click', function() {
+                    var filterGroup = document.getElementById('filter-group');
+                    filterToggle.classList.toggle('open');
+                    filterGroup.classList.toggle('open');
+                });
+            }
         });
         
         window.addEventListener('resize', function() {
