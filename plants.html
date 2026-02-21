@@ -50,10 +50,17 @@
             border-bottom: 1px solid var(--border);
             padding: 1rem 1.5rem;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
             backdrop-filter: blur(10px);
+        }
+        .subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+            font-weight: 400;
         }
         .logo {
             font-size: 1.25rem;
@@ -319,6 +326,9 @@
             .logo {
                 font-size: 1rem;
             }
+            .subtitle {
+                font-size: 0.6875rem;
+            }
             .settings-toggle {
                 padding: 0.6875rem 0.9375rem;
             }
@@ -333,6 +343,7 @@
     
     <div class="header">
         <div class="logo">Hillsboro Allergenic Plants</div>
+        <div class="subtitle">Special thanks to Dr. Ling</div>
     </div>
     
     <div class="filters">
