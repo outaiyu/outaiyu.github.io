@@ -6,1539 +6,645 @@
     <title>Hillsboro Allergenic Plants - STEM Project</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.css" crossorigin="">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         :root {
-            --primary: #00ff88;
-            --primary-dark: #00cc66;
-            --primary-glow: rgba(0, 255, 136, 0.3);
-            --accent: #00d4ff;
-            --accent-glow: rgba(0, 212, 255, 0.3);
-            --success: #00e676;
-            --warning: #ff9800;
+            --primary: #00cc66;
+            --accent: #0099cc;
             --danger: #ef4444;
-            --dark: #05070a;
-            --dark-card: #0d1117;
-            --dark-lighter: #161b22;
-            --text: #e6edf3;
-            --text-muted: #8b949e;
-            --border: rgba(0, 255, 136, 0.15);
-            --border-glow: rgba(0, 255, 136, 0.4);
+            --warning: #f97316;
+            --success: #22c55e;
+            --dark: #0a0e14;
+            --text: #e2e8f0;
+            --text-muted: #94a3b8;
+            --border: rgba(255, 255, 255, 0.1);
+            --surface: #151b23;
         }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--dark); }
+        ::-webkit-scrollbar-thumb { background: var(--text-muted); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--text); }
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #05070a 0%, #0d1117 50%, #161b22 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            overflow: hidden;
+            background: var(--dark);
             color: var(--text);
-            min-height: 100vh;
-            position: relative;
-            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
-        body.simplified-mode {
-            background: #05070a;
-        }
-        body.simplified-mode #bgElements {
-            display: none !important;
-        }
-        body.simplified-mode::before,
-        body.simplified-mode::after {
-            display: none;
-        }
-        body.simplified-mode .header {
-            background: rgba(13, 17, 23, 0.98);
-        }
-        body.simplified-mode .stat-card,
-        body.simplified-mode .plant-card,
-        body.simplified-mode .search-input,
-        body.simplified-mode .filter-btn,
-        body.simplified-mode .map-container {
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-        }
-        body.simplified-mode .plant-card,
-        body.simplified-mode .filter-btn,
-        body.simplified-mode .search-input,
-        body.simplified-mode .stat-card {
-            transition: none;
-        }
-        body.simplified-mode .plant-card.loaded {
-            opacity: 1;
-        }
-        body.simplified-mode .filter-btn:hover,
-        body.simplified-mode .filter-btn.active {
+        #map {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            border: none;
             box-shadow: none;
-            transform: none;
         }
-        body.simplified-mode .filter-btn:hover {
-            background: var(--primary);
-            border-color: var(--primary);
-        }
-        body.simplified-mode .map-legend {
-            background: rgba(0, 0, 0, 0.9);
-            backdrop-filter: none;
-        }
-        body.developer-mode .map-container {
-            border: 5px solid #ff6b6b;
-        }
-        body.developer-mode .leaflet-popup-content-wrapper {
-            border: 2px solid #ff6b6b !important;
-            box-shadow: 0 8px 24px rgba(255, 107, 107, 0.3) !important;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 15% 20%, rgba(118, 185, 0, 0.25) 0%, transparent 40%),
-                radial-gradient(circle at 85% 30%, rgba(0, 212, 255, 0.2) 0%, transparent 40%),
-                radial-gradient(circle at 50% 80%, rgba(118, 185, 0, 0.15) 0%, transparent 40%);
-            animation: bgMove 20s ease-in-out infinite;
-            pointer-events: none;
-            z-index: 0;
-            will-change: transform, opacity;
-        }
-        body::after {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: 
-                linear-gradient(45deg, rgba(118, 185, 0, 0.05) 0%, transparent 50%),
-                linear-gradient(135deg, rgba(0, 212, 255, 0.05) 0%, transparent 50%);
-            animation: bgRotate 25s linear infinite;
-            pointer-events: none;
-            z-index: 0;
-            will-change: transform;
-        }
-        @keyframes bgMove {
-            0%, 100% { transform: scale(1.15) translate3d(0, 0, 0); opacity: 1; }
-            50% { transform: scale(1.25) translate3d(-2%, 2%, 0); opacity: 0.9; }
-        }
-        @keyframes bgRotate {
-            from { transform: rotate(0deg) scale(1.15); }
-            to { transform: rotate(360deg) scale(1.15); }
-        }
-        @keyframes leafFloat {
-            0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg) scale(1); opacity: 0.15; }
-            25% { transform: translate3d(50px, -30px, 0) rotate(90deg) scale(1.1); opacity: 0.35; }
-            50% { transform: translate3d(-30px, 50px, 0) rotate(180deg) scale(0.9); opacity: 0.25; }
-            75% { transform: translate3d(60px, 40px, 0) rotate(270deg) scale(1.05); opacity: 0.4; }
-        }
-        @keyframes colorCycle {
-            0%, 100% { color: var(--primary); }
-            25% { color: var(--accent); }
-            50% { color: var(--primary); }
-            75% { color: var(--accent); }
-        }
-        .floating-leaf {
-            position: fixed;
-            font-size: 3rem;
-            pointer-events: none;
-            z-index: 0;
-            animation: leafFloat 12s ease-in-out infinite, colorCycle 6s linear infinite;
-            will-change: transform, opacity;
-            opacity: 0.15;
-            text-shadow: 0 0 15px currentColor;
-        }
-        .floating-leaf:nth-child(1) { top: 5%; left: 5%; animation-delay: 0s; animation-duration: 10s; }
-        .floating-leaf:nth-child(2) { top: 15%; right: 8%; animation-delay: -1.5s; animation-duration: 11s; }
-        .floating-leaf:nth-child(3) { top: 55%; left: 10%; animation-delay: -3s; animation-duration: 12s; }
-        .floating-leaf:nth-child(4) { top: 65%; right: 15%; animation-delay: -4.5s; animation-duration: 10s; }
-        .floating-leaf:nth-child(5) { top: 35%; left: 25%; animation-delay: -6s; animation-duration: 11s; }
-        .floating-leaf:nth-child(6) { top: 80%; left: 40%; animation-delay: -7.5s; animation-duration: 12s; }
-        .floating-leaf:nth-child(7) { top: 10%; left: 55%; animation-delay: -9s; animation-duration: 10s; }
-        .floating-leaf:nth-child(8) { top: 45%; right: 35%; animation-delay: -10.5s; animation-duration: 11s; }
-        .floating-leaf:nth-child(9) { top: 25%; left: 75%; animation-delay: -2s; animation-duration: 12s; }
-        .floating-leaf:nth-child(10) { top: 70%; right: 5%; animation-delay: -3.5s; animation-duration: 10s; }
-        .floating-leaf:nth-child(11) { top: 40%; left: 8%; animation-delay: -5s; animation-duration: 11s; }
-        .floating-leaf:nth-child(12) { top: 60%; right: 20%; animation-delay: -6.5s; animation-duration: 12s; }
-        .floating-leaf:nth-child(13) { top: 20%; left: 45%; animation-delay: -8s; animation-duration: 10s; }
-        .floating-leaf:nth-child(14) { top: 50%; left: 65%; animation-delay: -9.5s; animation-duration: 11s; }
-        .floating-leaf:nth-child(15) { top: 75%; left: 20%; animation-delay: -0.5s; animation-duration: 12s; }
-        .floating-leaf:nth-child(16) { top: 85%; right: 30%; animation-delay: -2.5s; animation-duration: 10s; }
-        .floating-leaf:nth-child(17) { top: 30%; left: 85%; animation-delay: -4s; animation-duration: 11s; }
-        .floating-leaf:nth-child(18) { top: 45%; right: 10%; animation-delay: -5.5s; animation-duration: 12s; }
-        .floating-leaf:nth-child(19) { top: 60%; left: 25%; animation-delay: -7s; animation-duration: 10s; }
-        .floating-leaf:nth-child(20) { top: 90%; right: 12%; animation-delay: -8.5s; animation-duration: 11s; }
         .header {
-            background: rgba(5, 7, 10, 0.98);
-            backdrop-filter: blur(20px);
-            border-bottom: 2px solid var(--border);
-            padding: 1.5rem 2rem;
-            box-shadow: 0 4px 30px var(--primary-glow), inset 0 1px 0 rgba(0, 255, 136, 0.05);
-            position: relative;
-        }
-        .header::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
+            position: fixed;
+            top: 0;
             left: 0;
             right: 0;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, var(--primary), var(--accent), var(--primary), transparent);
-            animation: borderPulse 3s ease-in-out infinite;
-        }
-        @keyframes borderPulse {
-            0%, 100% { opacity: 0.5; }
-            50% { opacity: 1; }
-        }
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
+            z-index: 100;
+            background: var(--dark);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 1.5rem;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
         }
         .logo {
-            font-size: 2rem;
-            font-weight: 800;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            background-size: 200% auto;
-            -webkit-background-clip: text;
-            background-position: 0 50%;
-            animation: shimmer 3s ease-in-out infinite;
-            text-shadow: 0 0 30px var(--primary-glow);
-            filter: drop-shadow(0 0 10px var(--primary-glow));
-        }
-        @keyframes shimmer {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
-        .logo span {
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            color: white;
+            font-size: 1.25rem;
             font-weight: 700;
-        }
-        .hero {
-            text-align: center;
-            padding: 3rem 2rem;
-        }
-        .hero h1 {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 1rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 50%, var(--primary) 100%);
+            background: linear-gradient(90deg, var(--primary) 0%, var(--accent) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            background-size: 200% auto;
-            background-position: 0 center;
-            animation: gradientMove 3s ease-in-out infinite;
-            text-shadow: 0 0 40px var(--primary-glow);
-            filter: drop-shadow(0 0 20px var(--primary-glow));
+            letter-spacing: -0.02em;
+            filter: drop-shadow(0 0 8px rgba(0, 204, 102, 0.5)) drop-shadow(0 0 16px rgba(0, 204, 102, 0.3));
         }
-        @keyframes gradientMove {
-            0%, 100% { background-position: 0% center; }
-            50% { background-position: 200% center; }
+        @media (min-width: 769px) and (hover: hover) {
+            .header {
+                padding: 1.25rem 2rem;
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 1px rgba(255, 255, 255, 0.1) inset;
+            }
+            .logo {
+                font-size: 2rem;
+                background: linear-gradient(135deg, #00ff99, #00e6ff, #00ffcc, #00ff99);
+                background-size: 300% 300%;
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+                animation: gradient-shift 3s ease infinite;
+                filter: drop-shadow(0 0 15px rgba(0, 255, 153, 0.7)) drop-shadow(0 0 30px rgba(0, 230, 255, 0.5));
+            }
+            @keyframes gradient-shift {
+                0%, 100% { background-position: 0% 50%; }
+                50% { background-position: 100% 50%; }
+            }
         }
-        .hero p {
-            font-size: 1.1rem;
-            color: var(--text-muted);
-            max-width: 700px;
-            margin: 1rem auto 0;
-        }
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 1rem;
-            max-width: 1200px;
-            margin: 0 auto 2rem;
-        }
-        .stat-card {
-            background: rgba(13, 17, 23, 0.95);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            text-align: center;
-            transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
-            will-change: transform;
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.1), transparent);
-            transition: left 0.5s ease;
-        }
-        .stat-card:hover::before {
-            left: 100%;
-        }
-        .stat-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6), 0 0 20px var(--primary-glow), 0 0 0 2px var(--border-glow);
-            border-color: var(--primary);
-        }
-        .stat-number {
-            font-size: 3rem;
-            font-weight: 800;
-            margin-bottom: 0.5rem;
-        }
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-        .stat-high { border-left: 4px solid #ef4444; position: relative; }
-        .stat-high::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 0 15px rgba(239, 68, 68, 0.5); }
-        .stat-medium { border-left: 4px solid #f97316; position: relative; }
-        .stat-medium::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, #f97316 0%, #ea580c 100%); box-shadow: 0 0 15px rgba(249, 115, 22, 0.5); }
-        .stat-low { border-left: 4px solid var(--primary); position: relative; }
-        .stat-low::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 0 15px var(--primary-glow); }
-        .stat-total { border-left: 4px solid var(--accent); position: relative; }
-        .stat-total::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: linear-gradient(180deg, var(--accent) 0%, var(--primary) 100%); box-shadow: 0 0 15px rgba(0, 212, 255, 0.5); }
-        .stat-number {
-            font-size: 2.5rem;
-            font-weight: 800;
-            margin-bottom: 0.25rem;
-            color: white;
-            background: #333;
-            padding: 5px 12px;
-            border-radius: 6px;
-        }
-        .stat-high .stat-number { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); box-shadow: 0 0 15px rgba(239, 68, 68, 0.4); }
-        .stat-medium .stat-number { background: linear-gradient(135deg, #ff9800 0%, #f59e0b 100%); box-shadow: 0 0 15px rgba(255, 152, 0, 0.4); }
-        .stat-low .stat-number { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); box-shadow: 0 0 15px var(--primary-glow); }
-        .stat-total .stat-number { background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%); box-shadow: 0 0 15px var(--primary-glow); }
         .filters {
-            display: flex;
-            gap: 2rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            padding: 1.5rem 2rem;
-            position: relative;
-            z-index: 10;
+            position: fixed;
+            top: 60px;
+            left: 16px;
+            z-index: 100;
+            width: 260px;
         }
         .settings-toggle {
             display: flex;
-            width: 100%;
-            padding: 1.25rem 1.5rem;
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border: 2px solid var(--primary);
-            border-radius: 12px;
-            color: white;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px var(--primary-glow);
-            justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border: 1px solid var(--primary);
+            border-radius: 10px;
+            color: var(--primary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 2px 8px rgba(0, 204, 102, 0.1);
+            transition: all 0.2s ease;
         }
-        .settings-toggle:hover {
-            box-shadow: 0 8px 24px var(--primary-glow);
-            transform: translateY(-2px);
+        .settings-toggle:hover, .settings-toggle:active {
+            background: var(--surface);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(0, 204, 102, 0.15);
+            transform: translateY(-1px);
         }
         .settings-toggle.open {
-            background: linear-gradient(135deg, var(--accent) 0%, #0099cc 100%);
-            border-color: var(--accent);
-            box-shadow: 0 8px 24px var(--accent-glow);
-        }
-        .settings-toggle-text {
-            flex: 1;
+            background: var(--primary);
+            color: var(--dark);
+            box-shadow: 0 4px 12px rgba(0, 204, 102, 0.3);
         }
         .settings-toggle-icon {
-            font-size: 1.2rem;
-            transition: transform 0.3s ease;
+            transition: transform 0.2s ease-out;
         }
         .settings-toggle.open .settings-toggle-icon {
             transform: rotate(90deg);
         }
         .settings-content {
-            transition: all 0.4s ease;
-            max-height: 0;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-top: 0.5rem;
             overflow: hidden;
+            max-height: 0;
             opacity: 0;
+            transition: max-height 0.25s ease-out, opacity 0.2s ease-out;
         }
         .settings-content.open {
-            max-height: 2000px;
+            max-height: 450px;
             opacity: 1;
+            overflow-y: auto;
         }
         .settings-group {
-            width: 100%;
-            min-width: unset;
-            margin-bottom: 1.5rem;
-            background: rgba(13, 17, 23, 0.95);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem;
-            justify-content: center;
+            padding: 0.875rem;
+            border-bottom: 1px solid var(--border);
         }
         .settings-group:last-child {
-            margin-bottom: 0;
+            border-bottom: none;
         }
         .settings-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text);
-            margin-bottom: 1rem;
-            text-align: center;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid var(--border);
-            width: 100%;
-        }
-        .settings-group .search-input {
-            margin-bottom: 0;
-        }
-        .settings-group .search-container {
-            padding: 0;
-            margin: 0;
-            width: 100%;
-        }
-        .filter-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.5rem;
-            background: rgba(22, 27, 34, 0.9);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 0.9rem;
+            font-size: 0.6875rem;
             font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            overflow: hidden;
+            color: var(--text-muted);
+            margin-bottom: 0.625rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
         }
-        .filter-btn::before {
-            content: '';
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
-            border-radius: 50%;
-            background: var(--primary);
-            transform: translate(-50%, -50%);
-            transition: width 0.6s, height 0.6s;
-            opacity: 0.1;
+        .search-input {
+            width: 100%;
+            padding: 0.5625rem 0.6875rem;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 0.875rem;
         }
-        .filter-btn:hover::before {
-            width: 300px;
-            height: 300px;
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .search-input::placeholder {
+            color: var(--text-muted);
+        }
+        .filter-btn {
+            display: block;
+            width: 100%;
+            padding: 0.625rem 0.875rem;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            font-size: 0.8125rem;
+            font-weight: 400;
+            cursor: pointer;
+            margin-bottom: 0.375rem;
+            text-align: left;
+            transition: all 0.15s ease;
         }
         .filter-btn:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 15px var(--primary-glow), 0 0 0 2px var(--border-glow);
-            border-color: var(--primary);
+            border-color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .filter-btn:active {
+            transform: scale(0.98);
         }
         .filter-btn.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            background: var(--primary);
+            color: var(--dark);
             border-color: var(--primary);
-            box-shadow: 0 8px 24px var(--primary-glow), 0 0 30px rgba(0, 255, 136, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
-            transform: translateY(-2px);
+            font-weight: 500;
         }
-        .filter-btn.active::before {
-            display: none;
-        }
-        .filter-btn.risk-4 {
-            border-color: #ef4444;
-            color: #fca5a5;
-        }
-        .filter-btn.risk-4:hover {
-            border-color: #ef4444;
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4), 0 0 15px rgba(239, 68, 68, 0.3);
-        }
-        .filter-btn.risk-4.active {
-            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-            border-color: #ef4444;
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.5), 0 0 40px rgba(239, 68, 68, 0.3);
-        }
-        .filter-btn.risk-3 {
-            border-color: #ff6b00;
-            color: #fdba74;
-        }
-        .filter-btn.risk-3:hover {
-            border-color: #ff6b00;
-            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.4), 0 0 15px rgba(255, 107, 0, 0.3);
-        }
-        .filter-btn.risk-3.active {
-            background: linear-gradient(135deg, #ff6b00 0%, #f97316 100%);
-            border-color: #ff6b00;
-            box-shadow: 0 8px 24px rgba(255, 107, 0, 0.5), 0 0 40px rgba(255, 107, 0, 0.3);
-        }
-        .filter-btn.risk-2 {
-            border-color: #fbbf24;
-            color: #fde68a;
-        }
-        .filter-btn.risk-2:hover {
-            border-color: #fbbf24;
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.4), 0 0 15px rgba(251, 191, 36, 0.3);
-        }
-        .filter-btn.risk-2.active {
-            background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
-            border-color: #fbbf24;
-            color: #1a1a1a;
-            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.5), 0 0 40px rgba(251, 191, 36, 0.3);
-        }
-        .filter-btn.risk-1 {
-            border-color: var(--primary);
-            color: #86efac;
-        }
-        .filter-btn.risk-1:hover {
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px var(--primary-glow), 0 0 15px var(--primary-glow);
-        }
-        .filter-btn.risk-1.active {
-            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-            border-color: var(--primary);
-            box-shadow: 0 8px 24px var(--primary-glow), 0 0 40px var(--primary-glow);
-        }
-        .filter-btn.risk-0 {
-            border-color: #6b7280;
-            color: #9ca3af;
-        }
-        .filter-btn.risk-0:hover {
-            border-color: #9ca3af;
-            box-shadow: 0 8px 24px rgba(107, 114, 128, 0.4);
-        }
-        .filter-btn.risk-0.active {
-            background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
-            border-color: #9ca3af;
-            box-shadow: 0 8px 24px rgba(107, 114, 128, 0.5);
-        }
+        .filter-btn.risk-4.active { background: var(--danger); border-color: var(--danger); }
+        .filter-btn.risk-3.active { background: var(--warning); border-color: var(--warning); }
+        .filter-btn.risk-2.active { background: #eab308; border-color: #eab308; color: var(--dark); }
+        .filter-btn.risk-1.active { background: var(--success); border-color: var(--success); }
+        .filter-btn.risk-0.active { background: #64748b; border-color: #64748b; }
         .map-style-buttons {
             display: flex;
             gap: 0.5rem;
-            justify-content: center;
         }
         .map-style-btn {
             flex: 1;
-            padding: 0.75rem 1rem;
-            background: rgba(22, 27, 34, 0.9);
-            border: 2px solid var(--border);
-            border-radius: 8px;
+            padding: 0.5rem;
+            background: var(--dark);
+            border: 1px solid var(--border);
+            border-radius: 6px;
             color: var(--text);
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 500;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
         }
         .map-style-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-            border-color: rgba(0, 255, 136, 0.5);
+            border-color: var(--text-muted);
         }
         .map-style-btn.active {
-            background: linear-gradient(135deg, var(--accent) 0%, #0099cc 100%);
-            border-color: var(--accent);
-            color: white;
-            box-shadow: 0 4px 12px var(--accent-glow);
-            transform: translateY(-2px);
+            background: var(--primary);
+            color: var(--dark);
+            border-color: var(--primary);
         }
-        #map {
-            transition: opacity 0.3s ease, box-shadow 0.3s ease;
-            height: 600px;
-            width: 100%;
-            border-radius: 16px;
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4);
-            border: 1px solid rgba(0, 255, 136, 0.1);
+        #cached-mode-btn.active {
+            background: var(--primary);
+            color: var(--dark);
+            border-color: var(--primary);
+            font-weight: 600;
         }
-        #map:hover {
-            box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.4), 0 0 30px rgba(0, 255, 136, 0.1);
-        }
-        .map-section {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 2rem;
-        }
-        .map-container {
-            position: relative;
-            background: rgba(13, 17, 23, 0.98);
-            border: 2px solid var(--border);
-            border-radius: 20px;
-            padding: 1.5rem;
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 255, 136, 0.05), 0 0 60px rgba(0, 255, 136, 0.05);
-        }
-        .map-controls-container {
+        .stats {
+            position: fixed;
+            top: 60px;
+            right: 16px;
+            z-index: 100;
             display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
+            flex-direction: column;
+            gap: 0.375rem;
         }
-        .map-legend {
-            flex: 0 0 auto;
-            background: rgba(13, 17, 23, 0.98);
-            border: 2px solid var(--border);
-            border-radius: 16px;
-            padding: 1.25rem;
-            min-width: 240px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 255, 136, 0.05);
-        }
-        .map-legend::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, var(--primary), var(--accent), var(--primary));
-            border-radius: 16px 16px 0 0;
-        }
-        .map-legend-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: center;
-        }
-        .legend-title {
-            font-size: 1rem;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 1rem;
-            text-align: center;
-            padding-bottom: 0.5rem;
-            border-bottom: 2px solid rgba(118, 185, 0, 0.3);
-        }
-        .legend-item {
+        .stat-item {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.625rem 0.875rem;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            padding: 0.5rem 1rem;
-            background: rgba(22, 27, 34, 0.6);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            transition: all 0.3s ease;
-            flex-shrink: 0;
+            gap: 0.625rem;
+            font-size: 0.8125rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.15s ease;
         }
-        .legend-item:last-child {
-            margin-bottom: 0;
+        .stat-item:hover {
+            transform: scale(1.02);
         }
-        .legend-item:hover {
-            background: rgba(22, 27, 34, 0.9);
-            border-color: var(--primary);
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.1);
-        }
-        .legend-dot {
-            width: 24px;
-            height: 24px;
+        .stat-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             flex-shrink: 0;
-            box-shadow: 0 0 12px currentColor;
-            animation: pulse 2s ease-in-out infinite;
         }
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.1); opacity: 0.8; }
-        }
-        .legend-item span {
-            font-size: 0.85rem;
-            color: #f1f5f9;
-        }
-        .radius-indicator {
-            position: absolute;
-            bottom: 1.5rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, rgba(0, 212, 255, 0.9) 0%, rgba(0, 255, 136, 0.9) 100%);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 25px;
-            font-size: 0.85rem;
+        .stat-value {
             font-weight: 600;
-            box-shadow: 0 8px 24px rgba(0, 212, 255, 0.4), 0 0 30px rgba(0, 255, 136, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            backdrop-filter: blur(10px);
+            color: var(--primary);
         }
-        .radius-indicator::before {
-            content: '';
-            position: absolute;
-            inset: -2px;
-            background: linear-gradient(45deg, var(--accent), var(--primary), var(--accent));
-            border-radius: 25px;
-            z-index: -1;
-            animation: rotateBorder 3s linear infinite;
-        }
-        .count-display {
-            text-align: center;
-            padding: 1rem;
-            color: #a0aec0;
-            font-size: 0.9rem;
-        }
-        .count-display span {
-            color: #76b900;
-            font-weight: 700;
-        }
-        .settings-group .search-container {
-            padding: 0;
-            margin: 0;
-            width: 100%;
-        }
-        .settings-group .search-input {
-            margin-bottom: 0;
-        }
-        .search-wrapper {
-            position: relative;
-            width: 100%;
-        }
-        .settings-group .search-input {
-            width: 100%;
-            padding: 0.8rem 3rem 0.8rem 1rem;
-            background: rgba(13, 17, 23, 0.95);
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            color: var(--text);
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-        .settings-group .search-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-glow), 0 8px 24px rgba(0, 0, 0, 0.4);
-        }
-        .settings-group .search-input::placeholder {
+        .stat-label {
             color: var(--text-muted);
         }
-        .settings-group .search-input:hover {
-            border-color: rgba(0, 255, 136, 0.5);
-        }
-        .settings-group {
-            position: relative;
-        }
-        .clear-search-btn {
-            position: absolute;
-            right: 0.75rem;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(0, 255, 136, 0.2);
-            border: none;
-            color: var(--primary);
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-        }
-        .clear-search-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-        }
-        .user-marker {
-            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.6);
-            filter: drop-shadow(0 4px 8px rgba(0, 212, 255, 0.5));
-        }
-        .oak-marker {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
-        .pine-marker {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
-        .zelkova-marker {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
-        .lawn-daisy-marker {
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
-        }
-        .plant-marker-high {
-            box-shadow: 0 4px 8px rgba(239, 68, 68, 0.5);
-        }
-        .plant-marker-medium {
-            box-shadow: 0 4px 8px rgba(255, 152, 0, 0.5);
-        }
-        .plant-marker-low {
-            box-shadow: 0 4px 8px rgba(0, 230, 118, 0.5);
-        }
-        .leaflet-marker-icon {
-            border-radius: 50% !important;
-        }
+        .stat-high { border-left: 2px solid var(--danger); }
+        .stat-high .stat-value { color: var(--danger); }
+        .stat-high .stat-dot { background: var(--danger); }
+        .stat-medium { border-left: 2px solid var(--warning); }
+        .stat-medium .stat-value { color: var(--warning); }
+        .stat-medium .stat-dot { background: var(--warning); }
+        .stat-low { border-left: 2px solid var(--success); }
+        .stat-low .stat-value { color: var(--success); }
+        .stat-low .stat-dot { background: var(--success); }
+        .stat-total { border-left: 2px solid var(--accent); }
+        .stat-total .stat-value { color: var(--accent); }
+        .stat-total .stat-dot { background: var(--accent); }
         .leaflet-popup-content-wrapper {
-            background: rgba(13, 17, 23, 0.98) !important;
-            border: 2px solid var(--border) !important;
-            border-radius: 16px !important;
-            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.6), 0 0 30px var(--primary-glow) !important;
+            background: var(--surface) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: 8px !important;
+            color: var(--text) !important;
         }
         .leaflet-popup-tip {
-            background: rgba(13, 17, 23, 0.98) !important;
+            background: var(--surface) !important;
         }
         .leaflet-container a.leaflet-popup-close-button {
             color: var(--primary) !important;
-            font-size: 24px !important;
         }
         .leaflet-container a.leaflet-popup-close-button:hover {
             color: var(--accent) !important;
         }
-        .custom-popup .leaflet-popup-content {
-            margin: 0 !important;
-            color: var(--text) !important;
-        }
-        .leaflet-control-zoom a {
-            background: rgba(13, 17, 23, 0.95) !important;
-            border: 2px solid var(--border) !important;
-            color: var(--primary) !important;
-            border-radius: 8px !important;
-            transition: all 0.3s ease !important;
-        }
-        .leaflet-control-zoom a:hover {
-            background: var(--primary) !important;
-            color: white !important;
-            box-shadow: 0 4px 12px var(--primary-glow) !important;
-        }
-        @keyframes techGlow {
-            0%, 100% { box-shadow: 0 0 20px var(--primary-glow), 0 0 40px var(--primary-glow); }
-            50% { box-shadow: 0 0 30px var(--primary-glow), 0 0 60px var(--primary-glow); }
-        }
-        @media (max-width: 1200px) {
-            .header-content {
-                padding: 0 1rem;
-            }
-            .logo {
-                font-size: 1.5rem;
-            }
-            .hero h1 {
-                font-size: 2.5rem;
-            }
-            .map-section {
-                padding: 0 1rem;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-                padding: 0 1rem;
-            }
-        }
-        @media (max-width: 1024px) {
-            .map-controls-container {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .map-legend {
-                width: 100%;
-                min-width: unset;
-            }
-            .map-legend-items {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-            .legend-item {
-                flex: 1 1 auto;
-                min-width: 140px;
-                justify-content: center;
-            }
-            #map {
-                height: 500px;
-            }
+        .plant-marker {
+            cursor: pointer;
         }
         @media (max-width: 768px) {
-            .header {
-                padding: 1rem;
-            }
-            .header-content {
-                flex-direction: column;
-                gap: 1rem;
-            }
-            .logo {
-                font-size: 1.3rem;
-            }
-            .hero {
-                padding: 2rem 1rem;
-            }
-            .hero h1 {
-                font-size: 1.8rem;
-            }
-            .hero p {
-                font-size: 0.95rem;
-            }
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 0.75rem;
-            }
-            .stat-card {
-                padding: 1rem;
-            }
-            .stat-number {
-                font-size: 2rem;
-            }
-            .stat-label {
-                font-size: 0.7rem;
-            }
             .filters {
-                padding: 0.5rem 1rem;
+                left: 10px;
+                right: 10px;
+                width: auto;
             }
-            .filter-group {
-                padding: 1rem;
+            .stats {
+                right: 10px;
+                top: auto;
+                bottom: 14px;
+                gap: 0.3125rem;
             }
-            .filter-group.open {
-                max-height: 1000px;
-                opacity: 1;
-            }
-            .filter-btn {
-                padding: 0.6rem 1rem;
-                font-size: 0.8rem;
-            }
-            #map {
-                height: 400px;
-            }
-            .map-container {
-                padding: 1rem;
-            }
-            .radius-indicator {
-                padding: 0.5rem 1rem;
-                font-size: 0.75rem;
-                bottom: 1rem;
-            }
-            .legend-item {
-                flex-direction: column;
-                text-align: center;
-                padding: 0.5rem;
-                min-width: 100px;
-            }
-            .legend-item span {
+            .stat-item {
+                padding: 0.5625rem 0.75rem;
                 font-size: 0.75rem;
             }
-            .legend-dot {
-                width: 20px;
-                height: 20px;
-            }
-            .search-container {
-                padding: 0 1rem;
-            }
-            .search-input {
-                padding: 0.8rem 2.5rem 0.8rem 1rem;
-                font-size: 0.9rem;
-            }
-            .upload-container {
-                padding: 0 1rem;
-            }
-            .upload-btn {
-                padding: 0.8rem 1.5rem;
-                font-size: 0.9rem;
-            }
-            .clear-all-btn {
-                margin-left: 0.5rem;
-                padding: 0.6rem 1rem;
-                font-size: 0.75rem;
-            }
-            .count-display {
-                padding: 0.75rem;
-                font-size: 0.85rem;
-            }
-            .floating-leaf {
-                font-size: 1.5rem;
-            }
-        }
-        @media (max-width: 480px) {
             .logo {
-                font-size: 1.1rem;
+                font-size: 1rem;
             }
-            .hero h1 {
-                font-size: 1.5rem;
+            .settings-toggle {
+                padding: 0.6875rem 0.9375rem;
             }
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            .stat-number {
-                font-size: 2.5rem;
-            }
-            .filter-group {
-                padding: 0.75rem;
-            }
-            .filter-btn {
-                width: 100%;
-                justify-content: center;
-                padding: 0.5rem 0.75rem;
-                font-size: 0.75rem;
-            }
-            #map {
-                height: 350px;
-            }
-            .settings-group {
-                padding: 1rem;
+            .filter-btn, .map-style-btn {
+                padding: 0.5625rem 0.75rem;
             }
         }
     </style>
 </head>
 <body>
-    <div id="bgElements">
-        <div class="floating-leaf">🍃</div>
-        <div class="floating-leaf">🌿</div>
-        <div class="floating-leaf">🍂</div>
-        <div class="floating-leaf">🌱</div>
-        <div class="floating-leaf">🍃</div>
-        <div class="floating-leaf">🌿</div>
-        <div class="floating-leaf">🍂</div>
-        <div class="floating-leaf">🌱</div>
-        <div class="floating-leaf">🍃</div>
-        <div class="floating-leaf">🌿</div>
-        <div class="floating-leaf">🍂</div>
-        <div class="floating-leaf">🌱</div>
-        <div class="floating-leaf">🍃</div>
-        <div class="floating-leaf">🌿</div>
-        <div class="floating-leaf">🍂</div>
-        <div class="floating-leaf">🌱</div>
-        <div class="floating-leaf">🍃</div>
-        <div class="floating-leaf">🌿</div>
-    </div>
+    <div id="map"></div>
     
     <div class="header">
-        <div class="header-content">
-            <div class="logo">Hillsboro <span>Allergenic Plants</span></div>
-        </div>
-    </div>
-    
-    <div class="hero">
-        <h1>Hillsboro Allergenic Plants</h1>
-        <p>STEM Project - Plants Within 2 Miles of Quatama Elementary School</p>
-    </div>
-    
-    <div class="stats-grid">
-        <div class="stat-card stat-high">
-            <div class="stat-number" id="high-count">0</div>
-            <div class="stat-label">High Risk</div>
-        </div>
-        <div class="stat-card stat-medium">
-            <div class="stat-number" id="medium-count">0</div>
-            <div class="stat-label">Medium Risk</div>
-        </div>
-        <div class="stat-card stat-low">
-            <div class="stat-number" id="low-count">0</div>
-            <div class="stat-label">Low Risk</div>
-        </div>
-        <div class="stat-card stat-total">
-            <div class="stat-number" id="total-count">0</div>
-            <div class="stat-label">Total Plants</div>
-        </div>
+        <div class="logo">Hillsboro Allergenic Plants</div>
     </div>
     
     <div class="filters">
         <div class="settings-toggle" id="settings-toggle">
-            <span class="settings-toggle-text">⚙️ Settings</span>
+            <span>⚙️ Settings</span>
             <span class="settings-toggle-icon">▶</span>
         </div>
         <div class="settings-content" id="settings-content">
-            <div class="settings-group" id="filter-group">
-                <h4 class="settings-title">🌿 Filter by Allergen Level</h4>
+            <div class="settings-group">
+                <div class="settings-title">🔍 Search</div>
+                <input type="text" class="search-input" id="search-input" placeholder="Search plants...">
+            </div>
+            <div class="settings-group">
+                <div class="settings-title">⚠️ Allergen Level</div>
                 <button class="filter-btn active" data-filter="all">All Plants</button>
-                <button class="filter-btn risk-4" data-filter="VERY_HIGH">Level 4 (Very High)</button>
-                <button class="filter-btn risk-3" data-filter="HIGH">Level 3 (High)</button>
-                <button class="filter-btn risk-2" data-filter="MEDIUM">Level 2 (Medium)</button>
-                <button class="filter-btn risk-1" data-filter="LOW">Level 1 (Low)</button>
-                <button class="filter-btn risk-0" data-filter="NONE">Level 0 (None)</button>
+                <button class="filter-btn risk-4" data-filter="VERY_HIGH">Level 4 - Very High</button>
+                <button class="filter-btn risk-3" data-filter="HIGH">Level 3 - High</button>
+                <button class="filter-btn risk-2" data-filter="MEDIUM">Level 2 - Medium</button>
+                <button class="filter-btn risk-1" data-filter="LOW">Level 1 - Low</button>
+                <button class="filter-btn risk-0" data-filter="NONE">Level 0 - None</button>
             </div>
-            <div class="settings-group" id="search-content">
-                <h4 class="settings-title">🔍 Search Plants</h4>
-                <div class="search-wrapper">
-                    <input type="text" class="search-input" id="search-input" placeholder="Search plants by name...">
-                    <button class="clear-search-btn" id="clear-search-btn" title="Clear search">✕</button>
-                </div>
-            </div>
-            <div class="settings-group" id="map-style">
-                <h4 class="settings-title">🗺️ Map Style</h4>
+            <div class="settings-group">
+                <div class="settings-title">🗺️ Map Style</div>
                 <div class="map-style-buttons">
-                    <button class="map-style-btn active" data-style="Standard OSM">Standard OSM</button>
-                    <button class="map-style-btn" data-style="Clean">Clean</button>
-                    <button class="map-style-btn" data-style="Dark">Dark</button>
+                    <button class="map-style-btn active" data-style="osm">OSM</button>
+                    <button class="map-style-btn" data-style="dark">Dark</button>
                 </div>
             </div>
-            <div class="settings-group" id="map-legend">
-                <h4 class="settings-title">🌿 CARE-S Allergen Levels</h4>
-                <div class="map-legend-items">
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #ff0000; border: 3px solid #cc0000;"></div>
-                        <span><strong>Level 4</strong> - Very High</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #ff6600; border: 3px solid #cc5200;"></div>
-                        <span><strong>Level 3</strong> - High</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #ffcc00; border: 3px solid #cca300;"></div>
-                        <span><strong>Level 2</strong> - Medium</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #00cc00; border: 3px solid #009900;"></div>
-                        <span><strong>Level 1</strong> - Low</span>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-dot" style="background: #666666; border: 3px solid #444444;"></div>
-                        <span><strong>Level 0</strong> - None</span>
-                    </div>
-                </div>
-            </div>
+
         </div>
     </div>
     
-    <div class="map-section">
-        <div class="map-container">
-            <div id="map"></div>
-            <div id="map-loading" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(13, 17, 23, 0.8); z-index: 999; align-items: center; justify-content: center;">
-                <div style="color: #76b900; font-size: 1.2rem; font-weight: 600;">Loading map...</div>
-            </div>
-            <div class="radius-indicator">2 Mile Detection Zone</div>
-            <div id="search-result" style="display: none; margin-top: 1rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border-radius: 8px; color: #333; font-size: 0.9rem; text-align: center;"></div>
+    <div class="stats">
+        <div class="stat-item stat-high">
+            <div class="stat-dot"></div>
+            <span class="stat-label">High:</span>
+            <span class="stat-value" id="high-count">0</span>
         </div>
-    </div>
-    </div>
-    
-    <div id="plant-count-display" class="count-display">
-        Showing <span id="visible-count">0</span> of <span id="total-count">0</span> plants
+        <div class="stat-item stat-medium">
+            <div class="stat-dot"></div>
+            <span class="stat-label">Med:</span>
+            <span class="stat-value" id="medium-count">0</span>
+        </div>
+        <div class="stat-item stat-low">
+            <div class="stat-dot"></div>
+            <span class="stat-label">Low:</span>
+            <span class="stat-value" id="low-count">0</span>
+        </div>
+        <div class="stat-item stat-total">
+            <div class="stat-dot"></div>
+            <span class="stat-value" id="total-count">0</span>
+        </div>
     </div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
-    <script src="https://unpkg.com/leaflet-contextmenu@1.4.0/dist/leaflet.contextmenu.js" crossorigin=""></script>
     <script>
-        var QUATAMA_LOCATION = { lat: 45.532785, lon: -122.908591 };
-        var TWO_MILES_KM =3.21869;
-        var map, userMarker, radiusCircle, plantMarkers = [];
-        var allMarkers = [];
+        var SOUTH_LAT = 45.52993828514016;
+        var NORTH_LAT = 45.53546974562078;
+        var WEST_LON = -122.91590598637916;
+        var EAST_LON = -122.9059067121697;
+        
+        var map, currentTileLayer, plantMarkers = [], allPlants = [];
         var currentRiskFilter = 'all';
-        var currentTileLayer;
-        var allPlants = [];
-
+        var currentSearch = '';
+        
         var plantFiles = [
-            {id: 1, name: "Sequoiadendron giganteum", lat: 45.5321752959445, lon: -122.91326032434674, filename: "2026021801-Sequoiadendron giganteum-45.5321752959445, -122.91326032434674.jpg"},
-            {id: 2, name: "Viburnum davidii", lat: 45.53282563722502, lon: -122.91291608990245, filename: "2026021802-Viburnum davidii-45.53282563722502, -122.91291608990245.jpg"},
-            {id: 3, name: "Erica carne", lat: 45.53396638810642, lon: -122.91235732086496, filename: "2026021803-Erica carne-45.53396638810642, -122.91235732086496.jpg"},
-            {id: 4, name: "Ficaria verna", lat: 45.53398377090098, lon: -122.91249346982507, filename: "2026021804-Ficaria verna-45.53398377090098, -122.91249346982507.jpg"},
-            {id: 5, name: "Cornus sericea", lat: 45.53393812614244, lon: -122.91240900121086, filename: "2026021805-Cornus sericea-45.53393812614244, -122.91240900121086.jpg"},
-            {id: 6, name: "Family Lamiaceae", lat: 45.531645855028884, lon: -122.91298434253892, filename: "2026021806-Family Lamiaceae-45.531645855028884, -122.91298434253892.jpg"},
-            {id: 7, name: "Bellis perennis", lat: 45.532409356253886, lon: -122.90898097539352, filename: "2026021807-Bellis perennis-45.532409356253886, -122.90898097539352.jpg"},
-            {id: 8, name: "Trachycarpus fortunei", lat: 45.5313410531488, lon: -122.9129241172142, filename: "2026021808-Trachycarpus fortunei-45.5313410531488, -122.9129241172142.jpg"},
-            {id: 9, name: "Nandina domestica", lat: 45.53170593394621, lon: -122.9130829748173, filename: "2026021809-Nandina domestica-45.53170593394621, -122.9130829748173.jpg"},
-            {id: 10, name: "Genus Rosa", lat: 45.53311272658652, lon: -122.91262446891169, filename: "2026021810-Genus Rosa-45.53311272658652, -122.91262446891169.jpg"},
-            {id: 11, name: "Berberis aquifolium", lat: 45.53307765167972, lon: -122.91259585487556, filename: "2026021811-Berberis aquifolium-45.53307765167972, -122.91259585487556.jpg"},
-            {id: 12, name: "Berberis aquifolium", lat: 45.533192713938924, lon: -122.91269440974315, filename: "2026021811-Berberis aquifolium-45.533192713938924, -122.91269440974315.jpg"},
-            {id: 13, name: "Cornus sericea", lat: 45.53336430634478, lon: -122.91277511045735, filename: "2026021812-Cornus sericea-45.53336430634478, -122.91277511045735.jpg"},
-            {id: 14, name: "Phylum Bryophyta", lat: 45.53390788276676, lon: -122.91240636459491, filename: "2026021813-Phylum Bryophyta-45.53390788276676, -122.91240636459491.jpg"},
-            {id: 15, name: "Phalaris arundinacea", lat: 45.53394405066908, lon: -122.91239496520566, filename: "2026021814-Phalaris arundinacea-45.53394405066908, -122.91239496520566.jpg"},
-            {id: 16, name: "Genus Narcissus", lat: 45.533957202627356, lon: -122.91235070875766, filename: "2026021815-Genus Narcissus-45.533957202627356, -122.91235070875766.jpg"},
-            {id: 17, name: "Genus Quercus", lat: 45.53350914966736, lon: -122.91306710945696, filename: "2026021816-Genus Quercus-45.53350914966736, -122.91306710945696.jpg"},
-            {id: 18, name: "Cornus sericea", lat: 45.533431483781975, lon: -122.91289219725729, filename: "2026021817-Cornus sericea-45.533431483781975, -122.91289219725729.jpg"},
-            {id: 19, name: "Chamaecyparis obtusa", lat: 45.53168210236934, lon: -122.9131108016896, filename: "c1-Chamaecyparis obtusa-45.53168210236934, -122.9131108016896.jpg"},
-            {id: 20, name: "Subfamily Cupressoideae", lat: 45.532125, lon: -122.912734, filename: "c10-Subfamily Cupressoideae-45.532125, -122.912734.jpg"},
-            {id: 21, name: "Magnolia stellata", lat: 45.532266, lon: -122.912586, filename: "c11-Magnolia stellata-45.532266, -122.912586.jpg"},
-            {id: 22, name: "Genus Berberis", lat: 45.532200, lon: -122.911800, filename: "c12-Genus Berberis-45.532200, -122.911800.jpg"},
-            {id: 23, name: "Salix babylonica", lat: 45.5319904313497, lon: -122.91128480587012, filename: "c13-Salix babylonica-45.5319904313497, -122.91128480587012.jpg"},
-            {id: 24, name: "Salix babylonica", lat: 45.5318671821094, lon: -122.91131818918747, filename: "c14-Salix babylonica-45.5318671821094, -122.91131818918747.jpg"},
-            {id: 25, name: "Salix babylonica", lat: 45.53211797681711, lon: -122.91105543850537, filename: "c15-Salix babylonica-45.53211797681711, -122.91105543850537.jpg"},
-            {id: 26, name: "Betula pendula", lat: 45.53208650458752, lon: -122.91081424810952, filename: "c16-Betula pendula-45.53208650458752, -122.91081424810952.jpg"},
-            {id: 27, name: "Genus Quercus", lat: 45.53216601334353, lon: -122.91006939536231, filename: "c17-Genus Quercus-45.53216601334353, -122.91006939536231.jpg"},
-            {id: 28, name: "Genus Quercus", lat: 45.53215441832397, lon: -122.90931508415288, filename: "c18-Genus Quercus-45.53215441832397, -122.90931508415288.jpg"},
-            {id: 29, name: "Genus Zelkova", lat: 45.53235784895571, lon: -122.90825082264514, filename: "c19-Genus Zelkova-45.53235784895571, -122.90825082264514.jpg"},
-            {id: 30, name: "Family Cupressaceae", lat: 45.531722029553265, lon: -122.91304240536083, filename: "c2-Family Cupressaceae-45.531722029553265, -122.91304240536083.jpg"},
-            {id: 31, name: "Genus Pinus", lat: 45.5324100203886, lon: -122.90715308263019, filename: "c20-Genus Pinus-45.5324100203886, -122.90715308263019.jpg"},
-            {id: 32, name: "Genus Pinus", lat: 45.53236939937172, lon: -122.90926112711794, filename: "c21-Genus Pinus-45.53236939937172, -122.90926112711794.jpg"},
-            {id: 33, name: "Genus Chamaecyparis", lat: 45.53117539611153, lon: -122.91292959225831, filename: "c2026021706-Genus Chamaecyparis-45.53117539611153, -122.91292959225831.jpg"},
-            {id: 34, name: "Subfamily Cupressoideae", lat: 45.53119325216708, lon: -122.91292422600974, filename: "c2026021707-Subfamily Cupressoideae-45.53119325216708, -122.91292422600974.jpg"},
-            {id: 35, name: "Genus Chamaecyparis", lat: 45.531198575388956, lon: -122.91312835463295, filename: "c2026021708-Genus Chamaecyparis-45.531198575388956, -122.91312835463295.jpg"},
-            {id: 36, name: "Chamaecyparis obtusa", lat: 45.531178376744485, lon: -122.9131333837779, filename: "c2026021709-Chamaecyparis obtusa-45.531178376744485, -122.9131333837779.jpg"},
-            {id: 37, name: "Genus Pinus", lat: 45.53281244993523, lon: -122.90721366495113, filename: "c21-Genus Pinus-45.53281244993523, -122.90721366495113.jpg"},
-            {id: 38, name: "Sonchus asper", lat: 45.532569719755834, lon: -122.90771484932984, filename: "c22-Sonchus asper-45.532569719755834, -122.90771484932984.jpg"},
-            {id: 39, name: "Genus Pinus", lat: 45.53236939937172, lon: -122.90926112711794, filename: "c23-Genus Pinus-45.53236939937172, -122.90926112711794.jpg"},
-            {id: 40, name: "Subfamily Cupressoideae", lat: 45.53252097348167, lon: -122.9108057355514, filename: "c24-Subfamily Cupressoideae-45.53252097348167, -122.9108057355514.jpg"},
-            {id: 41, name: "Calocedrus decurrens", lat: 45.53251075594764, lon: -122.9109619405381, filename: "c25-Calocedrus decurrens-45.53251075594764, -122.9109619405381.jpg"},
-            {id: 42, name: "Prunus laurocerasus", lat: 45.53294891122775, lon: -122.91192803471482, filename: "c26-Prunus laurocerasus-45.53294891122775, -122.91192803471482.jpg"},
-            {id: 43, name: "Rubus ursinus", lat: 45.532975828051356, lon: -122.9119193580519, filename: "c27-Rubus ursinus-45.532975828051356, -122.9119193580519.jpg"},
-            {id: 44, name: "Quercus garryana", lat: 45.533046985868474, lon: -122.91194338249097, filename: "c28-Quercus garryana-45.533046985868474, -122.91194338249097.jpg"},
-            {id: 45, name: "Family Betulaceae", lat: 45.53421577278697, lon: -122.91003969865305, filename: "c29-Family Betulaceae-45.53421577278697, -122.91003969865305.jpg"},
-            {id: 46, name: "Genus Taxus", lat: 45.53175397127998, lon: -122.91296931516638, filename: "c3-Genus Taxus-45.53175397127998, -122.91296931516638.jpg"},
-            {id: 47, name: "Genus Pinus", lat: 45.53425353175589, lon: -122.90945677856897, filename: "c30-Genus Pinus-45.53425353175589, -122.90945677856897.jpg"},
-            {id: 48, name: "Sequoiadendron giganteum", lat: 45.53441041476725, lon: -122.9091349134837, filename: "c31-Sequoiadendron giganteum-45.53441041476725, -122.9091349134837.jpg"},
-            {id: 49, name: "Genus Quercus", lat: 45.53487233732631, lon: -122.90812225541454, filename: "c32-Genus Quercus-45.53487233732631, -122.90812225541454.jpg"},
-            {id: 50, name: "Cupressus sempervirens", lat: 45.531628, lon: -122.912094, filename: "c4-Cupressus sempervirens-45.531628, -122.912094.jpg"},
-            {id: 51, name: "Cupressus sempervirens", lat: 45.531666, lon: -122.912091, filename: "c5-Cupressus sempervirens-45.531666, -122.912091.jpg"},
-            {id: 52, name: "Buxus sempervirens", lat: 45.531707, lon: -122.911945, filename: "c6-Buxus sempervirens-45.531707, -122.911945.jpg"},
-            {id: 53, name: "Berberis aquifolium", lat: 45.531832, lon: -122.911820, filename: "c7-Berberis aquifolium-45.531832, -122.911820.jpg"},
-            {id: 54, name: "Berberis aquifolium", lat: 45.531890, lon: -122.911767, filename: "c8-Berberis aquifolium-45.531890, -122.911767.jpg"},
-            {id: 55, name: "grass-Genus Cenchrus", lat: 45.532071, lon: -122.912890, filename: "c9-grass-Genus Cenchrus-45.532071, -122.912890.jpg"}
+            {id: 2026021901, name: "Sequoiadendron giganteum", commonName: "giant sequoia", lat: 45.5321752959445, lon: -122.913260324346, allergenLevel: 1, filename: "images/2026021901-45.5321752959445, -122.91326032434674.jpg"},
+            {id: 2026021902, name: "Viburnum davidii", commonName: "David viburnum", lat: 45.53282563722502, lon: -122.912916089902, allergenLevel: 1, filename: "images/2026021902-45.53282563722502, -122.91291608990245.jpg"},
+            {id: 2026021903, name: "Erica carne", commonName: "winter heath", lat: 45.53396638810642, lon: -122.912357320864, allergenLevel: 1, filename: "images/2026021903-45.53396638810642, -122.91235732086496.jpg"},
+            {id: 2026021904, name: "Ficaria verna", commonName: "lesser celandine", lat: 45.53398377090098, lon: -122.912493469825, allergenLevel: 1, filename: "images/2026021904-45.53398377090098, -122.91249346982507.jpg"},
+            {id: 2026021905, name: "Cornus sericea", commonName: "Red osier dogwood", lat: 45.53393812614244, lon: -122.91240900121, allergenLevel: 1, filename: "images/2026021905-45.53393812614244, -122.91240900121086.jpg"},
+            {id: 2026021906, name: "Glechoma grandis", commonName: "Creeping Charlie", lat: 45.531645855028884, lon: -122.912984342538, allergenLevel: 1, filename: "images/2026021906-45.531645855028884, -122.91298434253892.jpg"},
+            {id: 2026021907, name: "Bellis perennis", commonName: "English daisy", lat: 45.532409356253886, lon: -122.908980975393, allergenLevel: 1, filename: "images/2026021907-45.532409356253886, -122.90898097539352.jpg"},
+            {id: 2026021908, name: "Trachycarpus fortunei", commonName: "windmill palm", lat: 45.5313410531488, lon: -122.912924117214, allergenLevel: 1, filename: "images/2026021908-45.5313410531488, -122.9129241172142.jpg"},
+            {id: 2026021909, name: "Nandina domestica", commonName: "heavenly bamboo", lat: 45.53170593394621, lon: -122.913082974817, allergenLevel: 1, filename: "images/2026021909-45.53170593394621, -122.9130829748173.jpg"},
+            {id: 2026021910, name: "Rosa cinnamomea", commonName: "roses", lat: 45.53311272658652, lon: -122.912624468911, allergenLevel: 1, filename: "images/2026021910-45.53311272658652, -122.91262446891169.jpg"},
+            {id: 2026021911, name: "Berberis aquifolium", commonName: "Oregon grape", lat: 45.53307765167972, lon: -122.912595854875, allergenLevel: 1, filename: "images/2026021911-45.53307765167972, -122.91259585487556.jpg"},
+            {id: 2026021912, name: "Berberis aquifolium", commonName: "Oregon grape", lat: 45.533192713938924, lon: -122.912694409743, allergenLevel: 1, filename: "images/2026021912-45.533192713938924, -122.91269440974315.jpg"},
+            {id: 2026021913, name: "Cornus sericea", commonName: "Red osier dogwood", lat: 45.53336430634478, lon: -122.912775110457, allergenLevel: 1, filename: "images/2026021913-45.53336430634478, -122.91277511045735.jpg"},
+            {id: 2026021914, name: "Phylum Bryophyta", commonName: "mosses", lat: 45.53390788276676, lon: -122.912406364594, allergenLevel: 0, filename: "images/2026021914-45.53390788276676, -122.91240636459491.jpg"},
+            {id: 2026021915, name: "Phalaris arundinacea", commonName: "reed canary grass", lat: 45.53394405066908, lon: -122.912394965205, allergenLevel: 3, filename: "images/2026021915-45.53394405066908, -122.91239496520566.jpg"},
+            {id: 2026021916, name: "Narcissus pseudonarcissus", commonName: "Lent lily", lat: 45.53350914966736, lon: -122.913067109456, allergenLevel: 4, filename: "images/2026021916-45.53350914966736, -122.91306710945696.jpg"},
+            {id: 2026021918, name: "Cornus sericea", commonName: "Red osier dogwood", lat: 45.533431483781975, lon: -122.912892197257, allergenLevel: 1, filename: "images/2026021918-45.533431483781975, -122.91289219725729.jpg"},
+            {id: 2026021919, name: "Chamaecyparis obtusa", commonName: "Hinoki cypress", lat: 45.53168210236934, lon: -122.913110801689, allergenLevel: 3, filename: "images/2026021919-45.53168210236934, -122.9131108016896.jpg"},
+            {id: 2026021920, name: "Cryptomeria japonica", commonName: "Japanese cedar", lat: 45.531722029553265, lon: -122.91304240536, allergenLevel: 3, filename: "images/2026021920-45.531722029553265, -122.91304240536083.jpg"},
+            {id: 2026021921, name: "Genus Taxus", commonName: "yews", lat: 45.53175397127998, lon: -122.912969315166, allergenLevel: 2, filename: "images/2026021921-45.53175397127998, -122.91296931516638.jpg"},
+            {id: 2026021922, name: "Cupressus sempervirens", commonName: "Italian cypress", lat: 45.531628, lon: -122.912094, allergenLevel: 3, filename: "images/2026021922-45.531628, -122.912094.jpg"},
+            {id: 2026021923, name: "Cupressus sempervirens", commonName: "Italian cypress", lat: 45.531666, lon: -122.912091, allergenLevel: 3, filename: "images/2026021923-45.531666, -122.912091.jpg"},
+            {id: 2026021924, name: "Buxus sempervirens", commonName: "common boxwood", lat: 45.531707, lon: -122.911945, allergenLevel: 1, filename: "images/2026021924-45.531707, -122.911945.jpg"},
+            {id: 2026021925, name: "Berberis aquifolium", commonName: "Oregon grape", lat: 45.531832, lon: -122.91182, allergenLevel: 1, filename: "images/2026021925-45.531832, -122.911820.jpg"},
+            {id: 2026021926, name: "Berberis aquifolium", commonName: "Oregon grape", lat: 45.53189, lon: -122.911767, allergenLevel: 1, filename: "images/2026021926-45.53189, -122.911767.jpg"},
+            {id: 2026021927, name: "Genus Cenchrus", commonName: "sandburs / buffelgrass", lat: 45.532071, lon: -122.91289, allergenLevel: 3, filename: "images/2026021927-45.532071, -122.912890.jpg"},
+            {id: 2026021928, name: "Chamaecyparis obtusa", commonName: "Hinoki cypress", lat: 45.532125, lon: -122.912734, allergenLevel: 3, filename: "images/2026021928-45.532125, -122.912734.jpg"},
+            {id: 2026021929, name: "Magnolia stellata", commonName: "star magnolia", lat: 45.532266, lon: -122.912586, allergenLevel: 1, filename: "images/2026021929-45.532266, -122.912586.jpg"},
+            {id: 2026021930, name: "Berberis repens", commonName: "Creeping Oregon grape", lat: 45.5322, lon: -122.9118, allergenLevel: 1, filename: "images/2026021930-45.532200, -122.911800.jpg"},
+            {id: 2026021931, name: "Salix babylonica", commonName: "weeping willow", lat: 45.5319904313497, lon: -122.91128480587, allergenLevel: 3, filename: "images/2026021931-45.5319904313497, -122.91128480587012.jpg"},
+            {id: 2026021932, name: "Salix babylonica", commonName: "weeping willow", lat: 45.5318671821094, lon: -122.911318189187, allergenLevel: 3, filename: "images/2026021932-45.5318671821094, -122.91131818918747.jpg"},
+            {id: 2026021933, name: "Salix babylonica", commonName: "weeping willow", lat: 45.53211797681711, lon: -122.911055438505, allergenLevel: 3, filename: "images/2026021933-45.53211797681711, -122.91105543850537.jpg"},
+            {id: 2026021934, name: "Betula pendula", commonName: "silver birch", lat: 45.53208650458752, lon: -122.910814248109, allergenLevel: 4, filename: "images/2026021934-45.53208650458752, -122.91081424810952.jpg"},
+            {id: 2026021935, name: "Genus Quercus", commonName: "oaks", lat: 45.53216601334353, lon: -122.910069395362, allergenLevel: 4, filename: "images/2026021935-45.53216601334353, -122.91006939536231.jpg"},
+            {id: 2026021936, name: "Genus Quercus", commonName: "oaks", lat: 45.53215441832397, lon: -122.909315084152, allergenLevel: 4, filename: "images/2026021936-45.53215441832397, -122.90931508415288.jpg"},
+            {id: 2026021937, name: "Zelkova serrata", commonName: "zelkova", lat: 45.53235784895571, lon: -122.908250822645, allergenLevel: 2, filename: "images/2026021937-45.53235784895571, -122.90825082264514.jpg"},
+            {id: 2026021938, name: "Genus Pinus", commonName: "pines", lat: 45.5324100203886, lon: -122.90715308263, allergenLevel: 2, filename: "images/2026021938-45.5324100203886, -122.90715308263019.jpg"},
+            {id: 2026021939, name: "Genus Pinus", commonName: "pines", lat: 45.53281244993523, lon: -122.907213664951, allergenLevel: 2, filename: "images/2026021939-45.53281244993523, -122.90721366495113.jpg"},
+            {id: 2026021940, name: "Sonchus asper", commonName: "thistle sowthistle", lat: 45.532569719755834, lon: -122.907714849329, allergenLevel: 2, filename: "images/2026021940-45.532569719755834, -122.90771484932984.jpg"},
+            {id: 2026021941, name: "Genus Pinus", commonName: "pines", lat: 45.53236939937172, lon: -122.909261127117, allergenLevel: 2, filename: "images/2026021941-45.53236939937172, -122.90926112711794.jpg"},
+            {id: 2026021942, name: "Subfamily Cupressoideae", commonName: "cypress subfamily", lat: 45.53252097348167, lon: -122.910805735551, allergenLevel: 3, filename: "images/2026021942-45.53252097348167, -122.9108057355514.jpg"},
+            {id: 2026021943, name: "Calocedrus decurrens", commonName: "incense cedar", lat: 45.53251075594764, lon: -122.910961940538, allergenLevel: 4, filename: "images/2026021943-45.53251075594764, -122.9109619405381.jpg"},
+            {id: 2026021944, name: "Prunus laurocerasus", commonName: "cherry laurel", lat: 45.53294891122775, lon: -122.911928034714, allergenLevel: 1, filename: "images/2026021944-45.53294891122775, -122.91192803471482.jpg"},
+            {id: 2026021945, name: "Rubus ursinus", commonName: "trailing blackberry", lat: 45.532975828051356, lon: -122.911919358051, allergenLevel: 1, filename: "images/2026021945-45.532975828051356, -122.9119193580519.jpg"},
+            {id: 2026021946, name: "Quercus garryana", commonName: "Oregon white oak", lat: 45.533046985868474, lon: -122.91194338249, allergenLevel: 4, filename: "images/2026021946-45.533046985868474, -122.91194338249097.jpg"},
+            {id: 2026021947, name: "Betula pendula", commonName: "silver birch", lat: 45.53421577278697, lon: -122.910039698653, allergenLevel: 4, filename: "images/2026021947-45.53421577278697, -122.91003969865305.jpg"},
+            {id: 2026021948, name: "Genus Pinus", commonName: "pines", lat: 45.53425353175589, lon: -122.909456778568, allergenLevel: 2, filename: "images/2026021948-45.53425353175589, -122.90945677856897.jpg"},
+            {id: 2026021949, name: "Sequoiadendron giganteum", commonName: "giant sequoia", lat: 45.53441041476725, lon: -122.909134913483, allergenLevel: 1, filename: "images/2026021949-45.53441041476725, -122.9091349134837.jpg"},
+            {id: 2026021950, name: "Genus Quercus", commonName: "oaks", lat: 45.53487233732631, lon: -122.908122255414, allergenLevel: 4, filename: "images/2026021950-45.53487233732631, -122.90812225541454.jpg"},
+            {id: 2026021951, name: "Genus Chamaecyparis", commonName: "false cypresses", lat: 45.53117539611153, lon: -122.912929592258, allergenLevel: 3, filename: "images/2026021951-45.53117539611153, -122.91292959225831.jpg"},
+            {id: 2026021952, name: "Subfamily Cupressoideae", commonName: "cypress subfamily", lat: 45.53119325216708, lon: -122.912924226009, allergenLevel: 3, filename: "images/2026021952-45.53119325216708, -122.91292422600974.jpg"},
+            {id: 2026021953, name: "Genus Chamaecyparis", commonName: "false cypresses", lat: 45.531198575388956, lon: -122.913128354632, allergenLevel: 3, filename: "images/2026021953-45.531178376744485, -122.9131333837779.jpg"},
+            {id: 2026021954, name: "Chamaecyparis obtusa", commonName: "Hinoki cypress", lat: 45.531178376744485, lon: -122.913133383777, allergenLevel: 3, filename: "images/2026021954-45.531198575388956, -122.91312835463295.jpg"},
+            {id: 2026021955, name: "Pieris japonica", commonName: "Lily-of-the-valley shrub", lat: 45.53126925704983, lon: -122.914010888883, allergenLevel: 1, filename: "images/2026021955-45.53126925704983, -122.9140108888836.jpg"},
+            {id: 2026021956, name: "Pieris japonica", commonName: "Lily-of-the-valley shrub", lat: 45.53124869386331, lon: -122.913968715778, allergenLevel: 1, filename: "images/2026021956-45.53124869386331, -122.91396871577867.jpg"},
+            {id: 2026021957, name: "Prunus laurocerasus", commonName: "cherry laurel", lat: 45.53126043724613, lon: -122.913962010255, allergenLevel: 1, filename: "images/2026021957-45.53126043724613, -122.91396201025599.jpg"},
+            {id: 2026021958, name: "Chamaecyparis obtusa", commonName: "Hinoki cypress", lat: 45.5316956287817, lon: -122.913122607456, allergenLevel: 3, filename: "images/2026021958-45.5316956287817, -122.91312260745619.jpg"},
+            {id: 2026021959, name: "Taxus baccata", commonName: "Common yew", lat: 45.5317130088511, lon: -122.913060916653, allergenLevel: 2, filename: "images/2026021959-45.5317130088511, -122.9130609166537.jpg"},
+            {id: 2026021960, name: "Taxus baccata", commonName: "Common yew", lat: 45.53175622413103, lon: -122.912954298842, allergenLevel: 2, filename: "images/2026021960-45.53175622413103, -122.9129542988429.jpg"},
+            {id: 2026021961, name: "Cryptomeria japonica", commonName: "Japanese cedar", lat: 45.53188013564473, lon: -122.913032695982, allergenLevel: 3, filename: "images/2026021961-45.53188013564473, -122.91303269598295.jpg"},
+            {id: 2026021962, name: "Chamaecyparis obtusa", commonName: "Hinoki cypress", lat: 45.53181249934496, lon: -122.913500863692, allergenLevel: 3, filename: "images/2026021962-45.53181249934496, -122.91350086369259.jpg"},
+            {id: 2026021963, name: "Viburnum davidii", commonName: "David viburnum", lat: 45.53166053881448, lon: -122.91382927386, allergenLevel: 1, filename: "images/2026021963-45.53166053881448, -122.91382927386064.jpg"},
+            {id: 2026021964, name: "Subfamily Cupressoideae", commonName: "cypress subfamily", lat: 45.53174357026187, lon: -122.913623613861, allergenLevel: 3, filename: "images/2026021964-45.53174357026187, -122.91362361386122.jpg"}
         ];
-
-        function getPlantColor(name) {
-            var lowerName = name.toLowerCase();
-            if (lowerName.includes('pinus') || lowerName.includes('salix') || lowerName.includes('cupressus') || lowerName.includes('taxus') || lowerName.includes('sequoiadendron') || lowerName.includes('chamaecyparis')) {
-                return { fill: '#ff6b00', level: 'Level 3 - High' };
-            } else if (lowerName.includes('zelkova') || lowerName.includes('calocedrus') || lowerName.includes('rubus') || lowerName.includes('berberis') || lowerName.includes('family cupressoideae') || lowerName.includes('subfamily cupressoideae')) {
-                return { fill: '#fbbf24', level: 'Level 2 - Medium' };
-            } else if (lowerName.includes('magnolia') || lowerName.includes('cenchrus') || lowerName.includes('buxus') || lowerName.includes('sonchus') || lowerName.includes('trachycarpus') || lowerName.includes('nandina') || lowerName.includes('viburnum') || lowerName.includes('eric') || lowerName.includes('ficaria') || lowerName.includes('bellis') || lowerName.includes('phylum bryophyta') || lowerName.includes('phalaris') || lowerName.includes('genus narcissus') || lowerName.includes('genus quercus') || lowerName.includes('genus rosa') || lowerName.includes('genus zelkova') || lowerName.includes('genus berberis') || lowerName.includes('genus pinus')) {
-                return { fill: '#00ff88', level: 'Level 1 - Low' };
-            } else if (lowerName.includes('betula') || lowerName.includes('cornus') || lowerName.includes('family betulaceae') || lowerName.includes('prunus laurocerasus') || lowerName.includes('rubus ursinus') || lowerName.includes('quercus') || lowerName.includes('calocedrus') || lowerName.includes('genus chamaecyparis') || lowerName.includes('cupressus sempervirens') || lowerName.includes('buxus sempervirens') || lowerName.includes('berberis aquifolium') || lowerName.includes('sonchus asper') || lowerName.includes('genus pinus') || lowerName.includes('genus taxus')) {
-                return { fill: '#00ff88', level: 'Level 1 - Low' };
+        
+        function getPlantColor(plant) {
+            var level = plant.allergenLevel;
+            switch(level) {
+                case 4: return { fill: '#ef4444', level: 'Level 4 - Very High' };
+                case 3: return { fill: '#f97316', level: 'Level 3 - High' };
+                case 2: return { fill: '#fbbf24', level: 'Level 2 - Medium' };
+                case 1: return { fill: '#22c55e', level: 'Level 1 - Low' };
+                case 0: return { fill: '#64748b', level: 'Level 0 - None' };
+                default: return { fill: '#64748b', level: 'Level 0 - None' };
             }
-            return { fill: '#6b7280', level: 'Level 0 - None' };
         }
-        
-        function toDMS(decimal, isLat) {
-            var dir = isLat ? (decimal >= 0 ? 'N' : 'S') : (decimal >= 0 ? 'E' : 'W');
-            decimal = Math.abs(decimal);
-            var degrees = Math.floor(decimal);
-            var minutes = Math.floor((decimal - degrees) * 60);
-            var seconds = ((decimal - degrees) * 60 - minutes) * 60;
-            return degrees + '° ' + minutes + "' " + seconds.toFixed(2) + '" ' + dir;
-        }
-        
-        function copyToClipboard(text, btn) {
-            navigator.clipboard.writeText(text).then(function() {
-                var originalText = btn.innerHTML;
-                btn.innerHTML = '✓ Copied!';
-                btn.style.background = '#00e676';
-                setTimeout(function() {
-                    btn.innerHTML = originalText;
-                    btn.style.background = '';
-                }, 2000);
-            }).catch(function() {
-                alert('Failed to copy');
-            });
-        }
+
+        var currentTileStyle = 'osm';
         
         function initMap() {
-            var southWest = L.latLng(QUATAMA_LOCATION.lat - 0.1, QUATAMA_LOCATION.lon - 0.1);
-            var northEast = L.latLng(QUATAMA_LOCATION.lat + 0.1, QUATAMA_LOCATION.lon + 0.1);
+            var southWest = L.latLng(SOUTH_LAT, WEST_LON);
+            var northEast = L.latLng(NORTH_LAT, EAST_LON);
             var bounds = L.latLngBounds(southWest, northEast);
             
+            var centerLat = (SOUTH_LAT + NORTH_LAT) / 2;
+            var centerLon = (WEST_LON + EAST_LON) / 2;
+            
             map = L.map('map', {
-                center: [QUATAMA_LOCATION.lat, QUATAMA_LOCATION.lon],
-                zoom: 11,
-                minZoom: 8,
-                maxZoom: 20,
-                maxBounds: bounds,
-                maxBoundsViscosity: 1.0,
-                zoomControl: true,
-                contextmenu: true,
-                contextmenuWidth: 140,
-                contextmenuItems: [
-                    {
-                        text: '📍 Get Coordinates',
-                        callback: function(e) {
-                            var lat = e.latlng.lat.toFixed(6);
-                            var lng = e.latlng.lng.toFixed(6);
-                            var dmsLat = toDMS(e.latlng.lat, true);
-                            var dmsLng = toDMS(e.latlng.lng, false);
-                            
-                            L.popup({
-                                className: 'custom-popup',
-                                maxWidth: 320
-                            })
-                            .setLatLng(e.latlng)
-                                .setContent(
-                                '<div style="color: #e6edf3; min-width: 300px;">' +
-                                    '<div style="text-align: center; margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid rgba(0, 255, 136, 0.3);">' +
-                                        '<span style="font-size: 1.4rem; font-weight: 700; color: #00ff88;">📍 Location</span>' +
-                                    '</div>' +
-                                    '<div style="display: grid; gap: 10px;">' +
-                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 10px; border-radius: 8px;">' +
-                                            '<span style="color: #8b949e; font-size: 0.85rem;">Latitude</span>' +
-                                            '<span style="color: #00d4ff; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lat + '</span>' +
-                                        '</div>' +
-                                        '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 10px; border-radius: 8px;">' +
-                                            '<span style="color: #8b949e; font-size: 0.85rem;">Longitude</span>' +
-                                            '<span style="color: #00d4ff; font-weight: 600; font-family: monospace; font-size: 1rem;">' + lng + '</span>' +
-                                        '</div>' +
-                                    '</div>' +
-                                    '<div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0, 255, 136, 0.3);">' +
-                                        '<span style="color: #8b949e; font-size: 0.75rem; display: block; margin-bottom: 6px;">DECIMAL DEGREES</span>' +
-                                        '<code style="display: block; background: rgba(0, 255, 136, 0.1); color: #00ff88; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.9rem; word-break: break-all;">' + lat + ', ' + lng + '</code>' +
-                                    '</div>' +
-                                    '<div style="margin-top: 10px;">' +
-                                        '<span style="color: #8b949e; font-size: 0.75rem; display: block; margin-bottom: 6px;">DEGREES/MINUTES/SECONDS</span>' +
-                                        '<code style="display: block; background: rgba(0, 212, 255, 0.1); color: #00d4ff; padding: 10px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; word-break: break-all;">' + dmsLat + ', ' + dmsLng + '</code>' +
-                                    '</div>' +
-                                    '<div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">' +
-                                        '<button onclick="copyToClipboard(\'' + lat + ', ' + lng + '\', this)" style="background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s;">📋 Copy Decimal</button>' +
-                                        '<button onclick="copyToClipboard(\'' + dmsLat + ', ' + dmsLng + '\', this)" style="background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); color: white; border: none; padding: 12px; cursor: pointer; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.2s, box-shadow 0.2s;">📋 Copy DMS</button>' +
-                                    '</div>' +
-                                '</div>'
-                            )
-                            .openOn(map);
-                        }
-                    }
-                ]
+                center: [centerLat, centerLon],
+                zoom: 16,
+                minZoom: 15,
+                maxZoom: 20
             });
             
-            var baseLayers = {
-                'Standard OSM': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors',
-                    maxZoom: 19,
-                    crossOrigin: true
-                }),
-                'Clean': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    crossOrigin: true
-                }),
-                'Dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    crossOrigin: true,
-                    keepBuffer: 2
-                })
-            };
-            
-            baseLayers['Standard OSM'].addTo(map);
-            currentTileLayer = baseLayers['Standard OSM'];
-            
-            currentTileLayer.on('loading', function() {
-                var loading = document.getElementById('map-loading');
-                if (loading) loading.style.display = 'flex';
-                document.getElementById('map').style.opacity = '0.5';
-            });
-            
-            currentTileLayer.on('load', function() {
-                var loading = document.getElementById('map-loading');
-                if (loading) loading.style.display = 'none';
-                document.getElementById('map').style.opacity = '1';
-            });
-            
-            var baseLayers = {
-                'Standard OSM': L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '&copy; OpenStreetMap contributors',
-                    maxZoom: 19,
-                    crossOrigin: true
-                }),
-                'Clean': L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png', {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    crossOrigin: true
-                }),
-                'Dark': L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}@2x.png', {
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                    maxZoom: 20,
-                    subdomains: 'abcd',
-                    crossOrigin: true,
-                    keepBuffer: 2
-                })
-            };
-            
-            baseLayers['Standard OSM'].addTo(map);
-            currentTileLayer = baseLayers['Standard OSM'];
-            
-            currentTileLayer.on('loading', function() {
-                var loading = document.getElementById('map-loading');
-                if (loading) loading.style.display = 'flex';
-                document.getElementById('map').style.opacity = '0.5';
-            });
-            
-            currentTileLayer.on('load', function() {
-                var loading = document.getElementById('map-loading');
-                if (loading) loading.style.display = 'none';
-                document.getElementById('map').style.opacity = '1';
-            });
-            
-            addUserMarker();
+            setMapStyle('osm');
             addPlantMarkers();
+            updateStats();
         }
         
-        function addUserMarker() {
-            var schoolIcon = L.divIcon({
-                html: '<div style="width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; font-size: 32px; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));">🏫</div>',
-                iconSize: [48, 48],
-                iconAnchor: [24, 24],
-                className: 'school-icon'
-            });
+        function setMapStyle(style) {
+            if (currentTileLayer) {
+                map.removeLayer(currentTileLayer);
+            }
             
-            userMarker = L.marker([QUATAMA_LOCATION.lat, QUATAMA_LOCATION.lon], { icon: schoolIcon }).addTo(map);
-            userMarker.plantName = 'Quatama School';
-            allMarkers.push(userMarker);
+            currentTileStyle = style;
+            var tileUrl, attribution;
+            if (style === 'dark') {
+                tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+                attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+            } else {
+                tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+                attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+            }
             
-            radiusCircle = L.circle([QUATAMA_LOCATION.lat, QUATAMA_LOCATION.lon], {
-                color: '#00d4ff',
-                fillColor: '#00d4ff',
-                fillOpacity: 0.12,
-                radius: TWO_MILES_KM * 1000,
-                weight: 3
+            currentTileLayer = L.tileLayer(tileUrl, {
+                attribution: attribution,
+                maxZoom: 20,
+                minZoom: 15,
+                crossOrigin: true
             }).addTo(map);
-            
-            userMarker.bindPopup('<div style="background: rgba(13, 17, 23, 0.98); color: #e6edf3; min-width: 250px; font-family: Arial, sans-serif; padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.3); text-align: center;"><div style="font-size: 2.5rem; margin-bottom: 12px;">🏫</div><h3 style="margin: 0; color: #00ff88; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px;">Quatama Elementary School</h3><p style="margin: 0; color: #8b949e; font-size: 0.9rem;">2 mile detection zone</p></div>');
         }
         
         function addPlantMarkers() {
             plantFiles.forEach(function(plant) {
-                var colorInfo = getPlantColor(plant.name);
+                var colorInfo = getPlantColor(plant);
                 
                 var marker = L.circleMarker([plant.lat, plant.lon], {
-                    radius: 12,
+                    radius: 8,
                     fillColor: colorInfo.fill,
                     color: '#ffffff',
-                    weight: 3,
+                    weight: 2,
                     opacity: 1,
-                    fillOpacity: 1,
+                    fillOpacity: 0.85,
                     className: 'plant-marker'
                 }).addTo(map);
                 
-                var popupContent = '<div style="background: rgba(13, 17, 23, 0.98); color: #e6edf3; min-width: 300px; font-family: Arial, sans-serif; padding: 16px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 2px solid rgba(0, 255, 136, 0.3);">' +
-                                '<div style="display: flex; flex-direction: column; gap: 12px;">' +
-                                '<img src="' + plant.filename + '" alt="' + plant.name + '" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px; border: 2px solid rgba(0, 255, 136, 0.2); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%22 x=%2250%22 style=%22fill:%238b949e; font-size:12px%22>Image not available</text></svg>\'; this.style.height=\'40px\';">' +
-                                '<div style="text-align: center; padding-bottom: 8px; border-bottom: 1px solid rgba(0, 255, 136, 0.2);">' +
-                                '<h3 style="margin: 0; color: #00ff88; font-size: 1.1rem; font-weight: 700;">' + plant.name + '</h3>' +
-                                '</div>' +
-                                '<div style="display: grid; gap: 8px; font-size: 0.9rem;">' +
-                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
-                                '<span style="color: #8b949e;">Allergen Level:</span>' +
-                                '<span style="color: ' + colorInfo.fill + '; font-weight: 700; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.05em;">' + colorInfo.level + '</span>' +
-                                '</div>' +
-                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
-                                '<span style="color: #8b949e;">Latitude:</span>' +
-                                '<span style="color: #00d4ff; font-family: monospace; font-weight: 600;">' + plant.lat.toFixed(6) + '</span>' +
-                                '</div>' +
-                                '<div style="display: flex; justify-content: space-between; align-items: center; background: rgba(22, 27, 34, 0.6); padding: 8px; border-radius: 6px;">' +
-                                '<span style="color: #8b949e;">Longitude:</span>' +
-                                '<span style="color: #00d4ff; font-family: monospace; font-weight: 600;">' + plant.lon.toFixed(6) + '</span>' +
-                                '</div>' +
-                                '</div>' +
-                                '</div>' +
-                                '</div>';
+                var popupContent = '<div style="min-width: 240px; padding: 0;">' +
+                    '<img src="' + plant.filename + '" style="width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 6px 6px 0 0;" onerror="this.style.display=\'none\'">' +
+                    '<div style="padding: 10px;">' +
+                    '<div style="margin-bottom: 8px;">' +
+                    '<strong style="color: #00cc66; font-size: 0.9375rem; display: block;">' + plant.name + '</strong>' +
+                    '<span style="color: #94a3b8; font-size: 0.8125rem;">' + plant.commonName + '</span>' +
+                    '</div>' +
+                    '<div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.8125rem;">' +
+                    '<span style="color: #94a3b8;">Level:</span>' +
+                    '<span style="color: ' + colorInfo.fill + '; font-weight: 600;">' + colorInfo.level + '</span>' +
+                    '</div>' +
+                    '</div>' +
+                    '</div>';
                 
                 marker.bindPopup(popupContent);
-                marker.plantName = plant.name;
                 marker.plantId = plant.id;
                 plantMarkers.push({ marker: marker, plant: plant });
-                 allMarkers.push(marker);
                 allPlants.push(plant);
             });
-            
-            document.getElementById('total-count').textContent = allPlants.length;
-            document.getElementById('visible-count').textContent = allPlants.length;
         }
         
-        function renderPlants(riskFilter, search) {
-            var filtered = [];
+        function updateStats() {
+            var highCount = 0, mediumCount = 0, lowCount = 0;
             
-            if (riskFilter === 'all') {
-                filtered = allPlants;
-            } else {
-                filtered = allPlants.filter(function(plant) {
-                    var colorInfo = getPlantColor(plant.name);
-                    var plantLevel = colorInfo.level;
-                    
-                    if (riskFilter === 'VERY_HIGH' && plantLevel.includes('Very High')) return true;
-                    if (riskFilter === 'HIGH' && plantLevel.includes('High')) return true;
-                    if (riskFilter === 'MEDIUM' && plantLevel.includes('Medium')) return true;
-                    if (riskFilter === 'LOW' && plantLevel.includes('Low')) return true;
-                    if (riskFilter === 'NONE' && plantLevel.includes('None')) return true;
-                    return false;
+            allPlants.forEach(function(plant) {
+                if (plant.allergenLevel === 4 || plant.allergenLevel === 3) {
+                    highCount++;
+                } else if (plant.allergenLevel === 2) {
+                    mediumCount++;
+                } else if (plant.allergenLevel === 1) {
+                    lowCount++;
+                }
+            });
+            
+            document.getElementById('high-count').textContent = highCount;
+            document.getElementById('medium-count').textContent = mediumCount;
+            document.getElementById('low-count').textContent = lowCount;
+            document.getElementById('total-count').textContent = allPlants.length;
+        }
+        
+        function filterPlants() {
+            var filtered = allPlants;
+            
+            if (currentRiskFilter !== 'all') {
+                filtered = filtered.filter(function(plant) {
+                    if (currentRiskFilter === 'VERY_HIGH') return plant.allergenLevel === 4;
+                    if (currentRiskFilter === 'HIGH') return plant.allergenLevel === 3;
+                    if (currentRiskFilter === 'MEDIUM') return plant.allergenLevel === 2;
+                    if (currentRiskFilter === 'LOW') return plant.allergenLevel === 1;
+                    if (currentRiskFilter === 'NONE') return plant.allergenLevel === 0;
+                    return true;
                 });
             }
             
-            if (search && search.trim() !== '') {
-                var lowerSearch = search.toLowerCase();
+            if (currentSearch.trim() !== '') {
+                var searchLower = currentSearch.toLowerCase();
                 filtered = filtered.filter(function(plant) {
-                    return plant.name.toLowerCase().includes(lowerSearch);
+                    return plant.name.toLowerCase().includes(searchLower) ||
+                           (plant.commonName && plant.commonName.toLowerCase().includes(searchLower));
                 });
             }
             
             plantMarkers.forEach(function(item) {
-                if (item && item.marker && item.marker._map) {
-                    var isVisible = filtered.some(function(plant) { return plant.id === item.plant.id; });
-                    if (!isVisible) {
+                var isVisible = filtered.some(function(p) { return p.id === item.plant.id; });
+                if (isVisible) {
+                    if (!item.marker._map) {
+                        item.marker.addTo(map);
+                    }
+                } else {
+                    if (item.marker._map) {
                         map.removeLayer(item.marker);
                     }
                 }
             });
             
-            filtered.forEach(function(plant) {
-                var existingMarker = plantMarkers.find(function(item) { return item.plant.id === plant.id; });
-                if (existingMarker && existingMarker.marker && !existingMarker.marker._map) {
-                    map.addLayer(existingMarker.marker);
-                }
-            });
-            
-            document.getElementById('visible-count').textContent = filtered.length;
-            
-            var searchResult = document.getElementById('search-result');
-            if (filtered.length === 0 && search) {
-                if (searchResult) {
-                    searchResult.style.display = 'block';
-                    searchResult.innerHTML = '🔍 No plant found matching "' + search + '"';
-                }
-            } else {
-                if (searchResult) {
-                    searchResult.style.display = 'none';
-                }
-            }
+            document.getElementById('total-count').textContent = filtered.length;
         }
         
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
-            renderPlants('all', '');
             
-            var filterButtons = document.querySelectorAll('.filter-btn[data-filter]');
+            document.getElementById('settings-toggle').addEventListener('click', function() {
+                this.classList.toggle('open');
+                document.getElementById('settings-content').classList.toggle('open');
+            });
             
-            filterButtons.forEach(function(btn) {
+            document.querySelectorAll('.filter-btn[data-filter]').forEach(function(btn) {
                 btn.addEventListener('click', function() {
-                    filterButtons.forEach(function(b) { b.classList.remove('active'); });
+                    document.querySelectorAll('.filter-btn[data-filter]').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
                     currentRiskFilter = this.getAttribute('data-filter');
-                    var search = document.getElementById('search-input').value;
-                    renderPlants(currentRiskFilter, search);
+                    filterPlants();
+                });
+            });
+            
+            document.querySelectorAll('.map-style-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.map-style-btn').forEach(function(b) { b.classList.remove('active'); });
+                    this.classList.add('active');
+                    setMapStyle(this.getAttribute('data-style'));
                 });
             });
             
             document.getElementById('search-input').addEventListener('input', function(e) {
-                renderPlants(currentRiskFilter, e.target.value);
+                currentSearch = e.target.value;
+                filterPlants();
             });
-            
-            document.getElementById('clear-search-btn').addEventListener('click', function() {
-                document.getElementById('search-input').value = '';
-                document.getElementById('search-input').focus();
-                renderPlants(currentRiskFilter, '');
-            });
-            
-            var mapStyleButtons = document.querySelectorAll('.map-style-btn');
-            mapStyleButtons.forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    mapStyleButtons.forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    var styleName = this.getAttribute('data-style');
-                    
-                    if (currentTileLayer) {
-                        map.removeLayer(currentTileLayer);
-                    }
-                    currentTileLayer = baseLayers[styleName];
-                    currentTileLayer.addTo(map);
-                });
-            });
-            
-            var settingsToggle = document.getElementById('settings-toggle');
-            if (settingsToggle) {
-                settingsToggle.addEventListener('click', function() {
-                    var settingsContent = document.getElementById('settings-content');
-                    settingsToggle.classList.toggle('open');
-                    settingsContent.classList.toggle('open');
-                });
-            }
+
         });
-        
-        window.addEventListener('resize', function() {
-            if (map) {
-                map.invalidateSize();
-            }
-        });
+
     </script>
 </body>
 </html>
