@@ -16,11 +16,11 @@
             --danger: #ef4444;
             --warning: #f97316;
             --success: #22c55e;
-            --dark: #2d5a45;
+            --dark: #1a5a38;
             --text: #d4e8ff;
             --text-muted: #89b4d4;
             --border: rgba(0, 0, 0, 0.15);
-            --surface: #3a6d56;
+            --surface: #1e6b42;
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--dark); }
@@ -234,61 +234,6 @@
             color: var(--dark);
             border-color: var(--primary);
         }
-        #cached-mode-btn.active {
-            background: var(--primary);
-            color: var(--dark);
-            border-color: var(--primary);
-            font-weight: 600;
-        }
-        .stats {
-            position: fixed;
-            top: 60px;
-            right: 16px;
-            z-index: 100;
-            display: flex;
-            flex-direction: column;
-            gap: 0.375rem;
-        }
-        .stat-item {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 0.625rem 0.875rem;
-            display: flex;
-            align-items: center;
-            gap: 0.625rem;
-            font-size: 0.8125rem;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            transition: transform 0.15s ease;
-        }
-        .stat-item:hover {
-            transform: scale(1.02);
-        }
-        .stat-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            flex-shrink: 0;
-        }
-        .stat-value {
-            font-weight: 600;
-            color: var(--primary);
-        }
-        .stat-label {
-            color: var(--text-muted);
-        }
-        .stat-high { border-left: 2px solid var(--danger); }
-        .stat-high .stat-value { color: var(--danger); }
-        .stat-high .stat-dot { background: var(--danger); }
-        .stat-medium { border-left: 2px solid var(--warning); }
-        .stat-medium .stat-value { color: var(--warning); }
-        .stat-medium .stat-dot { background: var(--warning); }
-        .stat-low { border-left: 2px solid var(--success); }
-        .stat-low .stat-value { color: var(--success); }
-        .stat-low .stat-dot { background: var(--success); }
-        .stat-total { border-left: 2px solid var(--accent); }
-        .stat-total .stat-value { color: var(--accent); }
-        .stat-total .stat-dot { background: var(--accent); }
         .leaflet-popup-content-wrapper {
             background: var(--surface) !important;
             border: 1px solid var(--border) !important;
@@ -312,16 +257,6 @@
                 left: 10px;
                 right: 10px;
                 width: auto;
-            }
-            .stats {
-                right: 10px;
-                top: auto;
-                bottom: 14px;
-                gap: 0.3125rem;
-            }
-            .stat-item {
-                padding: 0.5625rem 0.75rem;
-                font-size: 0.75rem;
             }
             .logo {
                 font-size: 1rem;
@@ -373,28 +308,6 @@
                 </div>
             </div>
 
-        </div>
-    </div>
-    
-    <div class="stats">
-        <div class="stat-item stat-high">
-            <div class="stat-dot"></div>
-            <span class="stat-label">High:</span>
-            <span class="stat-value" id="high-count">0</span>
-        </div>
-        <div class="stat-item stat-medium">
-            <div class="stat-dot"></div>
-            <span class="stat-label">Med:</span>
-            <span class="stat-value" id="medium-count">0</span>
-        </div>
-        <div class="stat-item stat-low">
-            <div class="stat-dot"></div>
-            <span class="stat-label">Low:</span>
-            <span class="stat-value" id="low-count">0</span>
-        </div>
-        <div class="stat-item stat-total">
-            <div class="stat-dot"></div>
-            <span class="stat-value" id="total-count">0</span>
         </div>
     </div>
     
@@ -506,7 +419,6 @@
             
             setMapStyle('osm');
             addPlantMarkers();
-            updateStats();
         }
         
         function setMapStyle(style) {
@@ -567,25 +479,6 @@
             });
         }
         
-        function updateStats() {
-            var highCount = 0, mediumCount = 0, lowCount = 0;
-            
-            allPlants.forEach(function(plant) {
-                if (plant.allergenLevel === 4 || plant.allergenLevel === 3) {
-                    highCount++;
-                } else if (plant.allergenLevel === 2) {
-                    mediumCount++;
-                } else if (plant.allergenLevel === 1) {
-                    lowCount++;
-                }
-            });
-            
-            document.getElementById('high-count').textContent = highCount;
-            document.getElementById('medium-count').textContent = mediumCount;
-            document.getElementById('low-count').textContent = lowCount;
-            document.getElementById('total-count').textContent = allPlants.length;
-        }
-        
         function filterPlants() {
             var filtered = allPlants;
             
@@ -621,7 +514,6 @@
                 }
             });
             
-            document.getElementById('total-count').textContent = filtered.length;
         }
         
         document.addEventListener('DOMContentLoaded', function() {
