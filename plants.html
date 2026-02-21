@@ -174,6 +174,7 @@
         .search-input:focus {
             outline: none;
             border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.2);
         }
         .search-input::placeholder {
             color: var(--text-muted);
@@ -191,20 +192,26 @@
             cursor: pointer;
             margin-bottom: 0.375rem;
             text-align: left;
-            transition: all 0.15s ease;
+            transition: all 0.15s ease, transform 0.1s ease;
         }
         .filter-btn:hover {
             border-color: var(--text-muted);
             background: rgba(255, 255, 255, 0.03);
+            transform: translateX(2px);
         }
         .filter-btn:active {
             transform: scale(0.98);
+        }
+        .filter-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.2);
         }
         .filter-btn.active {
             background: var(--primary);
             color: var(--dark);
             border-color: var(--primary);
             font-weight: 500;
+            box-shadow: 0 2px 8px rgba(68, 136, 255, 0.3);
         }
         .filter-btn.risk-4.active { background: var(--danger); border-color: var(--danger); }
         .filter-btn.risk-3.active { background: var(--warning); border-color: var(--warning); }
@@ -225,32 +232,64 @@
             font-size: 0.75rem;
             font-weight: 500;
             cursor: pointer;
+            transition: all 0.15s ease;
         }
         .map-style-btn:hover {
             border-color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+        }
+        .map-style-btn:active {
+            transform: scale(0.98);
+        }
+        .map-style-btn:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.2);
         }
         .map-style-btn.active {
             background: var(--primary);
             color: var(--dark);
             border-color: var(--primary);
+            box-shadow: 0 2px 8px rgba(68, 136, 255, 0.3);
         }
         .leaflet-popup-content-wrapper {
             background: var(--surface) !important;
             border: 1px solid var(--border) !important;
             border-radius: 8px !important;
             color: var(--text) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            animation: popup-fade-in 0.2s ease-out;
+        }
+        @keyframes popup-fade-in {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
         }
         .leaflet-popup-tip {
             background: var(--surface) !important;
         }
         .leaflet-container a.leaflet-popup-close-button {
             color: var(--primary) !important;
+            font-size: 1.5rem !important;
+            padding: 4px !important;
+            transition: transform 0.15s ease, color 0.15s ease;
         }
         .leaflet-container a.leaflet-popup-close-button:hover {
             color: var(--accent) !important;
+            transform: scale(1.1) !important;
         }
         .plant-marker {
             cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .plant-marker:hover {
+            filter: brightness(1.2);
+            transform-origin: center;
+        }
+        .plant-marker.leaflet-interactive {
+            animation: marker-pulse 2s ease-in-out infinite;
+        }
+        @keyframes marker-pulse {
+            0%, 100% { opacity: 0.85; }
+            50% { opacity: 1; }
         }
         @media (max-width: 768px) {
             .filters {
@@ -270,15 +309,186 @@
             .filter-btn, .map-style-btn {
                 padding: 0.5625rem 0.75rem;
             }
+            .legend {
+                left: 10px;
+                right: 10px;
+                bottom: 10px;
+            }
+            .toast-container {
+                left: 10px;
+                right: 10px;
+            }
+            .toast {
+                max-width: none;
+            }
+        }
+        .loading-overlay {
+            position: fixed;
+            inset: 0;
+            background: var(--dark);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.3s ease;
+        }
+        .loading-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .loading-spinner {
+            width: 48px;
+            height: 48px;
+            border: 3px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .loading-text {
+            margin-top: 1rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+        .leaflet-control-attribution {
+            background: rgba(26, 90, 56, 0.9) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-muted) !important;
+            font-size: 0.7rem !important;
+            padding: 4px 8px !important;
+        }
+        .leaflet-control-attribution a {
+            color: var(--primary) !important;
+            text-decoration: none !important;
+        }
+        .leaflet-control-attribution a:hover {
+            color: var(--accent) !important;
+            text-decoration: underline !important;
+        }
+        .leaflet-control-zoom {
+            border: 1px solid var(--border) !important;
+            background: var(--surface) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
+        }
+        .leaflet-control-zoom a {
+            background: var(--surface) !important;
+            color: var(--text) !important;
+            width: 32px !important;
+            height: 32px !important;
+            line-height: 32px !important;
+            font-size: 1rem !important;
+            transition: all 0.15s ease !important;
+        }
+        .leaflet-control-zoom a:hover {
+            background: var(--dark) !important;
+            color: var(--primary) !important;
+        }
+        .legend {
+            position: fixed;
+            bottom: 20px;
+            left: 16px;
+            z-index: 100;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s ease, opacity 0.2s ease;
+        }
+        .legend:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .legend-title {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.375rem;
+            font-size: 0.75rem;
+            color: var(--text);
+        }
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        .legend-color {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #ffffff;
+            flex-shrink: 0;
+        }
+        .legend-level-4 { background: var(--danger); }
+        .legend-level-3 { background: var(--warning); }
+        .legend-level-2 { background: #fbbf24; }
+        .legend-level-1 { background: var(--success); }
+        .legend-level-0 { background: #64748b; }
+        .toast-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 0.75rem 1rem;
+            color: var(--text);
+            font-size: 0.8125rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+            animation: toast-in 0.3s ease-out;
+            max-width: 300px;
+        }
+        @keyframes toast-in {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .toast.hiding {
+            animation: toast-out 0.2s ease-in forwards;
+        }
+        @keyframes toast-out {
+            to { opacity: 0; transform: translateX(20px); }
+        }
+        .focus-visible:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+        ::selection {
+            background: var(--primary);
+            color: var(--dark);
         }
     </style>
 </head>
 <body>
     <div id="map"></div>
     
+    <div class="loading-overlay" id="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div class="loading-text">Loading map...</div>
+    </div>
+    
     <div class="header">
         <div class="logo">Hillsboro Allergenic Plants</div>
-        <div class="subtitle">Special thanks to Dr. Ling</div>
+        <div class="subtitle">Special thanks to <a href="https://igg.cas.cn/" target="_blank" style="color: var(--primary); text-decoration: none; transition: color 0.15s ease;">Dr. Ling</a></div>
     </div>
     
     <div class="filters">
@@ -310,6 +520,32 @@
 
         </div>
     </div>
+    
+    <div class="legend">
+        <div class="legend-title">Legend</div>
+        <div class="legend-item">
+            <div class="legend-color legend-level-4"></div>
+            <span>Level 4 - Very High</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-level-3"></div>
+            <span>Level 3 - High</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-level-2"></div>
+            <span>Level 2 - Medium</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-level-1"></div>
+            <span>Level 1 - Low</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color legend-level-0"></div>
+            <span>Level 0 - None</span>
+        </div>
+    </div>
+    
+    <div class="toast-container" id="toast-container"></div>
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script>
@@ -419,6 +655,11 @@
             
             setMapStyle('osm');
             addPlantMarkers();
+            
+            setTimeout(function() {
+                var loadingOverlay = document.getElementById('loading-overlay');
+                loadingOverlay.classList.add('hidden');
+            }, 500);
         }
         
         function setMapStyle(style) {
@@ -516,6 +757,21 @@
             
         }
         
+        function showToast(message) {
+            var container = document.getElementById('toast-container');
+            var toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            setTimeout(function() {
+                toast.classList.add('hiding');
+                toast.addEventListener('animationend', function() {
+                    toast.remove();
+                });
+            }, 3000);
+        }
+        
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
             
@@ -530,6 +786,9 @@
                     this.classList.add('active');
                     currentRiskFilter = this.getAttribute('data-filter');
                     filterPlants();
+                    
+                    var filterName = this.textContent.trim();
+                    showToast('Showing: ' + filterName);
                 });
             });
             
@@ -537,7 +796,9 @@
                 btn.addEventListener('click', function() {
                     document.querySelectorAll('.map-style-btn').forEach(function(b) { b.classList.remove('active'); });
                     this.classList.add('active');
+                    var styleName = this.textContent.trim();
                     setMapStyle(this.getAttribute('data-style'));
+                    showToast('Map style changed to: ' + styleName);
                 });
             });
             
