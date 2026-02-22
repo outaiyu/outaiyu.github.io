@@ -344,8 +344,9 @@
             opacity: 0;
         }
         .splash-icon {
-            width: 500px;
-            height: 500px;
+            width: 100vmin;
+            height: 100vmin;
+            object-fit: cover;
         }
         .loading-overlay {
             position: fixed;
@@ -612,6 +613,9 @@
                 var splashOverlay = document.getElementById('splash-overlay');
                 if (splashOverlay) {
                     splashOverlay.classList.add('hidden');
+                    setTimeout(function() {
+                        splashOverlay.style.display = 'none';
+                    }, 500);
                 }
             }, 1000);
         };
