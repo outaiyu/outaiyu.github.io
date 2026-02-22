@@ -221,15 +221,17 @@
         .map-style-buttons {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
         .map-style-btn {
             flex: 1;
+            min-width: calc(50% - 0.25rem);
             padding: 0.5rem;
             background: var(--dark);
             border: 1px solid var(--border);
             border-radius: 6px;
             color: var(--text);
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 500;
             cursor: pointer;
             transition: all 0.15s ease;
@@ -237,13 +239,14 @@
         .map-style-btn:hover {
             border-color: var(--text-muted);
             background: rgba(255, 255, 255, 0.03);
-        }
-        .map-style-btn:active {
-            transform: scale(0.98);
+            transform: translateY(-1px);
         }
         .map-style-btn:focus {
             outline: none;
             box-shadow: 0 0 0 2px rgba(68, 136, 255, 0.2);
+        }
+        .map-style-btn:active {
+            transform: scale(0.98);
         }
         .map-style-btn.active {
             background: var(--primary);
@@ -278,18 +281,9 @@
         }
         .plant-marker {
             cursor: pointer;
-            transition: all 0.2s ease;
         }
         .plant-marker:hover {
             filter: brightness(1.2);
-            transform-origin: center;
-        }
-        .plant-marker.leaflet-interactive {
-            animation: marker-pulse 2s ease-in-out infinite;
-        }
-        @keyframes marker-pulse {
-            0%, 100% { opacity: 0.85; }
-            50% { opacity: 1; }
         }
         @media (max-width: 768px) {
             .filters {
@@ -309,10 +303,11 @@
             .filter-btn, .map-style-btn {
                 padding: 0.5625rem 0.75rem;
             }
-            .legend {
-                left: 10px;
-                right: 10px;
-                bottom: 10px;
+            .desktop-legend {
+                display: none;
+            }
+            .mobile-legend-group {
+                display: block;
             }
             .toast-container {
                 left: 10px;
@@ -336,6 +331,7 @@
         .loading-overlay.hidden {
             opacity: 0;
             pointer-events: none;
+            display: none !important;
         }
         .loading-spinner {
             width: 48px;
@@ -406,6 +402,12 @@
         .legend:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+        .mobile-legend-group {
+            display: none;
+        }
+        .mobile-legend-group .legend-item {
+            font-size: 0.8125rem;
         }
         .legend-title {
             font-size: 0.6875rem;
@@ -488,7 +490,7 @@
     
     <div class="header">
         <div class="logo">Hillsboro Allergenic Plants</div>
-        <div class="subtitle">Special thanks to <a href="https://igg.cas.cn/" target="_blank" style="color: var(--primary); text-decoration: none; transition: color 0.15s ease;">Dr. Ling</a></div>
+        <div class="subtitle">Special thanks to <a href="https://igg.cas.cn/sourcedb_igg_cas/cn/zjrck/fgjgcs/201703/t20170313_4758060.html" target="_blank" style="color: var(--primary); text-decoration: none; transition: color 0.15s ease;">Dr. Ling</a></div>
     </div>
     
     <div class="filters">
@@ -510,18 +512,35 @@
                 <button class="filter-btn risk-1" data-filter="LOW">Level 1 - Low</button>
                 <button class="filter-btn risk-0" data-filter="NONE">Level 0 - None</button>
             </div>
-            <div class="settings-group">
-                <div class="settings-title">🗺️ Map Style</div>
-                <div class="map-style-buttons">
-                    <button class="map-style-btn active" data-style="osm">OSM</button>
-                    <button class="map-style-btn" data-style="dark">Dark</button>
+
+            <div class="settings-group mobile-legend-group">
+                <div class="legend-title">🎨 Legend</div>
+                <div class="legend-item">
+                    <div class="legend-color legend-level-4"></div>
+                    <span>Level 4 - Very High</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-level-3"></div>
+                    <span>Level 3 - High</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-level-2"></div>
+                    <span>Level 2 - Medium</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-level-1"></div>
+                    <span>Level 1 - Low</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color legend-level-0"></div>
+                    <span>Level 0 - None</span>
                 </div>
             </div>
 
         </div>
     </div>
     
-    <div class="legend">
+    <div class="legend desktop-legend">
         <div class="legend-title">Legend</div>
         <div class="legend-item">
             <div class="legend-color legend-level-4"></div>
@@ -549,6 +568,13 @@
     
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
     <script>
+        window.onload = function() {
+            var loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        };
+        
         var SOUTH_LAT = 45.52993828514016;
         var NORTH_LAT = 45.53546974562078;
         var WEST_LON = -122.91590598637916;
@@ -557,6 +583,7 @@
         var map, currentTileLayer, plantMarkers = [], allPlants = [];
         var currentRiskFilter = 'all';
         var currentSearch = '';
+        var preloadLayers = [];
         
         var plantFiles = [
             {id: 2026021901, name: "Sequoiadendron giganteum", commonName: "giant sequoia", lat: 45.5321752959445, lon: -122.913260324346, allergenLevel: 1, filename: "images/2026021901-45.5321752959445, -122.91326032434674.jpg"},
@@ -649,40 +676,79 @@
             map = L.map('map', {
                 center: [centerLat, centerLon],
                 zoom: 16,
-                minZoom: 15,
-                maxZoom: 20
+                minZoom: 18,
+                maxZoom: 20,
+                renderer: L.canvas(),
+                zoomAnimation: true,
+                markerZoomAnimation: true,
+                fadeAnimation: true
             });
             
-            setMapStyle('osm');
+            setMapStyle('satellite');
             addPlantMarkers();
             
-            setTimeout(function() {
+            hideLoadingOverlay();
+        }
+        
+        function hideLoadingOverlay() {
+            try {
                 var loadingOverlay = document.getElementById('loading-overlay');
-                loadingOverlay.classList.add('hidden');
-            }, 500);
+                if (loadingOverlay) {
+                    loadingOverlay.classList.add('hidden');
+                }
+            } catch (e) {
+                console.error('Error hiding loading overlay:', e);
+            }
         }
         
         function setMapStyle(style) {
             if (currentTileLayer) {
                 map.removeLayer(currentTileLayer);
             }
+            preloadLayers.forEach(function(layer) {
+                map.removeLayer(layer);
+            });
+            preloadLayers = [];
             
             currentTileStyle = style;
             var tileUrl, attribution;
-            if (style === 'dark') {
-                tileUrl = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-                attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>';
+            if (style === 'satellite') {
+                tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
+                attribution = '&copy; <a href="https://www.esri.com/">Esri</a>';
             } else {
-                tileUrl = 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-                attribution = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
+                tileUrl = 'https://webrd02.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+                attribution = '&copy; <a href="https://www.amap.com/">Amap</a>';
             }
             
             currentTileLayer = L.tileLayer(tileUrl, {
                 attribution: attribution,
                 maxZoom: 20,
-                minZoom: 15,
-                crossOrigin: true
+                minZoom: 18,
+                crossOrigin: true,
+                keepBuffer: 2,
+                updateWhenIdle: false,
+                updateInterval: 50
             }).addTo(map);
+            
+            var zoomUp = L.tileLayer(tileUrl, {
+                opacity: 0,
+                maxZoom: 20,
+                minZoom: 18,
+                crossOrigin: true,
+                updateWhenIdle: false,
+                updateInterval: 50
+            }).addTo(map);
+            preloadLayers.push(zoomUp);
+            
+            var zoomDown = L.tileLayer(tileUrl, {
+                opacity: 0,
+                maxZoom: 20,
+                minZoom: 18,
+                crossOrigin: true,
+                updateWhenIdle: false,
+                updateInterval: 50
+            }).addTo(map);
+            preloadLayers.push(zoomDown);
         }
         
         function addPlantMarkers() {
@@ -703,8 +769,8 @@
                     '<img src="' + plant.filename + '" style="width: 100%; height: 130px; object-fit: cover; display: block; border-radius: 6px 6px 0 0;" onerror="this.style.display=\'none\'">' +
                     '<div style="padding: 10px;">' +
                     '<div style="margin-bottom: 8px;">' +
-                    '<strong style="color: #88ccff; font-size: 0.9375rem; display: block;">' + plant.name + '</strong>' +
-                    '<span style="color: #89b4d4; font-size: 0.8125rem;">' + plant.commonName + '</span>' +
+                    '<strong style="color: #88ccff; font-size: 0.9375rem; display: block;">' + plant.name.replace(/'/g, "\\'") + '</strong>' +
+                    '<span style="color: #89b4d4; font-size: 0.8125rem;">' + (plant.commonName || '').replace(/'/g, "\\'") + '</span>' +
                     '</div>' +
                     '<div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.1); font-size: 0.8125rem;">' +
                     '<span style="color: #89b4d4;">Level:</span>' +
@@ -772,13 +838,20 @@
             }, 3000);
         }
         
-        document.addEventListener('DOMContentLoaded', function() {
-            initMap();
-            
-            document.getElementById('settings-toggle').addEventListener('click', function() {
-                this.classList.toggle('open');
-                document.getElementById('settings-content').classList.toggle('open');
-            });
+        function initializeApp() {
+            try {
+                initMap();
+                
+                var settingsToggle = document.getElementById('settings-toggle');
+                if (settingsToggle) {
+                    settingsToggle.addEventListener('click', function() {
+                        this.classList.toggle('open');
+                        var settingsContent = document.getElementById('settings-content');
+                        if (settingsContent) {
+                            settingsContent.classList.toggle('open');
+                        }
+                    });
+                }
             
             document.querySelectorAll('.filter-btn[data-filter]').forEach(function(btn) {
                 btn.addEventListener('click', function() {
@@ -791,23 +864,50 @@
                     showToast('Showing: ' + filterName);
                 });
             });
-            
-            document.querySelectorAll('.map-style-btn').forEach(function(btn) {
-                btn.addEventListener('click', function() {
-                    document.querySelectorAll('.map-style-btn').forEach(function(b) { b.classList.remove('active'); });
-                    this.classList.add('active');
-                    var styleName = this.textContent.trim();
-                    setMapStyle(this.getAttribute('data-style'));
-                    showToast('Map style changed to: ' + styleName);
-                });
-            });
-            
-            document.getElementById('search-input').addEventListener('input', function(e) {
-                currentSearch = e.target.value;
-                filterPlants();
-            });
 
+            
+            var searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    currentSearch = e.target.value;
+                    filterPlants();
+                });
+            }
+            } catch (e) {
+                console.error('Error initializing app:', e);
+            }
+        }
+        
+        var isInitialized = false;
+        
+        function tryInitialize() {
+            if (!isInitialized && (document.readyState === 'complete' || document.readyState === 'interactive')) {
+                isInitialized = true;
+                initializeApp();
+            }
+        }
+        
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', tryInitialize);
+        } else {
+            tryInitialize();
+        }
+        
+        window.addEventListener('load', function() {
+            if (!isInitialized) {
+                tryInitialize();
+            }
         });
+        
+        setTimeout(function() {
+            if (!isInitialized) {
+                tryInitialize();
+            }
+        }, 1000);
+        
+        setTimeout(function() {
+            hideLoadingOverlay();
+        }, 3000);
 
     </script>
 </body>
