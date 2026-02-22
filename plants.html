@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon" type="image/png" href="favicon.png" sizes="64x64">
     <title>Hillsboro Allergenic Plants - STEM Project</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -324,6 +325,28 @@
                 background: #1a1a1a !important;
             }
         }
+        .splash-overlay {
+            position: fixed;
+            inset: 0;
+            background: #c1ff72;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            transition: opacity 0.5s ease;
+        }
+        .splash-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+        .splash-overlay.hidden {
+            opacity: 0;
+        }
+        .splash-icon {
+            width: 500px;
+            height: 500px;
+        }
         .loading-overlay {
             position: fixed;
             inset: 0;
@@ -490,13 +513,17 @@
 <body>
     <div id="map"></div>
     
+    <div class="splash-overlay" id="splash-overlay">
+        <img src="favicon.png" alt="" class="splash-icon">
+    </div>
+    
     <div class="loading-overlay" id="loading-overlay">
         <div class="loading-spinner"></div>
         <div class="loading-text">Loading map...</div>
     </div>
     
     <div class="header">
-        <div class="logo">Hillsboro Allergenic Plants</div>
+        <div class="logo">🌿 Hillsboro Allergenic Plants</div>
         <div class="subtitle">Special thanks to <a href="https://igg.cas.cn/sourcedb_igg_cas/cn/zjrck/fgjgcs/201703/t20170313_4758060.html" target="_blank" style="color: var(--primary); text-decoration: none; transition: color 0.15s ease;">Dr. Ling</a></div>
     </div>
     
@@ -580,6 +607,13 @@
             if (loadingOverlay) {
                 loadingOverlay.style.display = 'none';
             }
+            
+            setTimeout(function() {
+                var splashOverlay = document.getElementById('splash-overlay');
+                if (splashOverlay) {
+                    splashOverlay.classList.add('hidden');
+                }
+            }, 1000);
         };
         
         var SOUTH_LAT = 45.52993828514016;
