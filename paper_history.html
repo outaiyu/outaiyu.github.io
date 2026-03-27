@@ -470,6 +470,27 @@
             background: rgba(231,76,60,0.1);
         }
 
+        body.dark-mode .quiz-option {
+            background: #2a2a4a;
+            border-color: #444;
+            color: #eee;
+        }
+
+        body.dark-mode .quiz-option:hover {
+            border-color: var(--primary);
+            background: rgba(102,126,234,0.3);
+        }
+
+        body.dark-mode .quiz-option.correct {
+            border-color: var(--success);
+            background: rgba(39,174,96,0.3);
+        }
+
+        body.dark-mode .quiz-option.wrong {
+            border-color: var(--danger);
+            background: rgba(231,76,60,0.3);
+        }
+
         .quiz-result {
             margin-top: 20px;
             padding: 15px;
