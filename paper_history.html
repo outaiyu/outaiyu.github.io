@@ -21,6 +21,9 @@
             const manifest = document.createElement('link');
             manifest.rel = 'manifest';
             manifest.href = 'manifest.json';
+            manifest.onerror = function() {
+                console.log('Manifest not found - PWA features disabled');
+            };
             document.head.appendChild(manifest);
         }
     </script>
