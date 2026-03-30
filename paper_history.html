@@ -226,6 +226,19 @@
         .paper-type:nth-child(4) { border-color: #27ae60; } .paper-type:nth-child(4)::before { background: #27ae60; }
         .paper-type h4 { font-size: clamp(1em, 1.8vw, 1.3em); margin-bottom: clamp(8px, 1.5vw, 15px); position: relative; z-index: 1; }
 
+        .paper-type img, .data-img, .recipe-img {
+            width: 100%;
+            max-width: clamp(200px, 25vw, 350px);
+            height: auto;
+            aspect-ratio: 4/3;
+            object-fit: cover;
+            border-radius: var(--radius);
+            margin: clamp(8px, 1.5vw, 15px) 0;
+            box-shadow: 0 clamp(3px, 0.5vw, 8px) rgba(0,0,0,0.3);
+        }
+
+        .img-center { display: flex; justify-content: center; }
+
         .fact-box {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white; padding: var(--pad); border-radius: var(--radius);
@@ -469,9 +482,9 @@
                 <h2>&#x1F4CB; Different Types of Paper</h2>
                 <p>Paper products vary widely in their physical properties and intended applications. These differences stem from variations in fiber length, manufacturing techniques, and processing methods.</p>
                 <div class="paper-types">
-                    <div class="paper-type"><h4>&#x1F4E6; Cardboard</h4><p>Cardboard is a thick, sturdy material characterized by its exceptional strength and durability. Its impressive toughness results from the use of long cellulose fibers that are tightly bonded together during the manufacturing process, making it perfect for packaging applications where protection and structural integrity are essential.</p></div>
-                    <div class="paper-type"><h4>&#x1F4D3; Notebook Paper</h4><p>Notebook paper represents a carefully balanced medium-weight product designed specifically for writing purposes. It features a smooth surface texture that provides excellent writing comfort while maintaining superior ink absorption qualities.</p></div>
-                    <div class="paper-type"><h4>&#x1F9FB; Tissue Paper</h4><p>Tissue paper is engineered to be exceptionally soft and delicate for gentle personal use. This softness is achieved through the use of shorter cellulose fibers arranged in a looser, more porous structure, making it gentle on sensitive skin while being highly absorbent.</p></div>
+                    <div class="paper-type"><h4>&#x1F4E6; Cardboard</h4><img src="cardbored.jpg" alt="Cardboard" loading="lazy"><p>Cardboard is a thick, sturdy material characterized by its exceptional strength and durability. Its impressive toughness results from the use of long cellulose fibers that are tightly bonded together during the manufacturing process, making it perfect for packaging applications where protection and structural integrity are essential.</p></div>
+                    <div class="paper-type"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebookpaper.jpg" alt="Notebook Paper" loading="lazy"><p>Notebook paper represents a carefully balanced medium-weight product designed specifically for writing purposes. It features a smooth surface texture that provides excellent writing comfort while maintaining superior ink absorption qualities.</p></div>
+                    <div class="paper-type"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>Tissue paper is engineered to be exceptionally soft and delicate for gentle personal use. This softness is achieved through the use of shorter cellulose fibers arranged in a looser, more porous structure, making it gentle on sensitive skin while being highly absorbent.</p></div>
                     <div class="paper-type"><h4>&#x1F6CD;&#xFE0F; Paper Bags</h4><p>Paper bags are constructed to provide an optimal balance of durability and flexibility, utilizing medium-length cellulose fibers arranged to create sufficient strength for carrying various items while maintaining the pliability needed for folding and shaping.</p></div>
                 </div>
             </div>
@@ -518,11 +531,12 @@
         <div id="ingredients-page" class="page-content">
             <div class="card"><h2>&#x1F333; Choose Recycling Method</h2><p>Different types of paper require specific ingredient proportions for successful recycling. Select either notebook paper or tissue paper recycling below to view the precise ingredients and their recommended quantities.</p></div>
             <div class="paper-types">
-                <div class="paper-type" onclick="showRecycleMethod('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><p>View ingredients and measurements</p></div>
-                <div class="paper-type" onclick="showRecycleMethod('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><p>View ingredients and measurements</p></div>
+                <div class="paper-type" onclick="showRecycleMethod('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebookpaper.jpg" alt="Notebook Paper" loading="lazy"><p>View ingredients and measurements</p></div>
+                <div class="paper-type" onclick="showRecycleMethod('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>View ingredients and measurements</p></div>
             </div>
             <div id="notebook-recipe" class="card" style="display:none">
                 <h2>&#x1F4D3; Notebook Paper Recycling Ingredients</h2>
+                <div class="img-center"><img src="notebookpaper.jpg" alt="Notebook Paper" class="recipe-img" loading="lazy"></div>
                 <div class="process-steps">
                     <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p>300 milliliters of clear water provides the ideal moisture content to thoroughly break down the notebook paper fibers while maintaining proper consistency for pulp formation.</p></div>
                     <div class="process-step"><span class="icon">&#x1F4C4;</span><h4>Notebook Paper</h4><p>One single sheet of notebook paper serves as the base material, containing long fibers that will create strength in your finished product.</p></div>
@@ -531,6 +545,7 @@
             </div>
             <div id="tissue-recipe" class="card" style="display:none">
                 <h2>&#x1F9FB; Tissue Paper Recycling Ingredients</h2>
+                <div class="img-center"><img src="tissue-paper.jpg" alt="Tissue Paper" class="recipe-img" loading="lazy"></div>
                 <div class="process-steps">
                     <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p>240 milliliters of clear water is the optimal amount for breaking down eight pieces of tissue paper, as tissue absorbs water more readily than denser notebook paper.</p></div>
                     <div class="process-step"><span class="icon">&#x1F9FB;</span><h4>Tissue Paper</h4><p>Eight pieces of tissue paper provide sufficient fiber material for creating a recycled sheet, compensating for the shorter fibers found in tissue paper.</p></div>
@@ -543,12 +558,13 @@
         <div id="more-data-page" class="page-content">
             <div class="card"><h2>&#x1F4CA; Paper Properties Data</h2><p>Understanding the physical properties and drying characteristics of different paper types is essential for successful recycling. Click on each paper type below to access comprehensive data about their behavior during the recycling process.</p></div>
             <div class="paper-types">
-                <div class="paper-type" onclick="showPaperData('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><p>View detailed recycling data and properties</p></div>
-                <div class="paper-type" onclick="showPaperData('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><p>View detailed recycling data and properties</p></div>
-                <div class="paper-type" onclick="showPaperData('cardboard')"><h4>&#x1F4E6; Amazon Card Box</h4><p>View detailed recycling data and properties</p></div>
+                <div class="paper-type" onclick="showPaperData('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebookpaper.jpg" alt="Notebook Paper" loading="lazy"><p>View detailed recycling data and properties</p></div>
+                <div class="paper-type" onclick="showPaperData('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>View detailed recycling data and properties</p></div>
+                <div class="paper-type" onclick="showPaperData('cardboard')"><h4>&#x1F4E6; Amazon Card Box</h4><img src="cardbored.jpg" alt="Cardboard Box" loading="lazy"><p>View detailed recycling data and properties</p></div>
             </div>
             <div id="notebook-data" class="card" style="display:none">
                 <h2>&#x1F4D3; Notebook Paper Recycling Data</h2>
+                <div class="img-center"><img src="notebookpaper.jpg" alt="Notebook Paper" class="data-img" loading="lazy"></div>
                 <div class="process-steps">
                     <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p>The paper is in a very soft and fragile state during this early drying phase. Even gentle lifting motions can cause the paper to break or tear, although it has developed enough cohesion to maintain its shape on a plate surface. The texture feels notably watery and cool to the touch, but it does not feel sticky or adhesive.</p></div>
                     <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p>Once fully dried, the paper becomes rigid and cannot bend without cracking, though it remains sufficiently intact to be lifted by hand. It becomes an excellent surface for writing with a pen due to its notable ink resistance properties. However, the cellulose fibers have become too short through the recycling process to allow for another successful recycling cycle, making this a final-use paper product.</p></div>
@@ -556,6 +572,7 @@
             </div>
             <div id="tissue-data" class="card" style="display:none">
                 <h2>&#x1F9FB; Tissue Paper Recycling Data</h2>
+                <div class="img-center"><img src="tissue-paper.jpg" alt="Tissue Paper" class="data-img" loading="lazy"></div>
                 <div class="process-steps">
                     <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p>The recycled tissue paper exhibits a very soft and delicate texture at this stage. Like notebook paper, gentle lifting movements can damage the material, but it maintains enough structural integrity to remain intact on a plate. The surface feels pleasantly watery without any stickiness, indicating proper hydration during the recycling process.</p></div>
                     <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p>After complete drying, the paper becomes rigid but remains manageable enough to lift by hand. Writing tools perform poorly on this surface: pencil marks are not visible, while pen ink tends to spread rather than absorb cleanly. The paper is not suitable for traditional writing applications but functions effectively as an absorbent sponge for small amounts of water. Excessive water absorption will cause the paper to break down and dissolve completely.</p></div>
@@ -563,10 +580,7 @@
             </div>
             <div id="cardboard-data" class="card" style="display:none">
                 <h2>&#x1F4E6; Amazon Card Box Recycling Data</h2>
-                <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Water-Resistant Properties</h4><p>Cardboard exhibits significant water resistance due to its dense fiber structure and manufacturing process. Unlike tissue or notebook paper, cardboard will not dissolve or break down effectively in water. Attempting to recycle cardboard through simple water-based methods will only cause the material to disintegrate into unusable fragments rather than creating a useful recycled product.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F3ED;</span><h4>Professional Recycling Required</h4><p>Due to its water-resistant nature and complex structure, cardboard recycling requires specialized industrial equipment and processing facilities. The most effective and environmentally responsible approach is to collect cardboard materials and send them to professional recycling companies that possess the necessary machinery to properly break down and reprocess the material into new cardboard products.</p></div>
-                </div>
+                <div class="img-center"><img src="cardbored.jpg" alt="Cardboard Box" class="data-img" loading="lazy"></div>
             </div>
         </div>
 
