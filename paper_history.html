@@ -317,6 +317,33 @@
             color: white; animation: fadeInUp 1s ease;
             padding-bottom: max(clamp(10px, 1vw, 20px), var(--safe-bottom));
         }
+        .credits {
+            margin-top: clamp(16px, 3vw, 30px);
+            padding: clamp(16px, 3vw, 24px);
+            background: rgba(255,255,255,0.05);
+            border-radius: clamp(8px, 1.5vw, 14px);
+            border: 1px solid rgba(255,255,255,0.08);
+            text-align: left;
+        }
+        .credits h3 {
+            font-size: clamp(14px, 2vw, 18px);
+            margin-bottom: clamp(8px, 1.5vw, 14px);
+            color: rgba(255,255,255,0.9);
+        }
+        .credits p {
+            font-size: clamp(11px, 1.6vw, 14px);
+            color: rgba(255,255,255,0.6);
+            margin: clamp(4px, 0.8vw, 8px) 0;
+            line-height: 1.5;
+        }
+        .credits a {
+            color: rgba(132,250,176,0.85);
+            text-decoration: none;
+        }
+        .credits a:hover {
+            color: rgba(132,250,176,1);
+            text-decoration: underline;
+        }
 
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
@@ -584,7 +611,17 @@
             </div>
         </div>
 
-        <footer><p>&#x1F331; Together we can make a difference through sustainable paper practices, responsible recycling, and informed consumption choices to protect our forests and environment for future generations.</p></footer>
+        <footer>
+            <p>&#x1F331; Together we can make a difference through sustainable paper practices, responsible recycling, and informed consumption choices to protect our forests and environment for future generations.</p>
+            <div class="credits">
+                <h3>Credits</h3>
+                <p><strong>Research &amp; Information:</strong> <a href="https://en.wikipedia.org" target="_blank" rel="noopener">Wikipedia</a></p>
+                <p><strong>Photography:</strong> All images are original photographs taken by the author.</p>
+                <p><strong>QR Code Generation:</strong> <a href="https://qr-generator.ai/qr-codes" target="_blank" rel="noopener">qr-generator.ai</a></p>
+                <p><strong>Supplies &amp; Support:</strong> Thank you to my parents for providing the materials and encouragement for this project.</p>
+                <p><strong>Website Built With:</strong> <a href="https://opencode.ai" target="_blank" rel="noopener">OpenCode</a></p>
+            </div>
+        </footer>
     </div>
 
     <script>
