@@ -365,6 +365,65 @@
             .process-step:active { transform: scale(1.05); border-color: var(--primary); }
         }
 
+        .mode-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            -webkit-backdrop-filter: blur(12px);
+            backdrop-filter: blur(12px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; animation: fadeIn 0.3s ease;
+            padding: clamp(16px, 4vw, 30px);
+        }
+        .mode-overlay.hidden { display: none; }
+        .mode-popup {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            border-radius: clamp(14px, 2vw, 24px);
+            padding: clamp(24px, 5vw, 48px) clamp(20px, 4vw, 40px);
+            max-width: clamp(300px, 80vw, 520px);
+            width: 100%; text-align: center;
+            box-shadow: 0 clamp(10px, 3vw, 40px) rgba(0,0,0,0.5);
+            border: 1px solid rgba(255,255,255,0.1);
+            animation: bounceIn 0.6s ease;
+        }
+        .mode-popup h2 {
+            color: white; font-size: clamp(1.4em, 4vw, 2.2em);
+            margin-bottom: clamp(8px, 2vw, 16px);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        .mode-popup h2::after { display: none; }
+        .mode-popup p {
+            color: rgba(255,255,255,0.7); font-size: clamp(0.85em, 1.8vw, 1em);
+            margin-bottom: clamp(16px, 3vw, 28px);
+            line-height: 1.6;
+        }
+        .mode-buttons {
+            display: flex; flex-direction: column; gap: clamp(10px, 2vw, 16px);
+            width: 100%;
+        }
+        @media (min-width: 480px) { .mode-buttons { flex-direction: row; } }
+        .mode-btn {
+            flex: 1; padding: clamp(14px, 2.5vw, 22px) clamp(12px, 2vw, 20px);
+            border: 2px solid rgba(255,255,255,0.15);
+            border-radius: clamp(10px, 1.5vw, 16px);
+            background: rgba(255,255,255,0.05);
+            color: white; cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: clamp(0.85em, 1.6vw, 1.05em);
+            font-family: inherit;
+        }
+        .mode-btn:hover { transform: translateY(-3px); border-color: var(--primary); background: rgba(102,126,234,0.15); }
+        .mode-btn:active { transform: translateY(-1px); }
+        .mode-btn.selected { border-color: var(--primary); background: rgba(102,126,234,0.25); box-shadow: 0 0 20px rgba(102,126,234,0.3); }
+        .mode-btn h3 { font-size: clamp(1em, 2vw, 1.3em); margin-bottom: clamp(4px, 1vw, 8px); }
+        .mode-btn p { font-size: clamp(0.75em, 1.4vw, 0.85em); color: rgba(255,255,255,0.5); margin-bottom: 0; }
+
+        body.simple-mode .pro-only { display: none !important; }
+        body.simple-mode .simple-only { display: block !important; }
+        body.simple-mode .card p, body.simple-mode .process-step p, body.simple-mode .timeline-item p {
+            font-size: clamp(0.85em, 1.5vw, 1em);
+        }
+        .simple-only { display: none; }
+
         .welcome-screen {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
             min-height: 100vh;
@@ -455,9 +514,27 @@
     <div class="progress-bar" id="progressBar"></div>
     <button class="back-to-top" id="backToTop">&uarr;</button>
 
+    <div class="mode-overlay" id="modeOverlay">
+        <div class="mode-popup">
+            <h2>Choose Your Experience</h2>
+            <p>Select how you'd like to explore the world of paper making.</p>
+            <div class="mode-buttons">
+                <button class="mode-btn" id="simpleBtn" onclick="selectMode('simple')">
+                    <h3>Simple</h3>
+                    <p>Short explanations, easy to read</p>
+                </button>
+                <button class="mode-btn selected" id="proBtn" onclick="selectMode('professional')">
+                    <h3>Professional</h3>
+                    <p>Detailed information, full depth</p>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="welcome-screen" id="welcomeScreen">
         <h1 class="welcome-title">&#x1F4DC; Paper Making</h1>
-        <p class="welcome-subtitle">Discover the fascinating journey of paper from ancient China to modern times. Learn about the science behind paper production, explore recycling techniques, and understand the unique properties of different paper types through our interactive guides and detailed information sections.</p>
+        <p class="welcome-subtitle pro-only">Discover the fascinating journey of paper from ancient China to modern times. Learn about the science behind paper production, explore recycling techniques, and understand the unique properties of different paper types through our interactive guides and detailed information sections.</p>
+        <p class="welcome-subtitle simple-only">Learn how paper is made, how to recycle it at home, and what makes different types of paper special.</p>
         <div class="navigation-buttons">
             <button class="nav-button" data-page="history"><span>&#x1F4DC;</span> History</button>
             <button class="nav-button" data-page="instruction"><span>&#x1F4DD;</span> Instruction</button>
@@ -484,32 +561,33 @@
         <div id="history-page" class="page-content">
             <div class="card highlight">
                 <h2>Our Daily Paper</h2>
-                <p>Paper is an incredibly versatile material that plays an essential role in our everyday lives. We encounter numerous types of paper products daily, including notebook paper for writing and drawing, soft tissues for personal hygiene, sturdy cardboard boxes for packaging and shipping, and convenient paper bags for carrying groceries and other items. The vast majority of these paper products are manufactured using wood as the primary raw material, typically sourced from sustainably managed forests and tree plantations.</p>
+                <p class="simple-only">Paper is everywhere in our daily lives. We use notebooks for writing, tissues for hygiene, cardboard boxes for packaging, and paper bags for shopping. Most paper is made from wood.</p>
+                <p class="pro-only">Paper is an incredibly versatile material that plays an essential role in our everyday lives. We encounter numerous types of paper products daily, including notebook paper for writing and drawing, soft tissues for personal hygiene, sturdy cardboard boxes for packaging and shipping, and convenient paper bags for carrying groceries and other items. The vast majority of these paper products are manufactured using wood as the primary raw material, typically sourced from sustainably managed forests and tree plantations.</p>
             </div>
 
             <div class="card">
                 <h2>&#x1F3DB;&#xFE0F; History Timeline</h2>
                 <div class="timeline">
-                    <div class="timeline-item" style="animation-delay:0.1s"><div class="timeline-year">105 AD</div><p>Paper was invented in China by Cai Lun during the Han Dynasty. He developed an innovative method using mulberry bark, hemp fibers, and old rags to create the first true paper. This revolutionary invention quickly spread throughout China and became the primary medium for writing, replacing bamboo slips and silk as the dominant materials for recording information and artistic expression.</p></div>
-                    <div class="timeline-item" style="animation-delay:0.2s"><div class="timeline-year">751 AD</div><p>The Battle of Talas in Central Asia played a crucial role in spreading papermaking technology to the Islamic world. After capturing Chinese papermakers, the Abbasid Caliphate adopted and refined the techniques, establishing paper mills across the Middle East and North Africa. Islamic artisans improved the production methods and created higher-quality paper that eventually influenced European papermaking traditions.</p></div>
-                    <div class="timeline-item" style="animation-delay:0.3s"><div class="timeline-year">12th Century</div><p>Papermaking technology reached Europe through Spain and Italy, primarily transmitted by Islamic scholars and merchants. The arrival of paper revolutionized European communication and record-keeping systems. As paper mills spread throughout the continent, it gradually replaced expensive parchment and vellum, making books and documents more affordable and accessible to a broader population.</p></div>
-                    <div class="timeline-item" style="animation-delay:0.4s"><div class="timeline-year">1440 AD</div><p>Johannes Gutenberg's invention of the movable type printing press dramatically increased the demand for paper throughout Europe. This technological breakthrough required vast quantities of paper to produce books and printed materials efficiently. In response, papermakers developed mass production techniques and built larger mills, setting the stage for the modern paper industry.</p></div>
-                    <div class="timeline-item" style="animation-delay:0.5s"><div class="timeline-year">19th Century</div><p>The development of wood pulp paper production methods revolutionized the industry and made paper significantly cheaper and more accessible worldwide. New chemical processes for separating cellulose fibers from wood allowed manufacturers to produce paper on an industrial scale using abundant timber resources, dramatically reducing costs and enabling mass literacy and communication.</p></div>
-                    <div class="timeline-item" style="animation-delay:0.6s"><div class="timeline-year">Today</div><p>Modern paper production has evolved to incorporate sustainable practices and extensive recycling programs to protect our precious forest ecosystems. Contemporary paper mills utilize renewable energy sources, practice responsible forestry management, and recycle vast amounts of paper products to minimize environmental impact while meeting global demand for this essential material.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.1s"><div class="timeline-year">105 AD</div><p class="simple-only">Paper was invented in China by Cai Lun. He used mulberry bark, hemp, and old rags to make the first paper.</p><p class="pro-only">Paper was invented in China by Cai Lun during the Han Dynasty. He developed an innovative method using mulberry bark, hemp fibers, and old rags to create the first true paper. This revolutionary invention quickly spread throughout China and became the primary medium for writing, replacing bamboo slips and silk as the dominant materials for recording information and artistic expression.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.2s"><div class="timeline-year">751 AD</div><p class="simple-only">After the Battle of Talas, papermaking spread to the Islamic world. Islamic artisans improved the techniques and built paper mills across the Middle East.</p><p class="pro-only">The Battle of Talas in Central Asia played a crucial role in spreading papermaking technology to the Islamic world. After capturing Chinese papermakers, the Abbasid Caliphate adopted and refined the techniques, establishing paper mills across the Middle East and North Africa. Islamic artisans improved the production methods and created higher-quality paper that eventually influenced European papermaking traditions.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.3s"><div class="timeline-year">12th Century</div><p class="simple-only">Papermaking reached Europe through Spain and Italy. It replaced expensive parchment, making books cheaper and more accessible.</p><p class="pro-only">Papermaking technology reached Europe through Spain and Italy, primarily transmitted by Islamic scholars and merchants. The arrival of paper revolutionized European communication and record-keeping systems. As paper mills spread throughout the continent, it gradually replaced expensive parchment and vellum, making books and documents more affordable and accessible to a broader population.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.4s"><div class="timeline-year">1440 AD</div><p class="simple-only">Gutenberg's printing press massively increased the demand for paper, leading to larger mills and mass production.</p><p class="pro-only">Johannes Gutenberg's invention of the movable type printing press dramatically increased the demand for paper throughout Europe. This technological breakthrough required vast quantities of paper to produce books and printed materials efficiently. In response, papermakers developed mass production techniques and built larger mills, setting the stage for the modern paper industry.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.5s"><div class="timeline-year">19th Century</div><p class="simple-only">Wood pulp methods made paper much cheaper, allowing mass production using trees instead of expensive materials.</p><p class="pro-only">The development of wood pulp paper production methods revolutionized the industry and made paper significantly cheaper and more accessible worldwide. New chemical processes for separating cellulose fibers from wood allowed manufacturers to produce paper on an industrial scale using abundant timber resources, dramatically reducing costs and enabling mass literacy and communication.</p></div>
+                    <div class="timeline-item" style="animation-delay:0.6s"><div class="timeline-year">Today</div><p class="simple-only">Modern papermaking uses recycling and sustainable forestry to protect the environment while meeting global demand.</p><p class="pro-only">Modern paper production has evolved to incorporate sustainable practices and extensive recycling programs to protect our precious forest ecosystems. Contemporary paper mills utilize renewable energy sources, practice responsible forestry management, and recycle vast amounts of paper products to minimize environmental impact while meeting global demand for this essential material.</p></div>
                 </div>
             </div>
 
-            <div class="card"><h2>&#x1F333; What's Inside Trees?</h2><p>Trees contain remarkable microscopic structures that make them excellent for paper production. Inside the wood, there are countless long, thin plant fibers that serve as the building blocks for paper. These fibers are composed primarily of cellulose, a natural organic polymer that provides exceptional strength and flexibility to the material. The cellulose molecules act like countless tiny threads that can intertwine and bond together, creating the durable yet flexible properties that we rely on in paper products.</p></div>
+            <div class="card"><h2>&#x1F333; What's Inside Trees?</h2><p class="simple-only">Trees have long, thin fibers inside them made of cellulose. Cellulose is a natural material that is strong and flexible. These fibers tangle together to make paper.</p><p class="pro-only">Trees contain remarkable microscopic structures that make them excellent for paper production. Inside the wood, there are countless long, thin plant fibers that serve as the building blocks for paper. These fibers are composed primarily of cellulose, a natural organic polymer that provides exceptional strength and flexibility to the material. The cellulose molecules act like countless tiny threads that can intertwine and bond together, creating the durable yet flexible properties that we rely on in paper products.</p></div>
 
-            <div class="card fact-box"><h3>&#x1F4A1; The Paper Making Process</h3><p>The fundamental process of papermaking involves transforming raw plant materials into thin, flat sheets through several essential steps. First, manufacturers break apart the plant fibers to separate them from their natural structure. These fibers are then thoroughly mixed with water to create a fibrous suspension known as pulp. The pulp is carefully spread flat across a fine mesh or screen, allowing the water to drain away while the fibers remain evenly distributed. Finally, the wet fiber mat is pressed and dried, removing all remaining moisture. The specific arrangement and density of these fibers during the drying process ultimately determines the final strength, texture, and quality characteristics of the finished paper.</p></div>
+            <div class="card fact-box"><h3>&#x1F4A1; The Paper Making Process</h3><p class="simple-only">Paper is made by: 1) Breaking plant fibers apart, 2) Mixing them with water to make pulp, 3) Spreading the pulp flat on a screen to drain water, 4) Pressing and drying it into sheets.</p><p class="pro-only">The fundamental process of papermaking involves transforming raw plant materials into thin, flat sheets through several essential steps. First, manufacturers break apart the plant fibers to separate them from their natural structure. These fibers are then thoroughly mixed with water to create a fibrous suspension known as pulp. The pulp is carefully spread flat across a fine mesh or screen, allowing the water to drain away while the fibers remain evenly distributed. Finally, the wet fiber mat is pressed and dried, removing all remaining moisture. The specific arrangement and density of these fibers during the drying process ultimately determines the final strength, texture, and quality characteristics of the finished paper.</p></div>
 
             <div class="card">
                 <h2>&#x1F52C; Process Steps</h2>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x1FAB5;</span><h4>Break Fibers</h4><p>The process begins by separating individual plant fibers from raw materials such as wood chips, recycled paper, or plant fibers. This can be accomplished through mechanical grinding or chemical processing, depending on the desired paper quality and application.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Make Pulp</h4><p>The separated fibers are thoroughly mixed with large quantities of water to create a fibrous suspension called pulp. This watery mixture allows the fibers to flow freely and distribute evenly, which is essential for producing consistent paper sheets with uniform thickness.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F4C4;</span><h4>Spread &amp; Press</h4><p>The pulp slurry is carefully poured onto a fine mesh screen or forming fabric. As the water drains through the mesh, the fibers settle into an even mat that will become the paper sheet. This wet mat is then pressed between rollers to remove excess water and compact the fibers together.</p></div>
-                    <div class="process-step"><span class="icon">&#x2728;</span><h4>Finish Paper</h4><p>The pressed paper passes through heated drying cylinders or through large drying ovens to evaporate any remaining moisture. During this final stage, the fibers bond together through hydrogen bonding, creating the characteristic strength and integrity of paper products.</p></div>
+                    <div class="process-step"><span class="icon">&#x1FAB5;</span><h4>Break Fibers</h4><p class="simple-only">Separate plant fibers from wood chips or recycled paper by grinding or chemical processing.</p><p class="pro-only">The process begins by separating individual plant fibers from raw materials such as wood chips, recycled paper, or plant fibers. This can be accomplished through mechanical grinding or chemical processing, depending on the desired paper quality and application.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Make Pulp</h4><p class="simple-only">Mix the fibers with lots of water. This watery mixture is called pulp.</p><p class="pro-only">The separated fibers are thoroughly mixed with large quantities of water to create a fibrous suspension called pulp. This watery mixture allows the fibers to flow freely and distribute evenly, which is essential for producing consistent paper sheets with uniform thickness.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4C4;</span><h4>Spread &amp; Press</h4><p class="simple-only">Pour pulp onto a mesh screen. Water drains through and fibers settle into an even mat, then it gets pressed.</p><p class="pro-only">The pulp slurry is carefully poured onto a fine mesh screen or forming fabric. As the water drains through the mesh, the fibers settle into an even mat that will become the paper sheet. This wet mat is then pressed between rollers to remove excess water and compact the fibers together.</p></div>
+                    <div class="process-step"><span class="icon">&#x2728;</span><h4>Finish Paper</h4><p class="simple-only">Dry the pressed paper with heat. The fibers bond together to make strong paper.</p><p class="pro-only">The pressed paper passes through heated drying cylinders or through large drying ovens to evaporate any remaining moisture. During this final stage, the fibers bond together through hydrogen bonding, creating the characteristic strength and integrity of paper products.</p></div>
                 </div>
             </div>
 
@@ -517,10 +595,10 @@
                 <h2>&#x1F4CB; Different Types of Paper</h2>
                 <p>Paper products vary widely in their physical properties and intended applications. These differences stem from variations in fiber length, manufacturing techniques, and processing methods.</p>
                 <div class="paper-types">
-                    <div class="paper-type"><h4>&#x1F4E6; Cardboard</h4><img src="card-bored.jpg" alt="Cardboard" loading="lazy"><p>Cardboard is a thick, sturdy material characterized by its exceptional strength and durability. Its impressive toughness results from the use of long cellulose fibers that are tightly bonded together during the manufacturing process, making it perfect for packaging applications where protection and structural integrity are essential.</p></div>
-                    <div class="paper-type"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebook-paper.jpg" alt="Notebook Paper" loading="lazy"><p>Notebook paper represents a carefully balanced medium-weight product designed specifically for writing purposes. It features a smooth surface texture that provides excellent writing comfort while maintaining superior ink absorption qualities.</p></div>
-                    <div class="paper-type"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>Tissue paper is engineered to be exceptionally soft and delicate for gentle personal use. This softness is achieved through the use of shorter cellulose fibers arranged in a looser, more porous structure, making it gentle on sensitive skin while being highly absorbent.</p></div>
-                    <div class="paper-type"><h4>&#x1F6CD;&#xFE0F; Paper Bags</h4><p>Paper bags are constructed to provide an optimal balance of durability and flexibility, utilizing medium-length cellulose fibers arranged to create sufficient strength for carrying various items while maintaining the pliability needed for folding and shaping.</p></div>
+                    <div class="paper-type"><h4>&#x1F4E6; Cardboard</h4><img src="card-bored.jpg" alt="Cardboard" loading="lazy"><p class="simple-only">Thick and strong. Made with long fibers tightly packed together. Great for boxes.</p><p class="pro-only">Cardboard is a thick, sturdy material characterized by its exceptional strength and durability. Its impressive toughness results from the use of long cellulose fibers that are tightly bonded together during the manufacturing process, making it perfect for packaging applications where protection and structural integrity are essential.</p></div>
+                    <div class="paper-type"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebook-paper.jpg" alt="Notebook Paper" loading="lazy"><p class="simple-only">Medium weight with a smooth surface. Good for writing and absorbs ink well.</p><p class="pro-only">Notebook paper represents a carefully balanced medium-weight product designed specifically for writing purposes. It features a smooth surface texture that provides excellent writing comfort while maintaining superior ink absorption qualities.</p></div>
+                    <div class="paper-type"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p class="simple-only">Very soft and delicate. Uses short fibers in a loose structure. Gentle and absorbent.</p><p class="pro-only">Tissue paper is engineered to be exceptionally soft and delicate for gentle personal use. This softness is achieved through the use of shorter cellulose fibers arranged in a looser, more porous structure, making it gentle on sensitive skin while being highly absorbent.</p></div>
+                    <div class="paper-type"><h4>&#x1F6CD;&#xFE0F; Paper Bags</h4><p class="simple-only">A balance of strength and flexibility. Can carry items and be folded easily.</p><p class="pro-only">Paper bags are constructed to provide an optimal balance of durability and flexibility, utilizing medium-length cellulose fibers arranged to create sufficient strength for carrying various items while maintaining the pliability needed for folding and shaping.</p></div>
                 </div>
             </div>
 
@@ -538,33 +616,34 @@
                 </div>
             </div>
 
-            <div class="card"><h2>&#x267B;&#xFE0F; Recycling &amp; Sustainability</h2><p>The varying characteristics of different paper types significantly influence their recyclability and the quality of recycled materials. Fiber length and arrangement determine how easily paper can be reprocessed and what the resulting recycled paper can be used for. Some papers with very short or damaged fibers become increasingly difficult to recycle effectively, while others maintain excellent recycling potential through multiple cycles. Understanding these inherent properties helps consumers and manufacturers make informed decisions about paper usage, appropriate recycling methods, and sustainable paper management practices.</p></div>
+            <div class="card"><h2>&#x267B;&#xFE0F; Recycling &amp; Sustainability</h2><p class="simple-only">Different paper types recycle differently. Some papers can be recycled many times, while others become too weak after one cycle. Understanding this helps us make better choices about how we use and recycle paper.</p><p class="pro-only">The varying characteristics of different paper types significantly influence their recyclability and the quality of recycled materials. Fiber length and arrangement determine how easily paper can be reprocessed and what the resulting recycled paper can be used for. Some papers with very short or damaged fibers become increasingly difficult to recycle effectively, while others maintain excellent recycling potential through multiple cycles. Understanding these inherent properties helps consumers and manufacturers make informed decisions about paper usage, appropriate recycling methods, and sustainable paper management practices.</p></div>
         </div>
 
         <!-- INSTRUCTION PAGE -->
         <div id="instruction-page" class="page-content">
             <div class="card highlight">
                 <h2>&#x1F4DD; Paper Recycling Instructions</h2>
-                <p>Transform your used paper materials into new, usable sheets with our comprehensive home recycling guide. Follow these carefully crafted steps to successfully recycle notebook paper or tissue paper, creating environmentally friendly recycled paper products for personal use or educational projects.</p>
+                <p class="simple-only">Follow these steps to recycle used paper into new sheets at home. You can recycle notebook paper or tissue paper.</p>
+                <p class="pro-only">Transform your used paper materials into new, usable sheets with our comprehensive home recycling guide. Follow these carefully crafted steps to successfully recycle notebook paper or tissue paper, creating environmentally friendly recycled paper products for personal use or educational projects.</p>
             </div>
             <div class="card">
                 <h2>&#x1F4CB; Step-by-Step Process</h2>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x2702;&#xFE0F;</span><h4>Cut Paper into Small Pieces</h4><p>Carefully cut your paper into tiny pieces, approximately 1 mm&sup2; in size. This creates more surface area for the water to work on, making the process more efficient.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F963;</span><h4>Mix Paper with Water</h4><p>Place the cut paper scraps into a mixing bowl and add the appropriate amount of water according to your recipe. The water should be clear and at room temperature for optimal results.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F300;</span><h4>Stir Thoroughly</h4><p>Stir the mixture continuously until the water turns a milky white color and the paper scraps have completely lost their original shape, indicating fibers are successfully separated.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Add Glue Cube</h4><p>Introduce the glue cube to your pulp mixture and continue stirring until it is completely dissolved and evenly distributed. The glue acts as a binding agent that will help your recycled paper hold together better when it dries.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F4CB;</span><h4>Spread Mixture</h4><p>Carefully pour your paper pulp mixture onto a hard, flat surface that is large enough to accommodate your desired sheet size. A smooth surface like glass, plastic, or a cookie sheet works best.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F4CF;</span><h4>Flatten and Spread</h4><p>Use your hands or a flat tool to spread the pulp mixture across the surface, covering as much area as possible while maintaining an even thickness of approximately 1 cm.</p></div>
-                    <div class="process-step"><span class="icon">&#x2600;&#xFE0F;</span><h4>Dry Completely</h4><p>Allow your paper to dry undisturbed for approximately 5 hours under direct sunlight or in a warm, well-ventilated area. The drying process is complete when the paper feels completely dry and firm to the touch.</p></div>
+                    <div class="process-step"><span class="icon">&#x2702;&#xFE0F;</span><h4>Cut Paper into Small Pieces</h4><p class="simple-only">Cut paper into tiny pieces, about 1 mm&sup2;. Smaller pieces work better.</p><p class="pro-only">Carefully cut your paper into tiny pieces, approximately 1 mm&sup2; in size. This creates more surface area for the water to work on, making the process more efficient.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F963;</span><h4>Mix Paper with Water</h4><p class="simple-only">Put the pieces in a bowl and add water. Use room temperature water.</p><p class="pro-only">Place the cut paper scraps into a mixing bowl and add the appropriate amount of water according to your recipe. The water should be clear and at room temperature for optimal results.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F300;</span><h4>Stir Thoroughly</h4><p class="simple-only">Stir until the water turns milky white and the paper pieces lose their shape.</p><p class="pro-only">Stir the mixture continuously until the water turns a milky white color and the paper scraps have completely lost their original shape, indicating fibers are successfully separated.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Add Glue Cube</h4><p class="simple-only">Add a small glue cube and stir until it dissolves completely. Glue helps the paper hold together.</p><p class="pro-only">Introduce the glue cube to your pulp mixture and continue stirring until it is completely dissolved and evenly distributed. The glue acts as a binding agent that will help your recycled paper hold together better when it dries.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4CB;</span><h4>Spread Mixture</h4><p class="simple-only">Pour the mixture onto a flat surface like a cookie sheet or glass plate.</p><p class="pro-only">Carefully pour your paper pulp mixture onto a hard, flat surface that is large enough to accommodate your desired sheet size. A smooth surface like glass, plastic, or a cookie sheet works best.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4CF;</span><h4>Flatten and Spread</h4><p class="simple-only">Use your hands or a flat tool to spread it evenly, about 1 cm thick.</p><p class="pro-only">Use your hands or a flat tool to spread the pulp mixture across the surface, covering as much area as possible while maintaining an even thickness of approximately 1 cm.</p></div>
+                    <div class="process-step"><span class="icon">&#x2600;&#xFE0F;</span><h4>Dry Completely</h4><p class="simple-only">Let it dry for about 5 hours in sunlight or a warm place. Don't touch it until it's fully dry.</p><p class="pro-only">Allow your paper to dry undisturbed for approximately 5 hours under direct sunlight or in a warm, well-ventilated area. The drying process is complete when the paper feels completely dry and firm to the touch.</p></div>
                 </div>
             </div>
-            <div class="card fact-box"><h3>&#x1F4A1; Tips for Success</h3><p>For the best results, ensure your work area is clean, well-lit, and properly ventilated. The drying time may vary significantly depending on sunlight intensity, temperature, and ambient humidity levels. On cloudy or humid days, allow extra time for thorough drying. Always handle your new paper gently until it is completely dry to avoid damaging the fiber structure.</p></div>
+            <div class="card fact-box"><h3>&#x1F4A1; Tips for Success</h3><p class="simple-only">Keep your work area clean and well-lit. Drying time varies with sunlight and humidity. Be gentle with wet paper. On cloudy days, give it more time to dry.</p><p class="pro-only">For the best results, ensure your work area is clean, well-lit, and properly ventilated. The drying time may vary significantly depending on sunlight intensity, temperature, and ambient humidity levels. On cloudy or humid days, allow extra time for thorough drying. Always handle your new paper gently until it is completely dry to avoid damaging the fiber structure.</p></div>
         </div>
 
         <!-- INGREDIENTS PAGE -->
         <div id="ingredients-page" class="page-content">
-            <div class="card"><h2>&#x1F333; Choose Recycling Method</h2><p>Different types of paper require specific ingredient proportions for successful recycling. Select either notebook paper or tissue paper recycling below to view the precise ingredients and their recommended quantities.</p></div>
+            <div class="card"><h2>&#x1F333; Choose Recycling Method</h2><p class="simple-only">Different paper types need different amounts of ingredients. Pick one below to see what you need.</p><p class="pro-only">Different types of paper require specific ingredient proportions for successful recycling. Select either notebook paper or tissue paper recycling below to view the precise ingredients and their recommended quantities.</p></div>
             <div class="paper-types">
                 <div class="paper-type" onclick="showRecycleMethod('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebook-paper.jpg" alt="Notebook Paper" loading="lazy"><p>View ingredients and measurements</p></div>
                 <div class="paper-type" onclick="showRecycleMethod('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>View ingredients and measurements</p></div>
@@ -573,25 +652,25 @@
                 <h2>&#x1F4D3; Notebook Paper Recycling Ingredients</h2>
                 <div class="img-center"><img src="notebook-paper.jpg" alt="Notebook Paper" class="recipe-img" loading="lazy"></div>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p>300 milliliters of clear water provides the ideal moisture content to thoroughly break down the notebook paper fibers while maintaining proper consistency for pulp formation.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F4C4;</span><h4>Notebook Paper</h4><p>One single sheet of notebook paper serves as the base material, containing long fibers that will create strength in your finished product.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Glue</h4><p>One cubic millimeter (1 mm&sup3;) of glue acts as a binding agent to help the paper fibers hold together more effectively during and after the drying process.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p class="simple-only">300 ml of water to break down the paper fibers.</p><p class="pro-only">300 milliliters of clear water provides the ideal moisture content to thoroughly break down the notebook paper fibers while maintaining proper consistency for pulp formation.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4C4;</span><h4>Notebook Paper</h4><p class="simple-only">1 sheet of notebook paper. Its long fibers create strong recycled paper.</p><p class="pro-only">One single sheet of notebook paper serves as the base material, containing long fibers that will create strength in your finished product.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Glue</h4><p class="simple-only">1 mm&sup3; of glue to help the fibers stick together.</p><p class="pro-only">One cubic millimeter (1 mm&sup3;) of glue acts as a binding agent to help the paper fibers hold together more effectively during and after the drying process.</p></div>
                 </div>
             </div>
             <div id="tissue-recipe" class="card" style="display:none">
                 <h2>&#x1F9FB; Tissue Paper Recycling Ingredients</h2>
                 <div class="img-center"><img src="tissue-paper.jpg" alt="Tissue Paper" class="recipe-img" loading="lazy"></div>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p>240 milliliters of clear water is the optimal amount for breaking down eight pieces of tissue paper, as tissue absorbs water more readily than denser notebook paper.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F9FB;</span><h4>Tissue Paper</h4><p>Eight pieces of tissue paper provide sufficient fiber material for creating a recycled sheet, compensating for the shorter fibers found in tissue paper.</p></div>
-                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Glue</h4><p>One cubic millimeter (1 mm&sup3;) of glue helps bind the shorter tissue paper fibers together, preventing the final paper from being too fragile and prone to breaking apart.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F4A7;</span><h4>Clear Water</h4><p class="simple-only">240 ml of water. Tissue absorbs water faster than notebook paper.</p><p class="pro-only">240 milliliters of clear water is the optimal amount for breaking down eight pieces of tissue paper, as tissue absorbs water more readily than denser notebook paper.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F9FB;</span><h4>Tissue Paper</h4><p class="simple-only">8 pieces of tissue paper to make up for the shorter fibers.</p><p class="pro-only">Eight pieces of tissue paper provide sufficient fiber material for creating a recycled sheet, compensating for the shorter fibers found in tissue paper.</p></div>
+                    <div class="process-step"><span class="icon">&#x1F9EA;</span><h4>Glue</h4><p class="simple-only">1 mm&sup3; of glue to bind the short tissue fibers together.</p><p class="pro-only">One cubic millimeter (1 mm&sup3;) of glue helps bind the shorter tissue paper fibers together, preventing the final paper from being too fragile and prone to breaking apart.</p></div>
                 </div>
             </div>
         </div>
 
         <!-- MORE DATA PAGE -->
         <div id="more-data-page" class="page-content">
-            <div class="card"><h2>&#x1F4CA; Paper Properties Data</h2><p>Understanding the physical properties and drying characteristics of different paper types is essential for successful recycling. Click on each paper type below to access comprehensive data about their behavior during the recycling process.</p></div>
+            <div class="card"><h2>&#x1F4CA; Paper Properties Data</h2><p class="simple-only">Click on a paper type below to see what happens when you recycle it.</p><p class="pro-only">Understanding the physical properties and drying characteristics of different paper types is essential for successful recycling. Click on each paper type below to access comprehensive data about their behavior during the recycling process.</p></div>
             <div class="paper-types">
                 <div class="paper-type" onclick="showPaperData('notebook')"><h4>&#x1F4D3; Notebook Paper</h4><img src="notebook-paper.jpg" alt="Notebook Paper" loading="lazy"><p>View detailed recycling data and properties</p></div>
                 <div class="paper-type" onclick="showPaperData('tissue')"><h4>&#x1F9FB; Tissue Paper</h4><img src="tissue-paper.jpg" alt="Tissue Paper" loading="lazy"><p>View detailed recycling data and properties</p></div>
@@ -601,16 +680,16 @@
                 <h2>&#x1F4D3; Notebook Paper Recycling Data</h2>
                 <div class="img-center"><img src="notebook-paper.jpg" alt="Notebook Paper" class="data-img" loading="lazy"></div>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p>The paper is in a very soft and fragile state during this early drying phase. Even gentle lifting motions can cause the paper to break or tear, although it has developed enough cohesion to maintain its shape on a plate surface. The texture feels notably watery and cool to the touch, but it does not feel sticky or adhesive.</p></div>
-                    <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p>Once fully dried, the paper becomes rigid and cannot bend without cracking, though it remains sufficiently intact to be lifted by hand. It becomes an excellent surface for writing with a pen due to its notable ink resistance properties. However, the cellulose fibers have become too short through the recycling process to allow for another successful recycling cycle, making this a final-use paper product.</p></div>
+                    <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p class="simple-only">Very soft and fragile. It breaks easily if lifted. Feels watery and cool, not sticky.</p><p class="pro-only">The paper is in a very soft and fragile state during this early drying phase. Even gentle lifting motions can cause the paper to break or tear, although it has developed enough cohesion to maintain its shape on a plate surface. The texture feels notably watery and cool to the touch, but it does not feel sticky or adhesive.</p></div>
+                    <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p class="simple-only">Rigid and can be lifted. Good for writing with pen. The fibers are too short to recycle again.</p><p class="pro-only">Once fully dried, the paper becomes rigid and cannot bend without cracking, though it remains sufficiently intact to be lifted by hand. It becomes an excellent surface for writing with a pen due to its notable ink resistance properties. However, the cellulose fibers have become too short through the recycling process to allow for another successful recycling cycle, making this a final-use paper product.</p></div>
                 </div>
             </div>
             <div id="tissue-data" class="card" style="display:none">
                 <h2>&#x1F9FB; Tissue Paper Recycling Data</h2>
                 <div class="img-center"><img src="tissue-paper.jpg" alt="Tissue Paper" class="data-img" loading="lazy"></div>
                 <div class="process-steps">
-                    <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p>The recycled tissue paper exhibits a very soft and delicate texture at this stage. Like notebook paper, gentle lifting movements can damage the material, but it maintains enough structural integrity to remain intact on a plate. The surface feels pleasantly watery without any stickiness, indicating proper hydration during the recycling process.</p></div>
-                    <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p>After complete drying, the paper becomes rigid but remains manageable enough to lift by hand. Writing tools perform poorly on this surface: pencil marks are not visible, while pen ink tends to spread rather than absorb cleanly. The paper is not suitable for traditional writing applications but functions effectively as an absorbent sponge for small amounts of water. Excessive water absorption will cause the paper to break down and dissolve completely.</p></div>
+                    <div class="process-step"><span class="icon">&#x23F1;&#xFE0F;</span><h4>After 30 Minutes</h4><p class="simple-only">Soft and delicate. Breaks if lifted. Feels watery but not sticky.</p><p class="pro-only">The recycled tissue paper exhibits a very soft and delicate texture at this stage. Like notebook paper, gentle lifting movements can damage the material, but it maintains enough structural integrity to remain intact on a plate. The surface feels pleasantly watery without any stickiness, indicating proper hydration during the recycling process.</p></div>
+                    <div class="process-step"><span class="icon">&#x23F0;</span><h4>After 5 Hours</h4><p class="simple-only">Rigid but liftable. Bad for writing &mdash; pencil doesn't show, pen ink spreads. Works as a small sponge but dissolves in too much water.</p><p class="pro-only">After complete drying, the paper becomes rigid but remains manageable enough to lift by hand. Writing tools perform poorly on this surface: pencil marks are not visible, while pen ink tends to spread rather than absorb cleanly. The paper is not suitable for traditional writing applications but functions effectively as an absorbent sponge for small amounts of water. Excessive water absorption will cause the paper to break down and dissolve completely.</p></div>
                 </div>
             </div>
             <div id="cardboard-data" class="card" style="display:none">
@@ -623,6 +702,24 @@
     </div>
 
     <script>
+        let currentMode = 'professional';
+
+        function selectMode(mode) {
+            currentMode = mode;
+            document.getElementById('simpleBtn').classList.toggle('selected', mode === 'simple');
+            document.getElementById('proBtn').classList.toggle('selected', mode === 'professional');
+            document.body.classList.toggle('simple-mode', mode === 'simple');
+            localStorage.setItem('paperMode', mode);
+            setTimeout(() => {
+                document.getElementById('modeOverlay').classList.add('hidden');
+            }, 300);
+        }
+
+        (function() {
+            const saved = localStorage.getItem('paperMode');
+            if (saved) { selectMode(saved); }
+        })();
+
         const body = document.body;
         const backToTop = document.getElementById('backToTop');
         const progressBar = document.getElementById('progressBar');
