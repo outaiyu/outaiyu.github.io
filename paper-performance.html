@@ -67,32 +67,11 @@ border:1px solid transparent;border-top:none
 .dropdown-body-inner{padding:20px 22px;color:var(--text2);line-height:1.7;font-size:.95rem}
 .dropdown-body-inner img{width:100%;border-radius:10px;margin-top:10px}
 
-
 .comments-section{width:100%;max-width:720px}
-.comment-input-wrap{display:flex;gap:10px;margin-bottom:24px;flex-wrap:wrap}
-.comment-input{
-flex:1;min-width:200px;padding:14px 18px;border:1px solid var(--border);border-radius:12px;
-background:var(--card);color:var(--text);font-size:.95rem;resize:none;min-height:48px
-}
-.comment-input:focus{outline:none;border-color:var(--highlight)}
-.comment-submit{
-padding:14px 24px;border:none;border-radius:12px;
-background:var(--highlight);color:#fff;font-weight:600;cursor:pointer;transition:all .2s
-}
-.comment-submit:hover{opacity:.85}
-.comment-card{
-background:var(--card);border:1px solid var(--border);border-radius:12px;
-padding:16px 20px;margin-bottom:10px
-}
-.comment-card .name{color:var(--highlight);font-weight:600;font-size:.9rem}
-.comment-card .text{color:var(--text2);margin-top:6px;line-height:1.5;font-size:.92rem}
-.comment-card .time{color:rgba(255,255,255,.2);font-size:.75rem;margin-top:8px}
 
 @media(max-width:600px){
 .nav-buttons{flex-direction:column;align-items:center}
 .nav-btn{width:100%;max-width:280px}
-.sim-choose{flex-direction:column;align-items:center}
-#sim-canvas{height:320px}
 }
 </style>
 </head>
@@ -153,27 +132,12 @@ In conclusion, handmade papers mainly are very bumpy and got great performance o
 </div>
 </div>
 
-
-
 <div class="page" id="page-comments">
 <button class="back-btn" onclick="showPage('home')">&#8592; Back</button>
 <h2 style="margin-bottom:24px;color:#fff">Comments</h2>
 <div class="comments-section">
-<div class="comment-notice" style="background:rgba(233,69,96,.08);border:1px solid rgba(233,69,96,.25);border-radius:12px;padding:16px 18px;margin-bottom:20px;color:var(--text2);font-size:.88rem;line-height:1.6">
-<strong style="color:var(--highlight)">How comments work:</strong><br>
-Your comment is saved locally in your browser. Each visitor can post <strong>one comment</strong> using a nickname (not your real name). You can edit or delete your comment anytime. Comments are visible to everyone visiting this page.
-</div>
-<div class="comment-input-wrap" id="comment-form">
-<input class="comment-input" id="comment-nick" placeholder="Your nickname..." style="min-height:48px;resize:none" maxlength="30">
-<textarea class="comment-input" id="comment-input" placeholder="Write a comment..." rows="2" style="min-width:100%;margin-top:8px"></textarea>
-<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap">
-<button class="comment-submit" onclick="addComment()">Post</button>
-<button class="comment-submit" id="comment-edit-btn" style="display:none;background:#0f3460" onclick="editComment()">Edit</button>
-<button class="comment-submit" id="comment-delete-btn" style="display:none;background:#c0392b" onclick="deleteComment()">Delete</button>
-</div>
-</div>
-<h3 style="color:var(--text2);margin:24px 0 12px;font-size:.95rem">All Comments</h3>
-<div id="comments-list"><div style="color:var(--text2);font-size:.9rem">Loading...</div></div>
+<div id="disqus_thread"></div>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 </div>
 </div>
 
@@ -181,101 +145,23 @@ Your comment is saved locally in your browser. Each visitor can post <strong>one
 function showPage(id){
 document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
 document.getElementById('page-'+id).classList.add('active');
-if(id==='comments')loadComments();
+if(id==='comments'&&window.DISQUS){DISQUS.reset({reload:true})}
 }
 function toggleDrop(el){
 const isOpen=el.classList.toggle('open');
 el.nextElementSibling.classList.toggle('open',isOpen);
 }
 
-let allComments=[];
-let myComment=JSON.parse(localStorage.getItem('stem_my_comment')||'null');
-
-function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
-
-function loadComments(){
-fetch('comments.txt').then(r=>r.ok?r.text():'').then(txt=>{
-allComments=[];
-if(txt.trim()){
-txt.trim().split('\n').forEach(line=>{
-const sep=line.indexOf('|');
-if(sep>0){
-allComments.push({name:line.substring(0,sep).trim(),text:line.substring(sep+1).trim()});
-}
-});
-}
-renderComments();
-}).catch(()=>{allComments=[];renderComments()});
-}
-
-function renderComments(){
-const list=document.getElementById('comments-list');
-list.innerHTML='';
-if(myComment){
-const d=document.createElement('div');d.className='comment-card';
-d.style.borderColor='rgba(233,69,96,.3)';
-d.innerHTML='<div class="name">'+esc(myComment.name)+' <span style="color:var(--highlight);font-size:.75rem;font-weight:400">(you)</span></div><div class="text">'+esc(myComment.text)+'</div><div class="time">'+esc(myComment.time)+'</div>';
-list.appendChild(d);
-}
-allComments.forEach(c=>{
-const d=document.createElement('div');d.className='comment-card';
-d.innerHTML='<div class="name">'+esc(c.name)+'</div><div class="text">'+esc(c.text)+'</div>';
-list.appendChild(d);
-});
-if(!myComment&&allComments.length===0){
-list.innerHTML='<div style="color:var(--text2);font-size:.9rem">No comments yet. Be the first!</div>';
-}
-const nickEl=document.getElementById('comment-nick');
-const inputEl=document.getElementById('comment-input');
-const editBtn=document.getElementById('comment-edit-btn');
-const delBtn=document.getElementById('comment-delete-btn');
-if(myComment){
-nickEl.value=myComment.name;
-inputEl.value=myComment.text;
-nickEl.disabled=true;
-editBtn.style.display='inline-block';
-delBtn.style.display='inline-block';
-document.querySelector('.comment-submit[onclick="addComment()"]').style.display='none';
-}else{
-nickEl.value='';inputEl.value='';
-nickEl.disabled=false;
-editBtn.style.display='none';
-delBtn.style.display='none';
-document.querySelector('.comment-submit[onclick="addComment()"]').style.display='inline-block';
-}
-}
-
-function addComment(){
-const nick=document.getElementById('comment-nick').value.trim();
-const text=document.getElementById('comment-input').value.trim();
-if(!nick||!text){alert('Please enter a nickname and comment.');return}
-if(myComment){alert('You already have a comment. Use Edit to change it.');return}
-myComment={name:nick,text:text,time:new Date().toLocaleString()};
-localStorage.setItem('stem_my_comment',JSON.stringify(myComment));
-renderComments();
-}
-
-function editComment(){
-if(!myComment)return;
-const text=document.getElementById('comment-input').value.trim();
-if(!text){alert('Comment cannot be empty.');return}
-myComment.text=text;
-myComment.time=new Date().toLocaleString()+' (edited)';
-localStorage.setItem('stem_my_comment',JSON.stringify(myComment));
-renderComments();
-}
-
-function deleteComment(){
-if(!myComment)return;
-if(!confirm('Delete your comment?'))return;
-myComment=null;
-localStorage.removeItem('stem_my_comment');
-document.getElementById('comment-nick').value='';
-document.getElementById('comment-input').value='';
-renderComments();
-}
-
-loadComments();
+var disqus_config=function(){
+this.page.url=window.location.href;
+this.page.identifier=window.location.pathname;
+};
+(function(){
+var d=document,s=d.createElement('script');
+s.src='https://papers-performance.disqus.com/embed.js';
+s.setAttribute('data-timestamp',+new Date());
+(d.head||d.body).appendChild(s);
+})();
 </script>
 </body>
 </html>
