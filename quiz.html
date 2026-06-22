@@ -2,16 +2,19 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Quiz Hub</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
   body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
     padding: 20px;
     color: #333;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
   }
   .container {
     max-width: 700px;
@@ -20,6 +23,25 @@
     border-radius: 12px;
     box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     padding: 40px;
+  }
+  @media (max-width: 600px) {
+    body { padding: 10px; }
+    .container { padding: 20px; border-radius: 8px; }
+    h1 { font-size: 1.5em; }
+    .passkey-screen h1 { font-size: 1.6em; }
+    .quiz-actions { flex-direction: column; width: 100%; }
+    .quiz-actions .btn { width: 100%; }
+  }
+  @media (hover: none) and (pointer: coarse) {
+    .btn { min-height: 48px; padding: 14px 24px; font-size: 1.05em; }
+    .passkey-input { min-height: 48px; font-size: 1.05em; }
+    .answer-input { min-height: 48px; padding: 12px; font-size: 1em; }
+    .mc-options label { min-height: 44px; padding: 12px 14px; font-size: 1em; }
+    .saved-keys span { min-height: 44px; line-height: 36px; padding: 4px 14px; }
+    .question { padding: 18px 20px; }
+    .quiz-list li { padding: 18px 20px; flex-wrap: wrap; gap: 12px; }
+    .btn-open, .btn-remove { min-height: 44px; padding: 10px 18px; }
+    .btn-submit { min-height: 52px; padding: 16px 36px; }
   }
   h1 { color: #667eea; margin-bottom: 6px; }
   .subtitle { color: #888; font-size: 0.9em; margin-bottom: 30px; font-family: monospace; }
@@ -320,6 +342,395 @@ const QUIZ_REGISTRY = {
         answer: "A new robot will be designed by the engineers."
       }
     ]
+  },
+  "B4&zF6@hJ1!cN5yT": {
+    id: "6.2.2",
+    title: "Present Perfect Passive",
+    sections: [
+      {
+        type: "rewrite",
+        instructions: "Change each sentence to the present perfect passive.",
+        questions: [
+          "They have finished the homework.",
+          "Someone has stolen my bike.",
+          "The company has released a new game.",
+          "Scientists have discovered a new planet.",
+          "The teacher has graded the tests."
+        ],
+        answers: [
+          "The homework has been finished.",
+          "My bike has been stolen.",
+          "A new game has been released.",
+          "A new planet has been discovered.",
+          "The tests have been graded."
+        ]
+      },
+      {
+        type: "fill",
+        instructions: "Write the present perfect passive form of the verb in parentheses.",
+        questions: [
+          { text: "The project __________. (complete)", verb: "complete" },
+          { text: "The windows __________. (clean)", verb: "clean" },
+          { text: "My package __________. (deliver)", verb: "deliver" },
+          { text: "The books __________. (return)", verb: "return" },
+          { text: "A new bridge __________. (build)", verb: "build" }
+        ],
+        answers: [
+          "has been completed",
+          "have been cleaned",
+          "has been delivered",
+          "have been returned",
+          "has been built"
+        ]
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct option.",
+        questions: [
+          {
+            text: "The room _____ cleaned.",
+            options: ["has been", "have been", "has be", "have be"],
+            answer: "A"
+          },
+          {
+            text: "The letters _____ sent.",
+            options: ["has been", "have been", "has be", "have be"],
+            answer: "B"
+          },
+          {
+            text: "A new school _____ built.",
+            options: ["have been", "has been", "has be", "have be"],
+            answer: "B"
+          }
+        ]
+      },
+      {
+        type: "mistake",
+        instructions: "Find the mistake and write the corrected sentence.",
+        questions: [
+          { text: "The homework has been finish.", answer: "The homework has been finished." },
+          { text: "The windows have cleaned.", answer: "The windows have been cleaned." },
+          { text: "The package have been delivered.", answer: "The package has been delivered." },
+          { text: "The tests has been graded.", answer: "The tests have been graded." },
+          { text: "A new park has build.", answer: "A new park has been built." }
+        ]
+      },
+      {
+        type: "challenge",
+        instructions: "Change this sentence to the present perfect passive:",
+        prompt: "Someone has painted the house.",
+        answer: "The house has been painted."
+      }
+    ]
+  },
+  "gW3*E8%rA0oU9iS": {
+    id: "6.2.3",
+    title: "Who, Which, Where",
+    sections: [
+      {
+        type: "fill",
+        instructions: "Fill in the blank with who, which, or where.",
+        questions: [
+          { text: "The student ______ won the prize is very happy.", verb: "who/which/where" },
+          { text: "This is the house ______ we visited last summer.", verb: "who/which/where" },
+          { text: "The dog ______ barked all night belongs to my neighbor.", verb: "who/which/where" },
+          { text: "The park ______ we play soccer is very big.", verb: "who/which/where" },
+          { text: "The girl ______ sits next to me is my friend.", verb: "who/which/where" },
+          { text: "The movie ______ we watched yesterday was exciting.", verb: "who/which/where" },
+          { text: "The city ______ I was born is very small.", verb: "who/which/where" },
+          { text: "The teacher ______ helped me is very kind.", verb: "who/which/where" },
+          { text: "The book ______ I am reading is very interesting.", verb: "who/which/where" },
+          { text: "This is the place ______ we met for the first time.", verb: "who/which/where" }
+        ],
+        answers: [
+          "who",
+          "where",
+          "which",
+          "where",
+          "who",
+          "which",
+          "where",
+          "who",
+          "which",
+          "where"
+        ]
+      },
+      {
+        type: "mistake",
+        instructions: "Correct the sentence.",
+        questions: [
+          { text: "The boy which won the race is fast.", answer: "The boy who won the race is fast." },
+          { text: "This is the school who I study at.", answer: "This is the school where I study." },
+          { text: "The park where I saw is beautiful.", answer: "The park which I saw is beautiful." },
+          { text: "The dog who I saw was big.", answer: "The dog which I saw was big." },
+          { text: "The book where I read is new.", answer: "The book which I read is new." }
+        ]
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct answer.",
+        questions: [
+          {
+            text: "The girl _____ helped me was nice.",
+            options: ["which", "who", "where"],
+            answer: "B"
+          },
+          {
+            text: "The museum _____ we visited was huge.",
+            options: ["who", "which", "where"],
+            answer: "B"
+          },
+          {
+            text: "The place _____ we had lunch was crowded.",
+            options: ["where", "who", "which"],
+            answer: "A"
+          }
+        ]
+      }
+    ]
+  },
+  "Y8!nT4#qP6wL2vR@": {
+    id: "6.2.4",
+    title: "That, Who, Which, Where",
+    sections: [
+      {
+        type: "fill",
+        instructions: "Complete each sentence with that, who, which, or where.",
+        questions: [
+          { text: "The boy __________ won the spelling bee is in my class.", verb: "that/who/which/where" },
+          { text: "The museum __________ we visited yesterday was very interesting.", verb: "that/who/which/where" },
+          { text: "The cat __________ slept on my bed all night belongs to my sister.", verb: "that/who/which/where" },
+          { text: "This is the restaurant __________ we had dinner last Friday.", verb: "that/who/which/where" },
+          { text: "The teacher __________ helped me with math is very kind.", verb: "that/who/which/where" },
+          { text: "The book __________ I borrowed from the library is overdue.", verb: "that/who/which/where" },
+          { text: "The stadium __________ the concert was held is huge.", verb: "that/who/which/where" },
+          { text: "The scientist __________ discovered the vaccine became famous.", verb: "that/who/which/where" }
+        ],
+        answers: [
+          "who",
+          "which",
+          "which",
+          "where",
+          "who",
+          "which",
+          "where",
+          "who"
+        ]
+      },
+      {
+        type: "rewrite",
+        instructions: "Combine each pair into ONE sentence using that / who / which / where.",
+        questions: [
+          "I saw a girl. She plays the violin.",
+          "This is a laptop. It stopped working yesterday.",
+          "We visited a village. My grandparents live there.",
+          "The dog is very friendly. It lives next door."
+        ],
+        answers: [
+          "I saw a girl who plays the violin.",
+          "This is a laptop which stopped working yesterday.",
+          "We visited a village where my grandparents live.",
+          "The dog that lives next door is very friendly."
+        ] 
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct option.",
+        questions: [
+          {
+            text: "The player _____ scored the goal is famous.",
+            options: ["who", "where", "which", "that"],
+            answer: "A"
+          },
+          {
+            text: "The beach _____ we went to was crowded.",
+            options: ["which", "who", "where", "that"],
+            answer: "A"
+          },
+          {
+            text: "The city _____ I was born is small.",
+            options: ["where", "which", "who", "that"],
+            answer: "A"
+          }
+        ]
+      },
+      {
+        type: "mistake",
+        instructions: "Fix the mistake in each sentence. (Multiple correct forms accepted — see notes.)",
+        questions: [
+          { text: "The boy which helped me is kind.", answer: "The boy who helped me is kind." },
+          { text: "The place who we visited was beautiful.", answer: ["The place where we visited was beautiful.", "The place we visited was beautiful.", "The place that we visited was beautiful."] }
+        ]
+      },
+      {
+        type: "short",
+        instructions: "Write ONE full sentence using each word correctly.",
+        prompts: [
+          "who → ",
+          "which → ",
+          "where → "
+        ]
+      }
+    ]
+  },
+  "dK2#vM7+bX4lP6qZ": {
+    id: "6.2.5",
+    title: "Past Perfect (Affirmative)",
+    sections: [
+      {
+        type: "fill",
+        instructions: "Complete each sentence using the past perfect affirmative form.",
+        questions: [
+          { text: "By the time the movie started, we __________ popcorn. (buy)", verb: "buy" },
+          { text: "She was tired because she __________ five kilometers. (run)", verb: "run" },
+          { text: "They couldn't enter the house because they __________ the key. (lose)", verb: "lose" },
+          { text: "I felt relieved because I __________ my project early. (finish)", verb: "finish" },
+          { text: "The train had already left because we __________ late. (arrive)", verb: "arrive" }
+        ],
+        answers: [
+          "had bought",
+          "had run",
+          "had lost",
+          "had finished",
+          "had arrived"
+        ]
+      },
+      {
+        type: "rewrite",
+        instructions: "Rewrite the sentence using past perfect (affirmative).",
+        questions: [
+          "I ate breakfast before school started.",
+          "They finished their homework before dinner.",
+          "She packed her bag before going to bed."
+        ],
+        answers: [
+          "I had eaten breakfast before school started.",
+          "They had finished their homework before dinner.",
+          "She had packed her bag before going to bed."
+        ]
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct option.",
+        questions: [
+          {
+            text: "By 8 PM, he _____ his homework.",
+            options: ["had finished", "finished", "has finished", "finishes"],
+            answer: "A"
+          },
+          {
+            text: "They _____ that movie before.",
+            options: ["had seen", "saw", "have seen", "see"],
+            answer: "A"
+          },
+          {
+            text: "She _____ Paris twice before 2020.",
+            options: ["had visited", "visited", "has visited", "visits"],
+            answer: "A"
+          }
+        ]
+      },
+      {
+        type: "mistake",
+        instructions: "Fix the mistake in each sentence.",
+        questions: [
+          { text: "He had go to school before breakfast.", answer: "He had gone to school before breakfast." },
+          { text: "We had ate dinner before the guests arrived.", answer: "We had eaten dinner before the guests arrived." }
+        ]
+      },
+      {
+        type: "short",
+        instructions: "Use past perfect affirmative in your own sentence. (Free response — any grammatically correct past perfect sentence is accepted.)",
+        prompts: [
+          "What is something you had already done before yesterday evening?",
+          "What is something you had finished before a test?"
+        ]
+      }
+    ]
+  },
+  "H2#rJ7@bN9vX1kM&": {
+    id: "6.2.6",
+    title: "Past Perfect (Negative & Questions)",
+    sections: [
+      {
+        type: "fill",
+        instructions: "Complete each sentence using the past perfect NEGATIVE form (hadn't + past participle).",
+        questions: [
+          { text: "She __________ the message before the meeting started. (see)", verb: "see" },
+          { text: "They __________ their homework before dinner. (finish)", verb: "finish" },
+          { text: "I __________ that song before yesterday. (hear)", verb: "hear" },
+          { text: "He __________ that museum before last year. (visit)", verb: "visit" },
+          { text: "We __________ lunch when the guests arrived. (eat)", verb: "eat" }
+        ],
+        answers: [
+          "hadn't seen",
+          "hadn't finished",
+          "hadn't heard",
+          "hadn't visited",
+          "hadn't eaten"
+        ]
+      },
+      {
+        type: "rewrite",
+        label: "Part 2: Rewrite into Negative Past Perfect",
+        instructions: "Rewrite each sentence in the past perfect NEGATIVE.",
+        questions: [
+          "She saw the movie before Friday.",
+          "They finished the project before the deadline.",
+          "I read that book before school."
+        ],
+        answers: [
+          "She hadn't seen the movie before Friday.",
+          "They hadn't finished the project before the deadline.",
+          "I hadn't read that book before school."
+        ]
+      },
+      {
+        type: "rewrite",
+        label: "Part 3: Make Questions",
+        instructions: "Rewrite each sentence as a past perfect QUESTION.",
+        questions: [
+          "You finished your homework before dinner.",
+          "They left before you arrived.",
+          "She studied before the test."
+        ],
+        answers: [
+          "Had you finished your homework before dinner?",
+          "Had they left before you arrived?",
+          "Had she studied before the test?"
+        ]
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct option.",
+        questions: [
+          {
+            text: "_____ you ever seen that movie before last year?",
+            options: ["Had", "Did", "Have", "Was"],
+            answer: "A"
+          },
+          {
+            text: "She _____ finished her work before the class started.",
+            options: ["hadn't", "didn't", "hasn't", "wasn't"],
+            answer: "A"
+          },
+          {
+            text: "_____ they left when you arrived?",
+            options: ["Had", "Was", "Did", "Have"],
+            answer: "A"
+          }
+        ]
+      },
+      {
+        type: "short",
+        instructions: "Short answers (self-checked).",
+        prompts: [
+          "Yes/No: Had you ever tried this food before today?  →  Yes, I had.  /  No, I hadn't.",
+          "Write one sentence using hadn't + past participle.",
+          "Write one past perfect question."
+        ]
+      }
+    ]
   }
 };
 
@@ -448,9 +859,13 @@ function buildQuizContent(quiz) {
       html += `<p><strong>"${section.prompt}"</strong></p>`;
       html += `<input type="text" class="answer-input" id="challenge-answer" placeholder="Your answer...">`;
     } else {
-      const label = section.type === "rewrite" ? `Part ${partNum}: Change to Passive Voice` :
+      const label = section.label ||
+                    (section.type === "rewrite" ? `Part ${partNum}: Rewrite` :
                     section.type === "fill" ? `Part ${partNum}: Fill in the Blank` :
-                    `Part ${partNum}: Multiple Choice`;
+                    section.type === "mc" ? `Part ${partNum}: Multiple Choice` :
+                    section.type === "mistake" ? `Part ${partNum}: Find the Mistake` :
+                    section.type === "short" ? `Part ${partNum}: Short Answer` :
+                    `Part ${partNum}`);
       html += `<h2>${label}</h2>`;
       html += `<p style="font-style:italic;color:#666;">${section.instructions}</p>`;
 
@@ -479,6 +894,22 @@ function buildQuizContent(quiz) {
           html += `<div class="question">
             <strong>${i + 1}.</strong> ${q.text}
             <div class="mc-options">${opts}</div>
+          </div>`;
+        });
+        partNum++;
+      } else if (section.type === "mistake") {
+        section.questions.forEach((q, i) => {
+          html += `<div class="question">
+            <strong>${i + 1}.</strong> <span style="color:#dc3545;text-decoration:line-through;text-decoration-color:#dc3545;">${q.text}</span>
+            <input type="text" class="answer-input" data-section="${quiz.sections.indexOf(section)}" data-index="${i}" placeholder="Corrected sentence...">
+          </div>`;
+        });
+        partNum++;
+      } else if (section.type === "short") {
+        section.prompts.forEach((p, i) => {
+          html += `<div class="question">
+            <strong>${i + 1}.</strong> ${p}
+            <input type="text" class="answer-input" data-section="${quiz.sections.indexOf(section)}" data-index="${i}" placeholder="Your answer...">
           </div>`;
         });
         partNum++;
@@ -639,6 +1070,43 @@ function checkAnswers() {
           Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
           ${!isCorrect ? `<br>Correct: <span class="correct">${section.answer}</span>` : ""}
         </div>`;
+    } else if (section.type === "mistake") {
+      total += section.questions.length;
+      html += `<h3>Part: Find the Mistake</h3>`;
+      document.querySelectorAll(`[data-section="${sIdx}"]`).forEach(input => {
+        const idx = parseInt(input.dataset.index);
+        const userAns = input.value.trim();
+        const q = section.questions[idx];
+        const accepted = Array.isArray(q.answer) ? q.answer : [q.answer];
+        const isCorrect = accepted.some(a => normalize(userAns) === normalize(a));
+        if (isCorrect) correct++;
+        const displayAns = accepted.length === 1 ? accepted[0] : accepted.join("  OR  ");
+        html += `<div class="result-item">
+          <strong>${idx + 1}.</strong> Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
+          ${!isCorrect ? `<br>Accepted: <span class="correct">${displayAns}</span>` : ""}
+        </div>`;
+      });
+    } else if (section.type === "short") {
+      html += `<h3>Part: Short Answer (Self-check)</h3>`;
+      html += `<p style="font-style:italic;color:#666;font-size:0.9em;margin-bottom:10px;">Free response — review your own work. Make sure each sentence is grammatically correct and uses the target structure.</p>`;
+      section.prompts.forEach((p, i) => {
+        const input = document.querySelector(`[data-section="${sIdx}"][data-index="${i}"]`);
+        const userAns = input ? input.value.trim() : "";
+        const hasContent = userAns.length > 0;
+        const hasHad = /had\s+\w+ed|had\s+\w+en|had\s+gone|had\s+eaten|had\s+done|had\s+seen|had\s+taken|had\s+been|had\s+run|had\s+won|had\s+given|had\s+made|had\s+read|had\s+written/i.test(userAns);
+        const targetWord = (p.match(/(who|which|where|that)\s*→/) || [])[1];
+        const hasTarget = targetWord ? new RegExp("\\b" + targetWord + "\\b", "i").test(userAns) : hasHad;
+        const cls = !hasContent ? "incorrect" : (hasTarget ? "correct" : "incorrect");
+        const hint = !hasContent
+          ? `<br><span style="color:#888;font-size:0.85em;">No answer given.</span>`
+          : (!hasTarget
+              ? `<br><span style="color:#dc3545;font-size:0.85em;">⚠ Did you include "${targetWord || 'had + past participle'}" in your sentence?</span>`
+              : "");
+        html += `<div class="result-item">
+          <strong>${i + 1}.</strong> ${p}<br>
+          Your answer: <span class="${cls}">${userAns || "(blank)"}</span>${hint}
+        </div>`;
+      });
     }
   });
 
