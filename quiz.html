@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz Hub</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #333;
+  }
+  .container {
+    max-width: 700px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    padding: 40px;
+  }
+  h1 { color: #667eea; margin-bottom: 6px; }
+  .subtitle { color: #888; font-size: 0.9em; margin-bottom: 30px; font-family: monospace; }
+  h2 { color: #764ba2; margin: 30px 0 15px; padding-bottom: 8px; border-bottom: 2px solid #f0f0f0; }
+
+  .passkey-screen { text-align: center; padding: 40px 20px; }
+  .passkey-screen h1 { font-size: 2em; margin-bottom: 10px; }
+  .passkey-screen p { margin-bottom: 20px; }
+  .passkey-input {
+    padding: 12px 20px;
+    font-size: 1.1em;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    width: 280px;
+    max-width: 100%;
+    margin-right: 10px;
+    transition: border-color 0.2s;
+    font-family: monospace;
+  }
+  .passkey-input:focus { outline: none; border-color: #667eea; }
+  .btn {
+    background: #667eea;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn:hover { background: #5568d3; }
+  .btn:active { transform: scale(0.98); }
+  .btn-submit {
+    background: #28a745;
+    font-size: 1.1em;
+    padding: 14px 32px;
+    margin-top: 30px;
+  }
+  .btn-submit:hover { background: #218838; }
+  .btn-secondary { background: #6c757d; margin-left: 10px; }
+  .btn-secondary:hover { background: #5a6268; }
+  .error { color: #dc3545; margin-top: 15px; min-height: 20px; }
+  .saved-keys { margin-top: 20px; font-size: 0.9em; color: #666; }
+  .saved-keys span {
+    display: inline-block;
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin: 4px;
+    cursor: pointer;
+    font-family: monospace;
+    transition: background 0.2s;
+  }
+  .saved-keys span:hover { background: #e0e0e0; }
+
+  .quiz-list { list-style: none; }
+  .quiz-list li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8f9fa;
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border-left: 4px solid #667eea;
+  }
+  .quiz-info { flex: 1; }
+  .quiz-title { font-weight: 600; color: #333; }
+  .quiz-meta { color: #888; font-size: 0.85em; margin-top: 4px; font-family: monospace; }
+  .quiz-actions { display: flex; gap: 8px; }
+  .btn-open { background: #667eea; padding: 8px 16px; font-size: 0.9em; }
+  .btn-remove { background: #dc3545; padding: 8px 12px; font-size: 0.85em; }
+  .btn-remove:hover { background: #c82333; }
+  .empty { color: #888; font-style: italic; padding: 20px; text-align: center; }
+
+  .info-section {
+    background: #f8f9fa;
+    padding: 20px 24px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border-left: 4px solid #764ba2;
+  }
+  .info-section h2 {
+    color: #764ba2;
+    margin: 0 0 12px 0;
+    padding: 0;
+    border: none;
+    font-size: 1.2em;
+  }
+  .info-credit {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dashed #e0e0e0;
+  }
+  .info-credit:last-child { border-bottom: none; }
+  .info-credit .label { color: #666; font-weight: 600; }
+  .info-credit .value { color: #333; }
+  .info-how-list { margin: 0; padding-left: 20px; color: #444; line-height: 1.7; }
+  .info-how-list li { margin-bottom: 8px; }
+  .info-time {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.95em;
+  }
+  .info-time:last-child { border-bottom: none; }
+  .info-time .quiz-name { font-weight: 600; color: #333; }
+  .info-time .time-val { color: #666; font-family: monospace; font-size: 0.9em; }
+  .info-loading { color: #888; font-style: italic; padding: 20px; text-align: center; }
+
+  .quiz-screen { display: none; }
+  .back-link {
+    display: inline-block;
+    color: #667eea;
+    text-decoration: none;
+    margin-bottom: 20px;
+    cursor: pointer;
+    font-size: 0.9em;
+  }
+  .back-link:hover { text-decoration: underline; }
+  .quiz-id-display { color: #888; font-size: 0.9em; margin-bottom: 16px; font-family: monospace; }
+  .question {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    border-left: 4px solid #667eea;
+  }
+  .answer-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    margin-top: 8px;
+  }
+  .answer-input:focus { outline: none; border-color: #667eea; }
+  .mc-options { margin-top: 8px; }
+  .mc-options label {
+    display: block;
+    padding: 6px 10px;
+    margin: 4px 0;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+  .mc-options label:hover { background: #e9ecef; }
+  .mc-options input { margin-right: 8px; }
+  .results-section {
+    background: #e7f3ff;
+    border: 2px solid #667eea;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 20px;
+  }
+  .result-item { padding: 8px 0; border-bottom: 1px solid #d0e0f0; }
+  .result-item:last-child { border-bottom: none; }
+  .correct { color: #28a745; font-weight: 600; }
+  .incorrect { color: #dc3545; font-weight: 600; }
+  .score {
+    text-align: center;
+    font-size: 1.4em;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div id="hubScreen">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+      <h1 style="margin:0;">📚 Quiz Hub</h1>
+      <button class="btn btn-secondary" id="infoBtn" style="margin:0;">ℹ️ Info</button>
+    </div>
+    <p class="subtitle">Enter a passkey to register a quiz. Registered quizzes appear below.</p>
+
+    <div class="passkey-screen">
+      <input type="password" id="passkeyInput" class="passkey-input" placeholder="Enter passkey..." autocomplete="off">
+      <button class="btn" id="enterBtn">Register</button>
+      <div class="error" id="errorMsg"></div>
+      <div class="saved-keys" id="savedKeys"></div>
+    </div>
+
+    <h2>Registered Quizzes</h2>
+    <ul class="quiz-list" id="quizList"></ul>
+  </div>
+
+  <div id="infoScreen" style="display:none;">
+    <a class="back-link" id="infoBackLink">← Back to Hub</a>
+    <h1>ℹ️ Info</h1>
+    <div id="infoContent"></div>
+  </div>
+
+  <div id="quizScreen" class="quiz-screen">
+    <a class="back-link" id="backLink">← Back to Hub</a>
+    <h1 id="quizTitle"></h1>
+    <p class="quiz-id-display" id="quizMeta"></p>
+
+    <div id="quizContent"></div>
+
+    <div style="text-align:center;">
+      <button class="btn btn-submit" id="submitBtn">Submit Answers</button>
+      <button class="btn btn-secondary" id="resetBtn">Clear Answers</button>
+    </div>
+
+    <div id="results" style="display:none;"></div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_REGISTERED = "quiz_hub_registered";
+const STORAGE_KEYS = "quiz_hub_used_keys";
+
+const QUIZ_REGISTRY = {
+  "x7Q#mK9$pL2nV8wR": {
+    id: "6.2.1",
+    title: "Future Passive Voice",
+    sections: [
+      {
+        type: "rewrite",
+        instructions: "Rewrite each sentence in the future passive voice.",
+        questions: [
+          "They will build a new bridge.",
+          "The teacher will grade the tests.",
+          "Scientists will discover new species.",
+          "The company will release the game next month.",
+          "Workers will repair the road.",
+          "The chef will prepare the meal.",
+          "They will clean the park tomorrow.",
+          "The school will hold a concert.",
+          "The team will finish the project soon.",
+          "Someone will deliver the package on Monday."
+        ],
+        answers: [
+          "A new bridge will be built.",
+          "The tests will be graded.",
+          "New species will be discovered.",
+          "The game will be released next month.",
+          "The road will be repaired.",
+          "The meal will be prepared.",
+          "The park will be cleaned tomorrow.",
+          "A concert will be held by the school.",
+          "The project will be finished soon.",
+          "The package will be delivered on Monday."
+        ]
+      },
+      {
+        type: "fill",
+        instructions: "Use the future passive form of the verb in parentheses.",
+        questions: [
+          { text: "The homework __________ tomorrow.", verb: "finish" },
+          { text: "A new hospital __________ next year.", verb: "build" },
+          { text: "The winners __________ at the ceremony.", verb: "announce" },
+          { text: "The rooms __________ before the guests arrive.", verb: "clean" },
+          { text: "The books __________ to the library.", verb: "return" }
+        ],
+        answers: [
+          "will be finished",
+          "will be built",
+          "will be announced",
+          "will be cleaned",
+          "will be returned"
+        ]
+      },
+      {
+        type: "mc",
+        instructions: "Choose the correct option.",
+        questions: [
+          {
+            text: "The road _____ next week.",
+            options: ["will repair", "will be repaired", "repaired", "is repair"],
+            answer: "B"
+          },
+          {
+            text: "The package _____ tomorrow.",
+            options: ["will delivered", "will be deliver", "will be delivered", "delivered"],
+            answer: "C"
+          },
+          {
+            text: "A new movie _____ next month.",
+            options: ["will be released", "will release", "released", "will releasing"],
+            answer: "A"
+          }
+        ]
+      },
+      {
+        type: "challenge",
+        instructions: "Change this sentence to the future passive:",
+        prompt: "The engineers will design a new robot.",
+        answer: "A new robot will be designed by the engineers."
+      }
+    ]
+  }
+};
+
+function getRegistered() {
+  try {
+    const data = JSON.parse(localStorage.getItem(STORAGE_REGISTERED)) || {};
+    return data;
+  } catch { return {}; }
+}
+
+function setRegistered(data) {
+  localStorage.setItem(STORAGE_REGISTERED, JSON.stringify(data));
+}
+
+function getSavedKeys() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS)) || [];
+  } catch { return []; }
+}
+
+function saveKey(key) {
+  const keys = getSavedKeys();
+  if (!keys.includes(key)) {
+    keys.push(key);
+    localStorage.setItem(STORAGE_KEYS, JSON.stringify(keys));
+  }
+}
+
+function renderSavedKeys() {
+  const keys = getSavedKeys();
+  const container = document.getElementById("savedKeys");
+  if (keys.length === 0) {
+    container.innerHTML = "";
+    return;
+  }
+  container.innerHTML = "<div style='margin-bottom:6px;'>Previously used passkeys:</div>" +
+    keys.map(k => `<span data-key="${k}">${k}</span>`).join("");
+  container.querySelectorAll("span").forEach(el => {
+    el.addEventListener("click", () => {
+      document.getElementById("passkeyInput").value = el.dataset.key;
+    });
+  });
+}
+
+function renderQuizList() {
+  const list = document.getElementById("quizList");
+  const registered = getRegistered();
+  const entries = Object.values(registered);
+
+  if (entries.length === 0) {
+    list.innerHTML = "<li class='empty'>No quizzes registered yet. Enter a passkey above.</li>";
+    return;
+  }
+
+  list.innerHTML = entries.map(q => {
+    const when = q.registeredAt ? new Date(q.registeredAt).toLocaleString() : "—";
+    return `
+    <li>
+      <div class="quiz-info">
+        <div class="quiz-title">${q.title}</div>
+        <div class="quiz-meta">Quiz ${q.id} • ${q.sections.length} sections • Registered: ${when}</div>
+      </div>
+      <div class="quiz-actions">
+        <button class="btn btn-open" data-id="${q.id}">Open</button>
+        <button class="btn btn-remove" data-id="${q.id}">Remove</button>
+      </div>
+    </li>`;
+  }).join("");
+
+  list.querySelectorAll(".btn-open").forEach(btn => {
+    btn.addEventListener("click", () => openQuiz(btn.dataset.id));
+  });
+  list.querySelectorAll(".btn-remove").forEach(btn => {
+    btn.addEventListener("click", () => removeQuiz(btn.dataset.id));
+  });
+}
+
+function removeQuiz(id) {
+  if (!confirm(`Remove Quiz ${id} from your hub?`)) return;
+  const registered = getRegistered();
+  delete registered[id];
+  setRegistered(registered);
+  renderQuizList();
+}
+
+function attemptRegister() {
+  const input = document.getElementById("passkeyInput");
+  const value = input.value.trim();
+  const errorMsg = document.getElementById("errorMsg");
+
+  if (QUIZ_REGISTRY[value]) {
+    const quiz = QUIZ_REGISTRY[value];
+    saveKey(value);
+    const registered = getRegistered();
+    registered[quiz.id] = {
+      id: quiz.id,
+      title: quiz.title,
+      sections: quiz.sections,
+      registeredAt: registered[quiz.id]?.registeredAt || new Date().toISOString()
+    };
+    setRegistered(registered);
+    input.value = "";
+    errorMsg.textContent = "";
+    renderSavedKeys();
+    renderQuizList();
+  } else {
+    errorMsg.textContent = "Invalid passkey.";
+    input.value = "";
+    input.focus();
+  }
+}
+
+function normalize(s) {
+  return s.trim().toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ");
+}
+
+function buildQuizContent(quiz) {
+  const container = document.getElementById("quizContent");
+  let html = "";
+  let partNum = 1;
+
+  quiz.sections.forEach(section => {
+    if (section.type === "challenge") {
+      html += `<h2>Challenge</h2>`;
+      html += `<p style="font-style:italic;color:#666;">${section.instructions}</p>`;
+      html += `<p><strong>"${section.prompt}"</strong></p>`;
+      html += `<input type="text" class="answer-input" id="challenge-answer" placeholder="Your answer...">`;
+    } else {
+      const label = section.type === "rewrite" ? `Part ${partNum}: Change to Passive Voice` :
+                    section.type === "fill" ? `Part ${partNum}: Fill in the Blank` :
+                    `Part ${partNum}: Multiple Choice`;
+      html += `<h2>${label}</h2>`;
+      html += `<p style="font-style:italic;color:#666;">${section.instructions}</p>`;
+
+      if (section.type === "rewrite") {
+        section.questions.forEach((q, i) => {
+          html += `<div class="question">
+            <strong>${i + 1}.</strong> ${q}
+            <input type="text" class="answer-input" data-section="${quiz.sections.indexOf(section)}" data-index="${i}" placeholder="Your answer...">
+          </div>`;
+        });
+        partNum++;
+      } else if (section.type === "fill") {
+        section.questions.forEach((q, i) => {
+          html += `<div class="question">
+            <strong>${i + 1}.</strong> ${q.text} <em>(${q.verb})</em>
+            <input type="text" class="answer-input" data-section="${quiz.sections.indexOf(section)}" data-index="${i}" placeholder="Your answer...">
+          </div>`;
+        });
+        partNum++;
+      } else if (section.type === "mc") {
+        section.questions.forEach((q, i) => {
+          const opts = q.options.map((opt, j) => {
+            const letter = String.fromCharCode(65 + j);
+            return `<label><input type="radio" name="mc_${i}" value="${letter}"> ${letter}. ${opt}</label>`;
+          }).join("");
+          html += `<div class="question">
+            <strong>${i + 1}.</strong> ${q.text}
+            <div class="mc-options">${opts}</div>
+          </div>`;
+        });
+        partNum++;
+      }
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+function openQuiz(id) {
+  const registered = getRegistered();
+  const quiz = registered[id];
+  if (!quiz) return;
+
+  document.getElementById("quizTitle").textContent = quiz.title;
+  document.getElementById("quizMeta").textContent = `Quiz ${quiz.id} • ${quiz.sections.length} sections`;
+
+  buildQuizContent(quiz);
+
+  document.getElementById("hubScreen").style.display = "none";
+  document.getElementById("quizScreen").style.display = "block";
+  document.getElementById("results").style.display = "none";
+  window.scrollTo({ top: 0 });
+}
+
+function backToHub() {
+  document.getElementById("quizScreen").style.display = "none";
+  document.getElementById("infoScreen").style.display = "none";
+  document.getElementById("hubScreen").style.display = "block";
+}
+
+async function openInfo() {
+  document.getElementById("hubScreen").style.display = "none";
+  document.getElementById("infoScreen").style.display = "block";
+  const content = document.getElementById("infoContent");
+  content.innerHTML = "<div class='info-loading'>Loading info...</div>";
+  window.scrollTo({ top: 0 });
+
+  try {
+    const raw = document.getElementById("infoData").textContent;
+    const data = JSON.parse(raw);
+    renderInfo(data);
+  } catch (err) {
+    content.innerHTML = `<div class='info-section'>
+      <h2>⚠️ Could not load info</h2>
+      <p>Embedded info data is malformed.</p>
+      <p style="color:#888;font-size:0.85em;">${err.message}</p>
+    </div>`;
+  }
+}
+
+function relativeTime(iso) {
+  if (!iso) return "—";
+  const then = new Date(iso).getTime();
+  const now = Date.now();
+  const diff = Math.max(0, now - then);
+  const sec = Math.floor(diff / 1000);
+  if (sec < 60) return "just now";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `${min} min ago`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `${hr} hr ago`;
+  const day = Math.floor(hr / 24);
+  if (day < 30) return `${day} day${day === 1 ? "" : "s"} ago`;
+  const month = Math.floor(day / 30);
+  if (month < 12) return `${month} month${month === 1 ? "" : "s"} ago`;
+  const year = Math.floor(day / 365);
+  return `${year} year${year === 1 ? "" : "s"} ago`;
+}
+
+function renderInfo(data) {
+  const content = document.getElementById("infoContent");
+  let html = "";
+
+  if (data.credits) {
+    html += `<div class="info-section"><h2>${data.credits.title}</h2>`;
+    data.credits.entries.forEach(e => {
+      html += `<div class="info-credit"><span class="label">${e.label}</span><span class="value">${e.value}</span></div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (data.howItWorks) {
+    html += `<div class="info-section"><h2>${data.howItWorks.title}</h2><ul class="info-how-list">`;
+    data.howItWorks.entries.forEach(line => {
+      html += `<li>${line}</li>`;
+    });
+    html += `</ul></div>`;
+  }
+
+  const registered = getRegistered();
+  const entries = Object.values(registered).sort((a, b) => (a.registeredAt || "").localeCompare(b.registeredAt || ""));
+  html += `<div class="info-section"><h2>Registration History</h2>`;
+  if (entries.length === 0) {
+    html += `<p style="color:#888;font-style:italic;">No quizzes registered yet.</p>`;
+  } else {
+    entries.forEach(q => {
+      const when = q.registeredAt ? new Date(q.registeredAt).toLocaleString() : "—";
+      const rel = relativeTime(q.registeredAt);
+      html += `<div class="info-time">
+        <span class="quiz-name">${q.title} <span style="color:#888;font-weight:normal;">(Quiz ${q.id})</span></span>
+        <span class="time-val" title="${when}">${rel}<br><span style="font-size:0.8em;color:#999;">${when}</span></span>
+      </div>`;
+    });
+  }
+  html += `</div>`;
+
+  content.innerHTML = html;
+}
+
+function checkAnswers() {
+  const registered = getRegistered();
+  const id = document.getElementById("quizMeta").textContent.match(/Quiz ([\d.]+)/)[1];
+  const quiz = registered[id];
+  if (!quiz) return;
+
+  let total = 0, correct = 0;
+  let html = "<div class='results-section'><h2>Results</h2>";
+
+  quiz.sections.forEach((section, sIdx) => {
+    if (section.type === "rewrite" || section.type === "fill") {
+      total += section.questions.length;
+      html += `<h3>${section.type === "rewrite" ? "Part: Change to Passive Voice" : "Part: Fill in the Blank"}</h3>`;
+      document.querySelectorAll(`[data-section="${sIdx}"]`).forEach(input => {
+        const idx = parseInt(input.dataset.index);
+        const userAns = input.value.trim();
+        const correctAns = section.answers[idx];
+        const isCorrect = normalize(userAns) === normalize(correctAns);
+        if (isCorrect) correct++;
+        html += `<div class="result-item">
+          <strong>${idx + 1}.</strong> Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
+          ${!isCorrect ? `<br>Correct: <span class="correct">${correctAns}</span>` : ""}
+        </div>`;
+      });
+    } else if (section.type === "mc") {
+      total += section.questions.length;
+      html += `<h3>Part: Multiple Choice</h3>`;
+      section.questions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="mc_${i}"]:checked`);
+        const userAns = selected ? selected.value : "";
+        const isCorrect = userAns === q.answer;
+        if (isCorrect) correct++;
+        const userText = selected ? `${userAns}. ${q.options[userAns.charCodeAt(0) - 65]}` : "(blank)";
+        html += `<div class="result-item">
+          <strong>${i + 1}.</strong> Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userText}</span>
+          ${!isCorrect ? `<br>Correct: <span class="correct">${q.answer}. ${q.options[q.answer.charCodeAt(0) - 65]}</span>` : ""}
+        </div>`;
+      });
+    } else if (section.type === "challenge") {
+      total += 1;
+      const input = document.getElementById("challenge-answer");
+      const userAns = input.value.trim();
+      const isCorrect = normalize(userAns) === normalize(section.answer);
+      if (isCorrect) correct++;
+      html += `<h3>Challenge</h3>
+        <div class="result-item">
+          Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
+          ${!isCorrect ? `<br>Correct: <span class="correct">${section.answer}</span>` : ""}
+        </div>`;
+    }
+  });
+
+  html += "</div>";
+  const scoreHtml = `<div class="score">Score: ${correct} / ${total} (${Math.round(correct/total*100)}%)</div>`;
+  const results = document.getElementById("results");
+  results.innerHTML = scoreHtml + html;
+  results.style.display = "block";
+  results.scrollIntoView({ behavior: "smooth" });
+}
+
+function resetAnswers() {
+  document.querySelectorAll('.answer-input').forEach(i => i.value = "");
+  document.querySelectorAll('input[type="radio"]').forEach(i => i.checked = false);
+  document.getElementById("results").style.display = "none";
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+document.getElementById("enterBtn").addEventListener("click", attemptRegister);
+document.getElementById("passkeyInput").addEventListener("keypress", e => {
+  if (e.key === "Enter") attemptRegister();
+});
+document.getElementById("submitBtn").addEventListener("click", checkAnswers);
+document.getElementById("resetBtn").addEventListener("click", resetAnswers);
+document.getElementById("backLink").addEventListener("click", backToHub);
+document.getElementById("infoBtn").addEventListener("click", openInfo);
+document.getElementById("infoBackLink").addEventListener("click", backToHub);
+
+renderSavedKeys();
+renderQuizList();
+
+if (window.top !== window.self) {
+  try { window.top.location = window.self.location.href; } catch (_) {}
+}
+</script>
+
+<script type="application/json" id="infoData">
+{
+  "credits": {
+    "title": "Credits",
+    "entries": [
+      { "label": "Created by", "value": "Taiyu" },
+      { "label": "Version", "value": "1.0.0" },
+      { "label": "Built with", "value": "HTML, CSS, Vanilla JavaScript" }
+    ]
+  },
+  "howItWorks": {
+    "title": "How It Works",
+    "entries": [
+      "Each quiz is protected by a unique passkey. Enter the passkey above to register the quiz on this device.",
+      "Once registered, the quiz appears in your hub list. Click Open to launch it, or Remove to unregister it.",
+      "Your registered quizzes and used passkeys are saved in this browser's localStorage — they stay until you remove them.",
+      "To add a new quiz, just enter a new passkey. The hub auto-detects which quiz it unlocks.",
+      "Each quiz is self-contained: rewrite, fill-in-the-blank, multiple choice, and a challenge, all graded by one Submit."
+    ]
+  }
+}
+</script>
+
+</body>
+</html>
