@@ -98,15 +98,64 @@
   .saved-keys span:hover { background: #e0e0e0; }
 
   .quiz-list { list-style: none; }
-  .quiz-list li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+  .quiz-list > li {
     background: #f8f9fa;
     padding: 16px 20px;
     border-radius: 8px;
     margin-bottom: 10px;
     border-left: 4px solid #667eea;
+  }
+  .quiz-list .quiz-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fff;
+    padding: 14px 18px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    border-left: 3px solid #a5b4fc;
+  }
+  .quiz-list .quiz-item:last-child { margin-bottom: 0; }
+  .quiz-group {
+    padding: 0 !important;
+    overflow: hidden;
+  }
+  .quiz-group-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 20px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .quiz-group-header:hover { background: #eef1f6; }
+  .quiz-group-arrow {
+    color: #667eea;
+    font-size: 0.8em;
+    width: 16px;
+    display: inline-block;
+  }
+  .quiz-group-title {
+    font-weight: 600;
+    color: #333;
+    font-size: 1.05em;
+    flex: 1;
+  }
+  .quiz-group-count {
+    color: #888;
+    font-size: 0.85em;
+    background: #e9ecef;
+    padding: 2px 10px;
+    border-radius: 10px;
+  }
+  .quiz-group-list {
+    list-style: none;
+    margin: 0 16px 16px 16px;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
   }
   .quiz-info { flex: 1; }
   .quiz-title { font-weight: 600; color: #333; }
@@ -232,7 +281,7 @@
       <div class="saved-keys" id="savedKeys"></div>
     </div>
 
-    <h2>Registered Quizzes</h2>
+    <h2>Registered Quizzes <span id="totalCount" style="color:#888;font-size:0.7em;font-weight:normal;margin-left:8px;"></span></h2>
     <ul class="quiz-list" id="quizList"></ul>
   </div>
 
@@ -564,6 +613,7 @@ const QUIZ_REGISTRY = {
       },
       {
         type: "short",
+        self_check: true,
         instructions: "Write ONE full sentence using each word correctly.",
         prompts: [
           "who → ",
@@ -640,6 +690,7 @@ const QUIZ_REGISTRY = {
       },
       {
         type: "short",
+        self_check: true,
         instructions: "Use past perfect affirmative in your own sentence. (Free response — any grammatically correct past perfect sentence is accepted.)",
         prompts: [
           "What is something you had already done before yesterday evening?",
@@ -723,11 +774,280 @@ const QUIZ_REGISTRY = {
       },
       {
         type: "short",
+        self_check: true,
         instructions: "Short answers (self-checked).",
         prompts: [
           "Yes/No: Had you ever tried this food before today?  →  Yes, I had.  /  No, I hadn't.",
           "Write one sentence using hadn't + past participle.",
           "Write one past perfect question."
+        ]
+      }
+    ]
+  },
+  "P3&bL6#nH8wT1qJ*": {
+    id: "6.3.1",
+    title: "Third Conditional",
+    sections: [
+      {
+        type: "fill",
+        label: "Part A: Complete the Sentences",
+        instructions: "Complete each sentence using the third conditional (had + past participle).",
+        questions: [
+          { text: "If I __________ harder, I would have passed the test. (study)", verb: "study" },
+          { text: "If she __________ earlier, she would have caught the bus. (leave)", verb: "leave" },
+          { text: "If they __________ an umbrella, they would not have gotten wet. (bring)", verb: "bring" },
+          { text: "If we __________ about the meeting, we would have attended it. (know)", verb: "know" },
+          { text: "If he __________ more, he would have played better. (practice)", verb: "practice" },
+          { text: "If the alarm __________, I would have woken up on time. (ring)", verb: "ring" },
+          { text: "If you __________ me the truth, I would have helped you. (tell)", verb: "tell" },
+          { text: "If the team __________ harder, they would have won the championship. (train)", verb: "train" },
+          { text: "If Sarah __________ her homework, she would not have received a zero. (remember)", verb: "remember" },
+          { text: "If the weather __________ better, we would have gone to the beach. (be)", verb: "be" }
+        ],
+        answers: [
+          "had studied",
+          "had left",
+          "had brought",
+          "had known",
+          "had practiced",
+          "had rung",
+          "had told",
+          "had trained",
+          "had remembered",
+          "had been"
+        ]
+      },
+      {
+        type: "rewrite",
+        label: "Part B: Rewrite Using the Third Conditional",
+        instructions: "Rewrite each sentence as a third conditional.",
+        questions: [
+          "I didn't study, so I failed the test.",
+          "She missed the bus because she left late.",
+          "We got lost because we didn't bring a map.",
+          "He forgot his umbrella, so he got wet.",
+          "They didn't practice, so they lost the game."
+        ],
+        answers: [
+          "If I had studied, I would have passed the test.",
+          "If she had left earlier, she would have caught the bus.",
+          "If we had brought a map, we would not have gotten lost.",
+          "If he had brought his umbrella, he would not have gotten wet.",
+          "If they had practiced more, they would have won the game."
+        ]
+      },
+      {
+        type: "challenge_list",
+        label: "Challenge: Third Conditional",
+        instructions: "Complete each sentence using the third conditional (had + past participle).",
+        questions: [
+          { prompt: "If I __________ earlier, I would have caught the train. (wake up)", answer: "had woken up" },
+          { prompt: "If the dog __________, it would have stayed safe. (not escape)", answer: ["had not escaped", "hadn't escaped"] },
+          { prompt: "If we __________ more money, we would have bought a bigger house. (save)", answer: "had saved" },
+          { prompt: "If she __________ to the instructions, she would have completed the task correctly. (listen)", answer: "had listened" },
+          { prompt: "If they __________ the tickets, they would have entered the concert. (not forget)", answer: ["had not forgotten", "hadn't forgotten"] }
+        ]
+      }
+    ]
+  },
+  "V7*uS1#kY5mE9jB&": {
+    id: "6.3.2",
+    title: "Modal Verbs",
+    sections: [
+      {
+        type: "mc",
+        label: "Part A: Choose the Correct Modal Verb",
+        instructions: "Choose the correct modal verb to complete each sentence.",
+        questions: [
+          { text: "You __________ wear a seatbelt when riding in a car.", options: ["can", "must", "might"], answer: "B" },
+          { text: "__________ I borrow your pencil, please?", options: ["May", "Must", "Should"], answer: "A" },
+          { text: "She __________ swim very well when she was six years old.", options: ["could", "must", "should"], answer: "A" },
+          { text: "It is cloudy today. It __________ rain later.", options: ["must", "might", "shall"], answer: "B" },
+          { text: "You look tired. You __________ get some rest.", options: ["should", "can", "may"], answer: "A" },
+          { text: "I __________ play the piano.", options: ["can", "must", "ought"], answer: "A" },
+          { text: "Students __________ complete their homework before class.", options: ["must", "might", "could"], answer: "A" },
+          { text: "__________ you help me carry these books?", options: ["Should", "Would", "Must"], answer: "B" },
+          { text: "We __________ visit our grandparents this weekend if we have time.", options: ["might", "must", "shall"], answer: "A" },
+          { text: "You __________ be rude to others.", options: ["shouldn't", "can", "may"], answer: "A" }
+        ]
+      },
+      {
+        type: "fill",
+        label: "Part B: Fill in the Blank",
+        instructions: "Write the correct modal verb for each sentence.",
+        questions: [
+          { text: "I __________ ride a bicycle when I was five years old.", verb: "could" },
+          { text: "You __________ study for the test if you want a good grade.", verb: "should" },
+          { text: "__________ I ask you a question?", verb: "May" },
+          { text: "We __________ go to the park tomorrow if the weather is nice.", verb: "might" },
+          { text: "Drivers __________ stop at a red light.", verb: "must" }
+        ],
+        answers: [
+          "could",
+          "should",
+          "May",
+          "might",
+          "must"
+        ]
+      },
+      {
+        type: "challenge_list",
+        label: "Challenge: Find the Best Modal Verb",
+        instructions: "Choose the best modal verb for each sentence.",
+        questions: [
+          { prompt: "You have a headache. You __________ drink some water and rest.", answer: "should" },
+          { prompt: "The sky is very dark. It __________ rain soon.", answer: "might" },
+          { prompt: "__________ you please open the window?", answer: "Would" },
+          { prompt: "I __________ speak three languages.", answer: "can" },
+          { prompt: "Students __________ run in the hallways at school.", answer: ["must not", "mustn't"] }
+        ]
+      }
+    ]
+  },
+  "X4#rD2&tN8jG5pL!": {
+    id: "6.3.3",
+    title: "Reported Speech — Statements",
+    sections: [
+      {
+        type: "rewrite",
+        label: "Part A: Change Direct Speech into Reported Speech",
+        instructions: "Change each direct quote into reported speech. (Tip: use \"said that\", shift pronouns and tense back one step, change time/place words.)",
+        questions: [
+          'John said, "I am hungry."',
+          'Sarah said, "I have finished my homework."',
+          'Tom said, "I will visit my grandparents tomorrow."',
+          'Lisa said, "I like reading books."',
+          'The teacher said, "The test is on Friday."',
+          'Ben said, "I can swim very well."',
+          'Emma said, "I watched a movie yesterday."',
+          'David said, "I am studying for my exam."',
+          'Anna said, "I bought a new backpack last week."',
+          'The coach said, "You played very well today."'
+        ],
+        answers: [
+          "John said that he was hungry.",
+          "Sarah said that she had finished her homework.",
+          "Tom said that he would visit his grandparents the next day.",
+          "Lisa said that she liked reading books.",
+          "The teacher said that the test was on Friday.",
+          "Ben said that he could swim very well.",
+          "Emma said that she had watched a movie the day before.",
+          "David said that he was studying for his exam.",
+          "Anna said that she had bought a new backpack the week before.",
+          ["The coach said that we had played very well that day.", "The coach said that they had played very well that day."]
+        ]
+      },
+      {
+        type: "mistake",
+        label: "Part B: Find and Correct the Mistake",
+        instructions: "Fix the mistake in each sentence.",
+        questions: [
+          { text: "Sarah said that she is tired.", answer: "Sarah said that she was tired." },
+          { text: "Tom said that he will go to the store.", answer: "Tom said that he would go to the store." },
+          { text: "Lisa said that she have finished her project.", answer: "Lisa said that she had finished her project." },
+          { text: "Ben said that he can swims well.", answer: "Ben said that he could swim well." },
+          { text: "Emma said that she watch a movie the day before.", answer: "Emma said that she had watched a movie the day before." }
+        ]
+      },
+      {
+        type: "challenge_list",
+        label: "Challenge: Reported Speech Statements",
+        instructions: "Rewrite each direct quote as reported speech.",
+        questions: [
+          { prompt: 'Jack said, "I have never been to Canada."', answer: "Jack said that he had never been to Canada." },
+          { prompt: 'Mia said, "I am learning how to play the guitar."', answer: "Mia said that she was learning how to play the guitar." },
+          { prompt: 'The principal said, "School will begin at 8:30 tomorrow."', answer: "The principal said that school would begin at 8:30 the next day." },
+          { prompt: 'Noah said, "I forgot my homework today."', answer: "Noah said that he had forgotten his homework that day." },
+          { prompt: 'Olivia said, "My favorite subject is science."', answer: "Olivia said that her favorite subject was science." }
+        ]
+      }
+    ]
+  },
+  "M9#aH2$vF6tR4nL@": {
+    id: "6.3.4",
+    title: "Reflexive Pronouns",
+    sections: [
+      {
+        type: "mc",
+        label: "Part 1: Choose the Correct Reflexive Pronoun",
+        instructions: "Choose the correct reflexive pronoun to complete each sentence.",
+        questions: [
+          { text: "I taught __________ how to code.", options: ["himself", "myself", "yourself"], answer: "B" },
+          { text: "Sarah made the cake all by __________.", options: ["herself", "themselves", "itself"], answer: "A" },
+          { text: "The dog hurt __________ while jumping over the fence.", options: ["himself", "itself", "myself"], answer: "B" },
+          { text: "We enjoyed __________ at the amusement park.", options: ["ourselves", "yourselves", "themselves"], answer: "A" },
+          { text: "Did you paint the room by __________?", options: ["myself", "yourself", "himself"], answer: "B" },
+          { text: "The children cleaned the classroom by __________.", options: ["ourselves", "yourselves", "themselves"], answer: "C" },
+          { text: "He looked at __________ in the mirror.", options: ["himself", "herself", "itself"], answer: "A" },
+          { text: "My sister and I built the robot __________.", options: ["ourselves", "yourselves", "themselves"], answer: "A" },
+          { text: "The cat washed __________ after eating.", options: ["himself", "itself", "herself"], answer: "B" },
+          { text: "You should be proud of __________ for working so hard.", options: ["yourself", "myself", "himself"], answer: "A" }
+        ]
+      },
+      {
+        type: "fill",
+        label: "Part 2: Write the Reflexive Pronoun",
+        instructions: "Write the correct reflexive pronoun for each sentence.",
+        questions: [
+          { text: "She completed the project by __________. (she)", verb: "she" },
+          { text: "They taught __________ how to play chess. (they)", verb: "they" },
+          { text: "I made this model by __________. (I)", verb: "I" },
+          { text: "The bird injured __________ while flying. (it)", verb: "it" },
+          { text: "We prepared for the competition by __________. (we)", verb: "we" }
+        ],
+        answers: [
+          "herself",
+          "themselves",
+          "myself",
+          "itself",
+          "ourselves"
+        ]
+      }
+    ]
+  },
+  "K5$eQ8!zC3jW7pY*": {
+    id: "6.3.5",
+    title: "Reported Speech — Questions",
+    sections: [
+      {
+        type: "rewrite",
+        label: "Part 1: Change Questions into Reported Speech",
+        instructions: "Rewrite each question as reported speech. (Tip: change pronouns, tense, and time/place words; yes/no questions use \"if\" or \"whether\"; use reporting verb like asked, wanted to know, wondered.)",
+        questions: [
+          { q: "\"Where do you live?\" she asked.", a: "She asked where I lived." },
+          { q: "\"Are you ready for the test?\" the teacher asked.", a: "The teacher asked if I was ready for the test." },
+          { q: "\"Why were you late?\" my father asked.", a: "My father asked why I had been late." },
+          { q: "\"What is your favorite subject?\" the student asked me.", a: "The student asked me what my favorite subject was." },
+          { q: "\"Did they finish the project?\" the manager asked.", a: "The manager asked if they had finished the project." },
+          { q: "\"When will the bus arrive?\" the woman asked.", a: "The woman asked when the bus would arrive." },
+          { q: "\"Can you swim?\" the coach asked.", a: "The coach asked if I could swim." },
+          { q: "\"How did you solve the problem?\" the teacher asked.", a: "The teacher asked how I had solved the problem." },
+          { q: "\"Have you seen my book?\" Sarah asked.", a: "Sarah asked if I had seen her book." },
+          { q: "\"Who won the competition?\" Tom asked.", a: "Tom asked who had won the competition." }
+        ].map(item => item.q),
+        answers: [
+          "She asked where I lived.",
+          "The teacher asked if I was ready for the test.",
+          "My father asked why I had been late.",
+          "The student asked me what my favorite subject was.",
+          "The manager asked if they had finished the project.",
+          "The woman asked when the bus would arrive.",
+          "The coach asked if I could swim.",
+          "The teacher asked how I had solved the problem.",
+          "Sarah asked if I had seen her book.",
+          "Tom asked who had won the competition."
+        ]
+      },
+      {
+        type: "challenge_list",
+        label: "Challenge: Reported Speech Questions",
+        instructions: "Rewrite each question as reported speech.",
+        questions: [
+          { prompt: "Where are your parents? the police officer asked.", answer: "The police officer asked where my parents were." },
+          { prompt: "Will you help me tomorrow? my friend asked.", answer: ["My friend asked if I would help him the next day.", "My friend asked if I would help her the next day.", "My friend asked if I would help them the next day."] },
+          { prompt: "Why do you like science? the teacher asked.", answer: "The teacher asked why I liked science." },
+          { prompt: "Have they arrived yet? Mom asked.", answer: "Mom asked if they had arrived yet." },
+          { prompt: "What were you doing at 8:00 p.m.? the detective asked.", answer: "The detective asked what I had been doing at 8:00 p.m." }
         ]
       }
     ]
@@ -778,17 +1098,63 @@ function renderSavedKeys() {
 function renderQuizList() {
   const list = document.getElementById("quizList");
   const registered = getRegistered();
-  const entries = Object.values(registered);
+  const entries = Object.values(registered).sort((a, b) => a.id.localeCompare(b.id, undefined, { numeric: true }));
+
+  const countEl = document.getElementById("totalCount");
+  if (countEl) countEl.textContent = entries.length > 0 ? `(${entries.length} total)` : "";
 
   if (entries.length === 0) {
     list.innerHTML = "<li class='empty'>No quizzes registered yet. Enter a passkey above.</li>";
     return;
   }
 
-  list.innerHTML = entries.map(q => {
-    const when = q.registeredAt ? new Date(q.registeredAt).toLocaleString() : "—";
-    return `
-    <li>
+  const groups = {};
+  entries.forEach(q => {
+    const major = q.id.split(".").slice(0, 2).join("."); // "6.2.1" -> "6.2"
+    (groups[major] = groups[major] || []).push(q);
+  });
+  const groupKeys = Object.keys(groups).sort();
+
+  if (groupKeys.length === 1) {
+    list.innerHTML = groups[groupKeys[0]].map(q => renderQuizItem(q)).join("");
+  } else {
+    list.innerHTML = groupKeys.map(g => `
+      <li class="quiz-group">
+        <div class="quiz-group-header" data-group="${g}">
+          <span class="quiz-group-arrow">▶</span>
+          <span class="quiz-group-title">Unit ${g}</span>
+          <span class="quiz-group-count">${groups[g].length} quiz${groups[g].length === 1 ? "" : "zes"}</span>
+        </div>
+        <ul class="quiz-group-list" data-group-list="${g}" style="display:none;">
+          ${groups[g].map(q => renderQuizItem(q)).join("")}
+        </ul>
+      </li>
+    `).join("");
+
+    list.querySelectorAll(".quiz-group-header").forEach(h => {
+      h.addEventListener("click", () => {
+        const g = h.dataset.group;
+        const sub = list.querySelector(`[data-group-list="${g}"]`);
+        const arrow = h.querySelector(".quiz-group-arrow");
+        const open = sub.style.display !== "none";
+        sub.style.display = open ? "none" : "block";
+        arrow.textContent = open ? "▶" : "▼";
+      });
+    });
+  }
+
+  list.querySelectorAll(".btn-open").forEach(btn => {
+    btn.addEventListener("click", () => openQuiz(btn.dataset.id));
+  });
+  list.querySelectorAll(".btn-remove").forEach(btn => {
+    btn.addEventListener("click", () => removeQuiz(btn.dataset.id));
+  });
+}
+
+function renderQuizItem(q) {
+  const when = q.registeredAt ? new Date(q.registeredAt).toLocaleString() : "—";
+  return `
+    <li class="quiz-item">
       <div class="quiz-info">
         <div class="quiz-title">${q.title}</div>
         <div class="quiz-meta">Quiz ${q.id} • ${q.sections.length} sections • Registered: ${when}</div>
@@ -798,14 +1164,6 @@ function renderQuizList() {
         <button class="btn btn-remove" data-id="${q.id}">Remove</button>
       </div>
     </li>`;
-  }).join("");
-
-  list.querySelectorAll(".btn-open").forEach(btn => {
-    btn.addEventListener("click", () => openQuiz(btn.dataset.id));
-  });
-  list.querySelectorAll(".btn-remove").forEach(btn => {
-    btn.addEventListener("click", () => removeQuiz(btn.dataset.id));
-  });
 }
 
 function removeQuiz(id) {
@@ -844,7 +1202,11 @@ function attemptRegister() {
 }
 
 function normalize(s) {
-  return s.trim().toLowerCase().replace(/[.,!?;:]/g, "").replace(/\s+/g, " ");
+  return s.trim().toLowerCase()
+    .replace(/[.,!?;:"]/g, "")
+    .replace(/\b(the|a|an)\b/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function buildQuizContent(quiz) {
@@ -854,10 +1216,20 @@ function buildQuizContent(quiz) {
 
   quiz.sections.forEach(section => {
     if (section.type === "challenge") {
-      html += `<h2>Challenge</h2>`;
+      html += `<h2>${section.label || "Challenge"}</h2>`;
       html += `<p style="font-style:italic;color:#666;">${section.instructions}</p>`;
       html += `<p><strong>"${section.prompt}"</strong></p>`;
       html += `<input type="text" class="answer-input" id="challenge-answer" placeholder="Your answer...">`;
+    } else if (section.type === "challenge_list") {
+      html += `<h2>${section.label || "Challenge"}</h2>`;
+      html += `<p style="font-style:italic;color:#666;">${section.instructions}</p>`;
+      section.questions.forEach((q, i) => {
+        html += `<div class="question">
+          <strong>${i + 1}.</strong> <em>"${q.prompt}"</em>
+          <input type="text" class="answer-input" data-section="${quiz.sections.indexOf(section)}" data-index="${i}" placeholder="Your answer...">
+        </div>`;
+      });
+      partNum++;
     } else {
       const label = section.label ||
                     (section.type === "rewrite" ? `Part ${partNum}: Rewrite` :
@@ -1063,13 +1435,31 @@ function checkAnswers() {
       total += 1;
       const input = document.getElementById("challenge-answer");
       const userAns = input.value.trim();
-      const isCorrect = normalize(userAns) === normalize(section.answer);
+      const accepted = Array.isArray(section.answer) ? section.answer : [section.answer];
+      const isCorrect = accepted.some(a => normalize(userAns) === normalize(a));
       if (isCorrect) correct++;
+      const displayAns = accepted.length === 1 ? accepted[0] : accepted.join("  OR  ");
       html += `<h3>Challenge</h3>
         <div class="result-item">
           Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
-          ${!isCorrect ? `<br>Correct: <span class="correct">${section.answer}</span>` : ""}
+          ${!isCorrect ? `<br>Accepted: <span class="correct">${displayAns}</span>` : ""}
         </div>`;
+    } else if (section.type === "challenge_list") {
+      total += section.questions.length;
+      html += `<h3>${section.label || "Challenge"}</h3>`;
+      document.querySelectorAll(`[data-section="${sIdx}"]`).forEach(input => {
+        const idx = parseInt(input.dataset.index);
+        const userAns = input.value.trim();
+        const q = section.questions[idx];
+        const accepted = Array.isArray(q.answer) ? q.answer : [q.answer];
+        const isCorrect = accepted.some(a => normalize(userAns) === normalize(a));
+        if (isCorrect) correct++;
+        const displayAns = accepted.length === 1 ? accepted[0] : accepted.join("  OR  ");
+        html += `<div class="result-item">
+          <strong>${idx + 1}.</strong> Your answer: <span class="${isCorrect ? 'correct' : 'incorrect'}">${userAns || "(blank)"}</span>
+          ${!isCorrect ? `<br>Accepted: <span class="correct">${displayAns}</span>` : ""}
+        </div>`;
+      });
     } else if (section.type === "mistake") {
       total += section.questions.length;
       html += `<h3>Part: Find the Mistake</h3>`;
@@ -1087,8 +1477,9 @@ function checkAnswers() {
         </div>`;
       });
     } else if (section.type === "short") {
-      html += `<h3>Part: Short Answer (Self-check)</h3>`;
-      html += `<p style="font-style:italic;color:#666;font-size:0.9em;margin-bottom:10px;">Free response — review your own work. Make sure each sentence is grammatically correct and uses the target structure.</p>`;
+      const isSelfCheck = section.self_check === true;
+      html += `<h3>${section.label || "Part: Short Answer"} ${isSelfCheck ? "(Self-check)" : "(Self-check)"}</h3>`;
+      html += `<p style="font-style:italic;color:#666;font-size:0.9em;margin-bottom:10px;">Free response — review your own work. ${isSelfCheck ? "These answers are subjective and are not auto-judged." : "Make sure each sentence is grammatically correct and uses the target structure."}</p>`;
       section.prompts.forEach((p, i) => {
         const input = document.querySelector(`[data-section="${sIdx}"][data-index="${i}"]`);
         const userAns = input ? input.value.trim() : "";
@@ -1096,10 +1487,12 @@ function checkAnswers() {
         const hasHad = /had\s+\w+ed|had\s+\w+en|had\s+gone|had\s+eaten|had\s+done|had\s+seen|had\s+taken|had\s+been|had\s+run|had\s+won|had\s+given|had\s+made|had\s+read|had\s+written/i.test(userAns);
         const targetWord = (p.match(/(who|which|where|that)\s*→/) || [])[1];
         const hasTarget = targetWord ? new RegExp("\\b" + targetWord + "\\b", "i").test(userAns) : hasHad;
-        const cls = !hasContent ? "incorrect" : (hasTarget ? "correct" : "incorrect");
+        const cls = isSelfCheck
+          ? (hasContent ? "correct" : "incorrect")
+          : (!hasContent ? "incorrect" : (hasTarget ? "correct" : "incorrect"));
         const hint = !hasContent
           ? `<br><span style="color:#888;font-size:0.85em;">No answer given.</span>`
-          : (!hasTarget
+          : (!isSelfCheck && !hasTarget
               ? `<br><span style="color:#dc3545;font-size:0.85em;">⚠ Did you include "${targetWord || 'had + past participle'}" in your sentence?</span>`
               : "");
         html += `<div class="result-item">
@@ -1139,7 +1532,17 @@ renderSavedKeys();
 renderQuizList();
 
 if (window.top !== window.self) {
-  try { window.top.location = window.self.location.href; } catch (_) {}
+  // Loaded inside an iframe (e.g. VS Code Live Preview).
+  // Suppress the cross-origin navigation attempt that would otherwise
+  // log a noisy 'Unsafe attempt to load URL' error to the console.
+  // Inside an iframe, localStorage may be sandboxed per-frame; warn quietly.
+  try {
+    const ls = window.self.localStorage;
+    if (!ls) {
+      document.body.insertAdjacentHTML("afterbegin",
+        "<div style='background:#fff3cd;color:#856404;padding:10px 20px;text-align:center;font-size:0.9em;border-bottom:1px solid #ffeeba;'>⚠ This page is inside an iframe. localStorage may not work. Open in a new tab.</div>");
+    }
+  } catch (_) {}
 }
 </script>
 
