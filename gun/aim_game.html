@@ -1,0 +1,3327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="data:,">
+<title>Aiming Range</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --ui-scale: 1;
+    --accent: #ffeb3b;
+    --accent-red: #ff5252;
+    --accent-green: #4caf50;
+    --accent-blue: #43a4ff;
+    --accent-purple: #9a5cff;
+    --accent-orange: #ff9b36;
+  }
+
+  html, body {
+    height: 100%;
+    overflow: hidden;
+  }
+  body {
+    background: #0a0a14;
+    color: #f4f4f4;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+    text-align: center;
+    overflow: hidden;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #wrap { width: 100vw; height: 100vh; position: relative; }
+
+  /* ====== Screen base ====== */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 3vmin, 40px);
+    overflow-y: auto;
+  }
+  .screen.active {
+    display: flex;
+    animation: fadeIn 0.4s ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ====== Animated background particles (intro/menu/rpg) ====== */
+  .screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(255,235,59,0.04) 0, transparent 30%),
+      radial-gradient(circle at 80% 70%, rgba(255,82,82,0.04) 0, transparent 30%),
+      radial-gradient(circle at 50% 50%, rgba(67,164,255,0.03) 0, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ====== Typography ====== */
+  h1 {
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: linear-gradient(135deg, #ffeb3b 0%, #ff9b36 50%, #ff5252 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    filter: drop-shadow(0 4px 16px rgba(255, 82, 82, 0.45));
+    margin-bottom: 0.6em;
+  }
+  h2 {
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  /* ====== Buttons (shared) ====== */
+  button, .btn {
+    font-family: inherit;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    border-radius: 12px;
+    padding: 14px 28px;
+    color: #fff;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.4);
+    transition: transform 0.15s, box-shadow 0.2s, filter 0.15s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  button:hover, .btn:hover { transform: translateY(-2px); filter: brightness(1.15); }
+  button:active, .btn:active { transform: translateY(1px); }
+  button.primary, .btn.primary {
+    background: linear-gradient(135deg, #ff5252, #ff9b36);
+    box-shadow: 0 6px 20px rgba(255,82,82,0.4), inset 0 1px rgba(255,255,255,0.25);
+  }
+  button.success, .btn.success {
+    background: linear-gradient(135deg, #4caf50, #43a4ff);
+    box-shadow: 0 6px 20px rgba(76,175,80,0.4), inset 0 1px rgba(255,255,255,0.25);
+  }
+
+  /* ====== INTRO SCREEN ====== */
+  #intro {
+    background:
+      radial-gradient(ellipse 80% 60% at 50% 0%, rgba(255,82,82,0.18), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(67,164,255,0.18), transparent 60%),
+      linear-gradient(180deg, #0a0a14 0%, #14142a 50%, #0a0a14 100%);
+  }
+  #intro .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 900px;
+    width: 92vw;
+  }
+  #intro .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,82,82,0.12);
+    border: 1px solid rgba(255,82,82,0.4);
+    color: #ff8a80;
+    font-size: clamp(10px, 1.3vmin, 13px);
+    padding: 6px 14px;
+    border-radius: 100px;
+    margin-bottom: 16px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #intro .badge::before {
+    content: '';
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #ff5252;
+    box-shadow: 0 0 8px #ff5252;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+  #intro h1 {
+    font-size: clamp(48px, 10vmin, 110px);
+    margin: 0 0 6px;
+    line-height: 1;
+  }
+  #intro .tagline {
+    font-size: clamp(14px, 2vmin, 20px);
+    color: #b0b0c0;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 24px;
+  }
+  #intro .objectives {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 14px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+  .objCard {
+    background: linear-gradient(135deg, rgba(20,20,40,0.8), rgba(10,10,20,0.6));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-left: 3px solid var(--accent-red);
+    padding: 16px 18px;
+    border-radius: 8px;
+    text-align: left;
+    backdrop-filter: blur(8px);
+    transition: transform 0.2s, border-color 0.2s;
+  }
+  .objCard:nth-child(2) { border-left-color: var(--accent-blue); }
+  .objCard:nth-child(3) { border-left-color: var(--accent); }
+  .objCard:nth-child(4) { border-left-color: var(--accent-purple); }
+  .objCard .objTitle {
+    font-size: clamp(11px, 1.4vmin, 13px);
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .objCard .objBody {
+    font-size: clamp(13px, 1.9vmin, 17px);
+    color: #e0e0e8;
+    line-height: 1.45;
+  }
+  .objCard .objBody b { color: var(--accent); }
+  #intro .loadout {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .loadoutItem {
+    text-align: center;
+    background: linear-gradient(180deg, rgba(20,20,40,0.6), rgba(10,10,20,0.4));
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 12px 20px;
+    backdrop-filter: blur(8px);
+  }
+  .loadoutItem img {
+    width: clamp(52px, 9vmin, 80px);
+    height: clamp(52px, 9vmin, 80px);
+    image-rendering: pixelated;
+    filter: drop-shadow(0 4px 12px rgba(255, 235, 59, 0.4));
+  }
+  .loadoutItem small {
+    display: block;
+    color: #888;
+    font-size: clamp(10px, 1.3vmin, 13px);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  #intro .controls {
+    color: #888;
+    font-size: clamp(12px, 1.6vmin, 15px);
+    margin-bottom: 24px;
+  }
+  #intro .controls .key {
+    color: var(--accent);
+    background: rgba(255,235,59,0.08);
+    padding: 2px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,235,59,0.25);
+    margin: 0 2px;
+    font-weight: 700;
+  }
+  #intro .startBtn {
+    padding: clamp(14px, 2.5vmin, 20px) clamp(32px, 7vmin, 60px);
+    font-size: clamp(16px, 2.5vmin, 22px);
+    letter-spacing: 3px;
+    background: linear-gradient(135deg, #ff5252 0%, #ff9b36 100%);
+    box-shadow: 0 8px 30px rgba(255,82,82,0.5), inset 0 1px rgba(255,255,255,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  #intro .startBtn::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    animation: shine 2.5s ease-in-out infinite;
+  }
+  @keyframes shine { 0% { left: -100%; } 50%, 100% { left: 200%; } }
+
+  /* ====== MENU SCREEN ====== */
+  #menu {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 20%, rgba(67,164,255,0.15), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 80%, rgba(255,82,82,0.1), transparent 60%),
+      linear-gradient(180deg, #0a0f1c 0%, #050811 100%);
+  }
+  #menu .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #menu h1 {
+    font-size: clamp(40px, 8vmin, 90px);
+    margin: 0 0 8px;
+  }
+  #menu .sub {
+    color: #888;
+    font-size: clamp(13px, 1.8vmin, 18px);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  #menu .highScore {
+    color: var(--accent);
+    font-size: clamp(13px, 1.7vmin, 16px);
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 0 14px rgba(255,235,59,0.4);
+    margin-bottom: 14px;
+  }
+  #menu .hint {
+    color: #777;
+    font-size: clamp(11px, 1.5vmin, 14px);
+    margin-bottom: 24px;
+  }
+  #menu .hint b { color: var(--accent); }
+  #levels {
+    display: grid;
+    grid-template-columns: repeat(5, clamp(72px, 13vmin, 130px));
+    gap: clamp(10px, 1.8vmin, 18px);
+    max-width: 900px;
+    width: 92vw;
+  }
+  .lvl {
+    position: relative;
+    background: linear-gradient(160deg, rgba(20,30,45,0.85), rgba(10,15,25,0.7));
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: clamp(16px, 3vmin, 30px) 0;
+    font-size: clamp(18px, 3vmin, 26px);
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+    color: #e0e0e8;
+    text-shadow: 1px 1px 0 #000;
+    overflow: hidden;
+  }
+  .lvl::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent, rgba(255,235,59,0.15), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .lvl small {
+    display: block;
+    font-size: clamp(9px, 1.2vmin, 12px);
+    color: #888;
+    margin-top: 4px;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .lvl:hover { border-color: rgba(255,235,59,0.4); transform: translateY(-2px); }
+  .lvl.selected {
+    border-color: var(--accent);
+    transform: scale(1.06);
+    box-shadow: 0 0 24px rgba(255,235,59,0.5), inset 0 0 20px rgba(255,235,59,0.15);
+    background: linear-gradient(160deg, rgba(60,50,10,0.9), rgba(30,25,5,0.7));
+  }
+  .lvl.selected::before { opacity: 1; }
+  .lvl.sniper { border-color: rgba(67,164,255,0.4); }
+  .lvl.sniper.selected { border-color: var(--accent-blue); box-shadow: 0 0 24px rgba(67,164,255,0.5); }
+  .lvl.rpg { border-color: rgba(255,82,82,0.4); }
+  .lvl.rpg.selected { border-color: var(--accent-red); box-shadow: 0 0 24px rgba(255,82,82,0.5); }
+  .typeChip {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 8px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    color: #000;
+    background: var(--accent-blue);
+    box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  }
+  .typeChip.rpg { background: var(--accent-red); color: #fff; }
+  .typeChip.range { background: #4caf50; color: #fff; }
+  .typeChip.locked { background: #555; color: #bbb; }
+  .lvlNum {
+    display: block;
+    font-size: clamp(16px, 2.6vmin, 22px);
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-shadow: 1px 1px 0 #000;
+  }
+  .lvlNum.locked { color: #999; }
+  .lvlStars {
+    display: block;
+    font-size: clamp(11px, 1.6vmin, 14px);
+    letter-spacing: 2px;
+    margin-top: 4px;
+    color: var(--accent);
+    text-shadow: 0 0 8px rgba(255,235,59,0.6);
+    min-height: 14px;
+  }
+  .lvlLock { display: none; }
+  .lvl.locked {
+    border-color: rgba(255,255,255,0.07);
+    background: linear-gradient(160deg, rgba(15,18,26,0.5), rgba(8,10,16,0.4));
+    filter: grayscale(0.6);
+    cursor: not-allowed;
+  }
+  .lvl.locked:hover { transform: none; border-color: rgba(255,255,255,0.07); }
+  .lvl.locked .typeChip.locked { display: block; }
+  #menuHint {
+    margin-top: 24px;
+    color: #888;
+    font-size: clamp(12px, 1.6vmin, 15px);
+  }
+  #menuHint b { color: var(--accent); }
+  #menu .menuPlayer {
+    color: var(--accent-green);
+    font-size: clamp(12px, 1.7vmin, 16px);
+    font-weight: 800;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    text-shadow: 0 0 12px rgba(76,175,80,0.5);
+    margin-bottom: 10px;
+  }
+
+  /* ====== ACCOUNTS SCREEN ====== */
+  #accounts {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 20%, rgba(76,175,80,0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 80%, rgba(255,235,59,0.08), transparent 60%),
+      linear-gradient(180deg, #0a160e 0%, #050a07 100%);
+  }
+  #accounts .stage, #name .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #accounts h1, #name h1 { font-size: clamp(34px, 7vmin, 70px); margin: 0 0 6px; }
+  #acctList {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(8px, 1.4vmin, 14px);
+    width: min(600px, 92vw);
+    margin: clamp(10px, 2vmin, 20px) 0;
+  }
+  .acctRow {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: clamp(12px, 2vmin, 18px) clamp(16px, 2.4vmin, 22px);
+    background: linear-gradient(160deg, rgba(20,34,24,0.85), rgba(10,15,12,0.7));
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    color: #e0e0e8;
+    text-shadow: 1px 1px 0 #000;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.2s, box-shadow 0.2s;
+  }
+  .acctRow.new { border-style: dashed; }
+  .acctRow:hover { border-color: rgba(255,235,59,0.4); transform: translateY(-2px); }
+  .acctRow.selected {
+    border-color: var(--accent);
+    transform: scale(1.04);
+    box-shadow: 0 0 24px rgba(255,235,59,0.45), inset 0 0 20px rgba(255,235,59,0.12);
+    background: linear-gradient(160deg, rgba(50,46,12,0.9), rgba(26,24,7,0.7));
+  }
+  .acctRow .acctName {
+    font-weight: 900;
+    font-size: clamp(15px, 2.4vmin, 22px);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+  .acctRow .acctMeta {
+    color: #8aa;
+    font-size: clamp(10px, 1.4vmin, 13px);
+    font-weight: 600;
+    letter-spacing: 1px;
+  }
+  .acctRow .acctActive {
+    position: absolute;
+    top: 4px;
+    right: 10px;
+    color: var(--accent-green);
+    font-size: clamp(8px, 1.2vmin, 11px);
+    font-weight: 900;
+    letter-spacing: 2px;
+    text-shadow: 0 0 8px rgba(76,175,80,0.8);
+  }
+  .acctRow .acctDel {
+    color: var(--accent-red);
+    font-weight: 900;
+    letter-spacing: 1px;
+    font-size: clamp(10px, 1.3vmin, 13px);
+  }
+  .acctHint {
+    margin-top: clamp(8px, 1.5vmin, 16px);
+    color: #888;
+    font-size: clamp(11px, 1.6vmin, 15px);
+  }
+  .acctHint b { color: var(--accent); }
+
+  /* ====== NAME / VIRTUAL KEYBOARD SCREEN ====== */
+  #name {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 20%, rgba(67,164,255,0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 80%, rgba(255,82,82,0.08), transparent 60%),
+      linear-gradient(180deg, #0a0f1c 0%, #050811 100%);
+  }
+  #namePreview {
+    min-height: clamp(40px, 6vmin, 56px);
+    width: min(560px, 90vw);
+    margin-top: clamp(8px, 1.5vmin, 16px);
+    padding: 6px 14px;
+    border-bottom: 3px solid rgba(255,235,59,0.4);
+    font-size: clamp(22px, 4.4vmin, 40px);
+    font-weight: 900;
+    letter-spacing: 10px;
+    text-transform: uppercase;
+    color: #fff;
+    text-shadow: 0 0 14px rgba(255,235,59,0.35);
+    display: flex;
+    justify-content: center;
+  }
+  #kbGrid {
+    display: grid;
+    grid-template-columns: repeat(10, clamp(30px, 5.6vmin, 56px));
+    grid-auto-rows: clamp(32px, 6vmin, 56px);
+    gap: clamp(4px, 0.8vmin, 8px);
+    margin-top: clamp(14px, 2.4vmin, 24px);
+  }
+  .kbKey {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: clamp(12px, 1.8vmin, 18px);
+    background: linear-gradient(160deg, rgba(30,42,60,0.9), rgba(16,22,34,0.85));
+    border: 2px solid rgba(255,255,255,0.12);
+    border-radius: 9px;
+    color: #e8f0ff;
+    cursor: pointer;
+    text-shadow: 1px 1px 0 #000;
+    transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  }
+  .kbKey:hover { border-color: rgba(255,235,59,0.4); transform: scale(1.06); }
+  .kbKey.selected {
+    border-color: var(--accent);
+    transform: scale(1.1);
+    background: linear-gradient(160deg, rgba(90,72,12,0.95), rgba(46,38,8,0.9));
+    box-shadow: 0 0 16px rgba(255,235,59,0.5), inset 0 0 12px rgba(255,235,59,0.15);
+  }
+  .kbKey.wide { grid-column: span 2; }
+  .kbKey.special {
+    background: linear-gradient(160deg, rgba(90,44,44,0.9), rgba(52,22,22,0.85));
+    font-size: clamp(14px, 2.2vmin, 22px);
+  }
+  .kbKey.ok {
+    background: linear-gradient(160deg, rgba(30,90,40,0.95), rgba(18,52,26,0.9));
+    font-size: clamp(14px, 2.2vmin, 22px);
+  }
+  .kbKey.disabled { opacity: 0.35; pointer-events: none; }
+  #namePreview .cur {
+    color: var(--accent);
+    animation: blinkC 1s steps(2) infinite;
+  }
+  @keyframes blinkC { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+  #namePreview.ready { border-bottom-color: var(--accent-green); }
+
+  /* ====== GAME SCREEN ====== */
+  #game { background: #87ceeb; }
+  #gameUI {
+    position: absolute;
+    top: clamp(8px, 1.5vmin, 14px);
+    left: clamp(8px, 1.5vmin, 14px);
+    right: clamp(8px, 1.5vmin, 14px);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    font-size: clamp(13px, 2vmin, 18px);
+    text-shadow: 2px 2px 0 #000;
+    z-index: 10;
+    pointer-events: none;
+    gap: 12px;
+  }
+  .hudPanel {
+    background: linear-gradient(135deg, rgba(7,17,29,0.9), rgba(7,17,29,0.6));
+    border: 1px solid rgba(255,235,59,0.4);
+    border-radius: 12px;
+    padding: 8px 14px;
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+    color: var(--accent);
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .hudPanel .sub { color: #aaa; font-weight: 400; font-size: 0.8em; letter-spacing: 0; }
+  .hudPanel.left { border-left: 4px solid var(--accent-red); }
+  .hudPanel.center { border-left: 4px solid var(--accent); }
+  .hudPanel.right { border-left: 4px solid var(--accent-blue); }
+  #ammo { display: none; }
+  #ammoArea {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  #magIconRow { display: flex; flex-direction: row; gap: 3px; }
+  #magIconRow img {
+    width: clamp(22px, 4.6vmin, 38px);
+    height: clamp(22px, 4.6vmin, 38px);
+    image-rendering: pixelated;
+    opacity: 1;
+    transition: opacity 0.2s, filter 0.2s;
+    filter: drop-shadow(0 2px 4px rgba(255,235,59,0.4));
+  }
+  #magIconRow img.empty { opacity: 0.25; filter: grayscale(1); }
+  #bulletIconRow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 2px;
+    width: clamp(120px, 25vmin, 240px);
+    margin-top: 3px;
+  }
+  #bulletIconRow img {
+    width: clamp(10px, 1.8vmin, 18px);
+    height: clamp(10px, 1.8vmin, 18px);
+    object-fit: contain;
+    image-rendering: pixelated;
+    opacity: 0.85;
+    transition: opacity 0.1s;
+  }
+  #bulletIconRow img.empty { opacity: 0.15; }
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.25; }
+  }
+  #lvlLabel { color: var(--accent-red); }
+  canvas { display: block; }
+
+  /* ====== RPG SELECT SCREEN ====== */
+  #rpgSelect {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 25%, rgba(154,92,255,0.25), transparent 60%),
+      radial-gradient(ellipse 80% 60% at 50% 100%, rgba(255,82,82,0.15), transparent 60%),
+      linear-gradient(180deg, #0c0a1c 0%, #050510 100%);
+  }
+  #rpgSelect .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  #rpgSelect h2 {
+    color: var(--accent);
+    font-size: clamp(36px, 7vmin, 70px);
+    text-shadow: 3px 3px 0 #000, 0 0 30px rgba(255,207,76,0.4);
+    margin-bottom: 8px;
+  }
+  #rpgSelect .rpgSub {
+    color: #b0b0c8;
+    font-size: clamp(13px, 1.9vmin, 18px);
+    margin-bottom: 24px;
+  }
+  #rpgSelect .rpgSub b { color: var(--accent); }
+  #rpgLoadouts {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: clamp(12px, 2.2vmin, 22px);
+    width: min(960px, 92vw);
+  }
+  .rpgLoadout {
+    position: relative;
+    width: clamp(160px, 20vmin, 200px);
+    min-height: clamp(240px, 30vmin, 280px);
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgba(30,25,55,0.92), rgba(15,12,30,0.85));
+    padding: 18px 14px;
+    text-align: center;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    overflow: hidden;
+  }
+  .rpgLoadout::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 30%, rgba(255,207,76,0.2) 50%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .rpgLoadout:hover { border-color: var(--acc, rgba(255,207,76,0.5)); transform: translateY(-3px); }
+  .rpgLoadout:hover::before { opacity: 1; }
+  .rpgLoadout.selected {
+    transform: scale(1.06);
+    border-color: var(--acc, var(--accent));
+    box-shadow: 0 0 36px var(--acc, rgba(255,207,76,0.55)), inset 0 0 24px var(--acc, rgba(255,207,76,0.18));
+  }
+  .rpgLoadout.selected::before { opacity: 1; }
+  .rpgTube {
+    width: clamp(28px, 5vmin, 36px);
+    height: clamp(80px, 14vmin, 100px);
+    margin: 6px auto 12px;
+    border: clamp(3px, 0.6vmin, 5px) solid #d5e1df;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #56666a, #becfc8 45%, #516269);
+    transform: rotate(30deg);
+    box-shadow: inset 0 0 8px rgba(0,0,0,0.5), 0 0 18px var(--acc, transparent);
+  }
+  .rpgLoadoutName {
+    display: block;
+    color: var(--acc, var(--accent));
+    font-size: clamp(20px, 3vmin, 26px);
+    margin: 6px 0 4px;
+    letter-spacing: 2px;
+    font-weight: 900;
+    text-shadow: 0 0 12px var(--acc, rgba(255,207,76,0.4));
+  }
+  .rpgLoadoutHint {
+    display: block;
+    color: #9090a8;
+    font-size: clamp(11px, 1.5vmin, 13px);
+    margin-bottom: 14px;
+    font-style: italic;
+  }
+  .rpgStats {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: auto;
+  }
+  .rpgStat {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(10px, 1.4vmin, 13px);
+    color: #d0dae5;
+  }
+  .rpgStatLabel {
+    flex: 0 0 56px;
+    text-align: right;
+    color: #7a8696;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: clamp(9px, 1.2vmin, 11px);
+  }
+  .rpgStatBar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .rpgStatFill {
+    height: 100%;
+    background: linear-gradient(90deg, #ffcf4c, #ff9b36);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    box-shadow: 0 0 8px rgba(255,207,76,0.4);
+  }
+  .rpgStatFill.damage { background: linear-gradient(90deg, #ff4f83, #ff9b36); box-shadow: 0 0 8px rgba(255,79,131,0.4); }
+  .rpgStatFill.speed  { background: linear-gradient(90deg, #43a4ff, #9a5cff); box-shadow: 0 0 8px rgba(67,164,255,0.4); }
+  .rpgStatValue {
+    flex: 0 0 36px;
+    text-align: right;
+    font-weight: 800;
+    color: #fff;
+    font-size: clamp(10px, 1.3vmin, 12px);
+  }
+  .rpgSelectHint {
+    margin-top: 24px;
+    color: var(--accent);
+    font-size: clamp(12px, 1.7vmin, 15px);
+    letter-spacing: 1px;
+  }
+
+  /* ====== CROSSHAIR ====== */
+  #crosshair {
+    position: absolute;
+    width: clamp(28px, 5vmin, 48px);
+    height: clamp(28px, 5vmin, 48px);
+    pointer-events: none;
+    transform: translate(-50%, -50%);
+    z-index: 20;
+    filter: drop-shadow(0 0 4px rgba(0,0,0,0.9));
+  }
+  #crosshair::before, #crosshair::after {
+    content: '';
+    position: absolute;
+    background: #00ff66;
+    box-shadow: 0 0 3px #00ff66;
+  }
+  #crosshair::before { left: calc(50% - 1px); top: 0; bottom: 0; width: 2px; }
+  #crosshair::after  { top: calc(50% - 1px); left: 0; right: 0; height: 2px; }
+  #crosshair .dot {
+    position: absolute;
+    left: 50%; top: 50%;
+    width: 5px; height: 5px;
+    background: #00ff66;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 6px #00ff66;
+  }
+  /* Sniper-mode crosshair (fatter with ring) */
+  body.sniper #crosshair { display: none; }
+  body.sniper #crosshair::before,
+  body.sniper #crosshair::after { background: var(--accent); box-shadow: 0 0 4px var(--accent); }
+  body.sniper #crosshair .dot { background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+
+  /* ====== RESULT SCREEN ====== */
+  #result {
+    background:
+      radial-gradient(ellipse 60% 40% at 50% 30%, rgba(255,235,59,0.12), transparent 60%),
+      radial-gradient(ellipse 60% 40% at 50% 80%, rgba(76,175,80,0.12), transparent 60%),
+      linear-gradient(180deg, rgba(0,0,0,0.96), rgba(15,15,30,0.96));
+  }
+  #result .stage {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 800px;
+    width: 92vw;
+  }
+  #result h2 {
+    color: var(--accent);
+    font-size: clamp(40px, 8vmin, 80px);
+    margin-bottom: 10px;
+    text-shadow: 4px 4px 0 #000, 0 0 30px rgba(255,235,59,0.5);
+  }
+  #resultGrade {
+    font-size: clamp(90px, 20vmin, 170px);
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 2px;
+    color: var(--accent);
+    text-shadow: 0 0 40px rgba(255,235,59,0.6), 0 6px 0 rgba(0,0,0,0.4);
+    animation: gradePop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+  }
+  @keyframes gradePop { from { transform: scale(2.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  #resultMission {
+    color: #b0b0c8;
+    font-size: clamp(14px, 2vmin, 18px);
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+  #resultMission.completed { color: var(--accent-green); }
+  #resultMission.failed { color: var(--accent-red); }
+  #resultStars {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 8px;
+    font-size: clamp(30px, 6vmin, 46px);
+  }
+  .resultStar { color: #444; filter: grayscale(1); transition: color 0.3s, transform 0.3s; }
+  .resultStar.on { color: var(--accent); filter: none; text-shadow: 0 0 18px rgba(255,235,59,0.8); transform: scale(1.1); }
+  #resultExtra {
+    color: #ffcf4c;
+    font-size: clamp(12px, 1.7vmin, 16px);
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 12px;
+    min-height: 16px;
+  }
+  #result .stats {
+    display: flex;
+    gap: clamp(12px, 2vmin, 24px);
+    justify-content: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+  }
+  .statBox {
+    background: linear-gradient(135deg, rgba(20,20,40,0.7), rgba(10,10,20,0.5));
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: clamp(12px, 2vmin, 18px) clamp(20px, 4vmin, 36px);
+    backdrop-filter: blur(8px);
+    min-width: clamp(80px, 16vmin, 140px);
+  }
+  .statBox .label {
+    color: #888;
+    font-size: clamp(10px, 1.3vmin, 13px);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .statBox .value {
+    color: var(--accent);
+    font-size: clamp(20px, 4vmin, 36px);
+    font-weight: 900;
+  }
+  .resultActions {
+    display: flex;
+    gap: clamp(12px, 2vmin, 24px);
+    margin-top: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  .actionCard {
+    background: linear-gradient(160deg, rgba(20,20,40,0.9), rgba(10,10,20,0.7));
+    border: 3px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: clamp(14px, 2.5vmin, 22px) clamp(20px, 4vmin, 32px);
+    min-width: clamp(140px, 22vmin, 220px);
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+    backdrop-filter: blur(8px);
+  }
+  .actionCard:hover { border-color: rgba(255,235,59,0.4); transform: translateY(-2px); }
+  .actionCard.actionSelected {
+    border-color: var(--accent);
+    transform: scale(1.05);
+    box-shadow: 0 0 24px rgba(255,235,59,0.5);
+    background: linear-gradient(160deg, rgba(60,50,10,0.9), rgba(30,25,5,0.7));
+  }
+  .actionLabel {
+    color: #fff;
+    font-size: clamp(15px, 2.2vmin, 22px);
+    margin-bottom: 8px;
+    letter-spacing: 2px;
+    font-weight: 700;
+  }
+  .actionBtn {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-red), #ff9b36);
+    color: #fff;
+    font-size: clamp(12px, 1.8vmin, 18px);
+    padding: 6px 14px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    text-shadow: 1px 1px 0 #000;
+    font-weight: 700;
+    letter-spacing: 1px;
+  }
+  .actionCard.actionSelected .actionBtn { background: var(--accent); color: #000; }
+  .actionHint {
+    color: #888;
+    font-size: clamp(10px, 1.3vmin, 13px);
+    font-family: monospace;
+  }
+  #result .resultNavHint {
+    margin-top: 20px;
+    color: #888;
+    font-size: clamp(11px, 1.5vmin, 14px);
+  }
+
+  /* ====== Utility ====== */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div id="wrap">
+
+  <!-- INTRO -->
+  <div id="intro" class="screen active">
+    <div class="stage">
+      <div class="badge">Range Ready</div>
+      <h1>AIM RANGE</h1>
+      <div class="tagline">Shoot · Reload · Survive</div>
+      <div class="objectives">
+        <div class="objCard">
+          <div class="objTitle">Goal</div>
+          <div class="objBody">Hit every target before you run out of mags.</div>
+        </div>
+        <div class="objCard">
+          <div class="objTitle">Reloads</div>
+          <div class="objBody">Each level has a limited number of mags — <b>yellow icons</b> show what's left.</div>
+        </div>
+        <div class="objCard">
+          <div class="objTitle">Sniper</div>
+          <div class="objBody">Levels 7–9: tiny static targets. Use the <b>SCOPE</b> (axis 7) to zoom in.</div>
+        </div>
+        <div class="objCard">
+          <div class="objTitle">Missions</div>
+          <div class="objBody">Every level pops a random bonus objective — complete it for glory!</div>
+        </div>
+      </div>
+      <div class="loadout">
+        <div class="loadoutItem">
+          <img src="bullet.png" alt="bullet" />
+          <small>One bullet</small>
+        </div>
+        <div class="loadoutItem">
+          <img src="gun_mag.png" alt="magazine" />
+          <small>Full magazine</small>
+        </div>
+      </div>
+      <div class="controls">
+        <span class="key">JOYSTICK</span> aim &nbsp;·&nbsp;
+        <span class="key">FRONT</span> fire/select &nbsp;·&nbsp;
+        <span class="key">SIDE</span> reload &nbsp;·&nbsp;
+        <span class="key">BACK</span> cancel
+      </div>
+      <button id="startBtn" class="startBtn">PRESS FRONT OR ENTER</button>
+    </div>
+  </div>
+
+  <!-- MENU -->
+  <div id="menu" class="screen">
+    <div class="stage">
+      <h1>AIMING RANGE</h1>
+      <div class="sub">Select your mission</div>
+      <div id="menuPlayer" class="menuPlayer"></div>
+      <div class="hint">Joystick to navigate • <b>FRONT</b> to launch • <b>BACK</b> to switch player</div>
+      <div id="highScore" class="highScore hidden"></div>
+      <div id="levels"></div>
+      <div id="menuHint">Press <b>RED FRONT BUTTON</b> to start the highlighted level</div>
+    </div>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div id="accounts" class="screen">
+    <div class="stage">
+      <h1>PLAYERS</h1>
+      <div class="sub">Who's shooting today?</div>
+      <div id="acctList"></div>
+      <div id="acctHint" class="acctHint">Joystick ↑/↓ to choose • <b>FRONT</b> play • <b>SIDE</b> rename • <b>🔘2</b> delete • <b>BACK</b> go back</div>
+    </div>
+  </div>
+
+  <!-- NAME (virtual keyboard) -->
+  <div id="name" class="screen">
+    <div class="stage">
+      <h1 id="nameTitle">NEW PLAYER</h1>
+      <div class="sub">Type a name with the virtual keyboard</div>
+      <div id="namePreview"></div>
+      <div id="kbGrid"></div>
+      <div id="kbHint" class="acctHint">Joystick to move • <b>FRONT</b> type • <b>SIDE</b> delete • <b>BACK</b> cancel • <b>ENTER</b> done</div>
+    </div>
+  </div>
+
+  <!-- GAME -->
+  <div id="game" class="screen">
+    <div id="gameUI">
+      <div class="hudPanel left" id="lvlLabel">Level 1</div>
+      <div class="hudPanel center" id="score">Hits: 0</div>
+      <div id="ammoArea">
+        <span id="ammo">3 / 3</span>
+        <div id="magIconRow"></div>
+        <div id="bulletIconRow" aria-label="Bullets remaining"></div>
+      </div>
+    </div>
+    <canvas id="canvas"></canvas>
+    <div id="crosshair"><div class="dot"></div></div>
+  </div>
+
+  <div id="rpgSelect" class="screen">
+    <div class="stage">
+      <h2>CHOOSE YOUR RPG</h2>
+      <p class="rpgSub">Higher <b>MAG</b> = more rockets &nbsp;•&nbsp; Higher <b>DMG</b> = more shield HP per hit &nbsp;•&nbsp; Higher <b>SPEED</b> = faster reload</p>
+      <div id="rpgLoadouts"></div>
+      <p class="rpgSelectHint">Joystick left/right to choose • RED FRONT BUTTON to equip • BACK BUTTON to cancel</p>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result" class="screen">
+    <div class="stage">
+      <div id="resultGrade">S</div>
+      <h2 id="resultTitle">COMPLETE!</h2>
+      <div id="resultStars"></div>
+      <div id="resultMission">—</div>
+      <div id="resultExtra"></div>
+      <div class="stats">
+        <div class="statBox"><div class="label">Score</div><div class="value" id="rScore">0</div></div>
+        <div class="statBox"><div class="label">Hits</div><div class="value" id="rHits">0</div></div>
+        <div class="statBox"><div class="label">Accuracy</div><div class="value" id="rAcc">0%</div></div>
+        <div class="statBox"><div class="label">Max Combo</div><div class="value" id="rCombo">0</div></div>
+        <div class="statBox"><div class="label">Time</div><div class="value" id="rTime">0:00</div></div>
+      </div>
+      <div class="resultActions">
+        <div class="actionCard actionSelected" id="actAgain">
+          <div class="actionLabel">PLAY AGAIN</div>
+          <div class="actionBtn">FRONT BTN</div>
+          <div class="actionHint">Btn 0 — confirm</div>
+        </div>
+        <div class="actionCard" id="actMenu">
+          <div class="actionLabel">BACK TO MENU</div>
+          <div class="actionBtn">FRONT BTN</div>
+          <div class="actionHint">Btn 0 — confirm</div>
+        </div>
+      </div>
+      <div class="resultNavHint">JOYSTICK ←/→ to choose • RED FRONT BUTTON to confirm</div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  // ===================== IMAGES =====================
+  const imgMag = new Image();
+  imgMag.src = 'gun_mag.png';
+  let imgMagLoaded = false;
+  imgMag.onload = () => { imgMagLoaded = true; };
+  imgMag.onerror = () => { imgMagLoaded = false; };
+
+  // ===================== AUDIO =====================
+  const audio = {
+    music: new Audio('deffult.mp3'),
+    mgShot: new Audio('mashine_gun-shot.mp3'),
+    mgReload: new Audio('mashine_gun_reload.mp3'),
+    sniperShot: new Audio('sniper_shot.mp3'),
+    sniperReload: new Audio('sniper_reload.mp3'),
+    reloadPlaying: false,
+  };
+  audio.music.loop = true;
+  audio.music.volume = 0.4;
+  audio.mgShot.volume = 0.7;
+  audio.mgReload.volume = 0.7;
+  audio.sniperShot.volume = 0.7;
+  audio.sniperReload.volume = 0.7;
+  for (const a of [audio.music, audio.mgShot, audio.mgReload, audio.sniperShot, audio.sniperReload]) {
+    a.preload = 'auto';
+  }
+
+  function playReload(isSniper, reloadSeconds = null) {
+    if (audio.reloadPlaying) return;
+    const snd = isSniper ? audio.sniperReload : audio.mgReload;
+    snd.currentTime = 0;
+    audio.reloadPlaying = true;
+    const wasMusicVol = audio.music.volume;
+    audio.music.volume = 0.08;
+    const finish = () => {
+      audio.reloadPlaying = false;
+      audio.music.volume = wasMusicVol;
+      snd.removeEventListener('ended', finish);
+      mag = magSize;
+    };
+    if (reloadSeconds === null) snd.addEventListener('ended', finish);
+    else setTimeout(finish, reloadSeconds * 1000);
+    snd.play().catch(() => {
+      audio.reloadPlaying = false;
+      audio.music.volume = wasMusicVol;
+      mag = magSize;
+    });
+  }
+
+  function playShot(isSniper) {
+    const snd = isSniper ? audio.sniperShot : audio.mgShot;
+    snd.pause();
+    snd.currentTime = 0;
+    snd.play().catch(() => {});
+  }
+
+  function startMusic() {
+    audio.music.currentTime = 0;
+    audio.music.play().catch(() => {});
+  }
+  function stopMusic() { audio.music.pause(); }
+
+  // ===================== LEVELS =====================
+  // Mission types (random bonus per level):
+  //   { kind: 'hits' }       — hit N targets total
+  //   { kind: 'noMiss' }     — hit N in a row, no misses
+  //   { kind: 'accuracy' }   — reach N% accuracy
+  //   { kind: 'speed' }      — hit N within M seconds
+  //   { kind: 'reload' }    — reload exactly N times
+  //   { kind: 'combo' }     — N-target combo
+  //   { kind: 'survive' }   — survive M seconds
+  //   { kind: 'noFire' }    — don't fire for M seconds
+  const LEVELS = [
+    { name: '1', desc: '5 targets, slow',   targets: 5,  spawnMin: 1.8, spawnMax: 3.2, lifeTime: 3.5, size: 90,  sniper: false, maxReloads: 5 },
+    { name: '2', desc: '7 targets',         targets: 7,  spawnMin: 1.4, spawnMax: 2.8, lifeTime: 3.0, size: 80,  sniper: false, maxReloads: 5 },
+    { name: '3', desc: '9 fast targets',    targets: 9,  spawnMin: 1.0, spawnMax: 2.2, lifeTime: 2.5, size: 72,  sniper: false, maxReloads: 4 },
+    { name: '4', desc: '10 tiny targets',   targets: 10, spawnMin: 0.8, spawnMax: 2.0, lifeTime: 2.5, size: 60,  sniper: false, maxReloads: 4 },
+    { name: '5', desc: '12 small, brief',   targets: 12, spawnMin: 0.7, spawnMax: 1.8, lifeTime: 2.0, size: 54,  sniper: false, maxReloads: 3 },
+    { name: '6', desc: '15 moving',         targets: 15, spawnMin: 0.5, spawnMax: 1.4, lifeTime: 2.0, size: 54,  sniper: false, maxReloads: 3 },
+    { name: '7', desc: 'SNIPER 5',          targets: 5,  spawnMin: 99,  spawnMax: 99,  lifeTime: 999, sizeBase: 0.004,  sniper: true, maxReloads: 0 },
+    { name: '8', desc: 'SNIPER 7',          targets: 7,  spawnMin: 99,  spawnMax: 99,  lifeTime: 999, sizeBase: 0.0033, sniper: true, maxReloads: 0 },
+    { name: '9', desc: 'SNIPER 9',          targets: 9,  spawnMin: 99,  spawnMax: 99,  lifeTime: 999, sizeBase: 0.0027, sniper: true, maxReloads: 0 },
+    { name: 'RPG 1', desc: 'Breach the outer wall',      rpg: true, shields: [6, 9],           maxReloads: 0 },
+    { name: 'RPG 2', desc: 'Breach the tri-shield wall', rpg: true, shields: [9, 12, 15],      maxReloads: 0 },
+    { name: 'RPG 3', desc: 'Breach the reinforced wall', rpg: true, shields: [13, 17, 21],     maxReloads: 0 },
+    { name: 'RPG 4', desc: 'Breach the fortress wall',   rpg: true, shields: [17, 22, 27, 32], maxReloads: 0 },
+    { name: 'RPG 5', desc: 'Breach the layered citadel',rpg: true, shields: [21, 27, 33, 39, 45], maxReloads: 0 }
+  ];
+
+  const RPG_LOADOUTS = [
+    { name: 'COBRA',  hint: 'Heavy tube',     magSize: 1, damage: 8, reloadTime: 3.1,  accent: '#ff5252' },
+    { name: 'VIPER',  hint: 'Balanced punch', magSize: 2, damage: 5, reloadTime: 2.0,  accent: '#ff9b36' },
+    { name: 'FALCON', hint: 'Quick cycle',    magSize: 3, damage: 3, reloadTime: 1.25, accent: '#43a4ff' },
+    { name: 'MAMBA',  hint: 'Burst launcher', magSize: 4, damage: 2, reloadTime: 1.7,  accent: '#9a5cff' },
+    { name: 'WASP',   hint: 'Rapid tube',     magSize: 5, damage: 1, reloadTime: 0.65, accent: '#4caf50' }
+  ];
+
+  const MISSION_TEMPLATES = [
+    { kind: 'hits',      target: 3,  text: 'Hit 3 targets' },
+    { kind: 'hits',      target: 5,  text: 'Hit 5 targets' },
+    { kind: 'hits',      target: 8,  text: 'Hit 8 targets' },
+    { kind: 'noMiss',    target: 3,  text: 'Hit 3 in a row, no misses!' },
+    { kind: 'noMiss',    target: 5,  text: 'Hit 5 in a row — no misses!' },
+    { kind: 'noMiss',    target: 8,  text: 'Hit 8 in a row — flawless!' },
+    { kind: 'accuracy',  target: 80, text: 'Reach 80% accuracy' },
+    { kind: 'accuracy',  target: 90, text: 'Reach 90% accuracy' },
+    { kind: 'accuracy',  target: 100, text: '100% accuracy (no misses!)' },
+    { kind: 'speed',     target: 3,  text: 'Hit 3 within 5 seconds' },
+    { kind: 'speed',     target: 5,  text: 'Hit 5 within 8 seconds' },
+    { kind: 'reload',    target: 1,  text: 'Reload exactly once' },
+    { kind: 'reload',    target: 2,  text: 'Reload exactly twice' },
+    { kind: 'combo',     target: 5,  text: '5-target combo!' },
+    { kind: 'combo',     target: 8,  text: '8-target combo!' },
+    { kind: 'combo',     target: 10, text: '10-target combo!' },
+    { kind: 'combo',     target: 12, text: '12-target rampage!' },
+    { kind: 'survive',   target: 10, text: 'Survive 10 seconds (any hits)' },
+    { kind: 'survive',   target: 15, text: 'Survive the full onslaught' },
+    { kind: 'noFire',    target: 10, text: 'Do NOT fire for 10 seconds' },
+    { kind: 'noFire',    target: 15, text: 'Do NOT fire for 15 seconds' },
+    { kind: 'timeTrial', target: 20, text: 'Clear the level in under 20s' },
+    { kind: 'timeTrial', target: 12, text: 'Speedrun: clear in under 12s' }
+  ];
+
+  function pickRandomMission(targetsCount, allowKinds = null) {
+    const candidates = MISSION_TEMPLATES.filter(m => {
+      if (['hits', 'noMiss', 'combo', 'speed'].includes(m.kind) && m.target > targetsCount) return false;
+      if (allowKinds && !allowKinds.includes(m.kind)) return false;
+      return true;
+    });
+    const pool = candidates.length ? candidates : MISSION_TEMPLATES;
+    return pool[Math.floor(Math.random() * pool.length)];
+  }
+  const SNIPER_MISSION_KINDS = ['accuracy', 'noMiss', 'combo', 'speed', 'timeTrial'];
+
+  // ===================== CONTROLLER =====================
+  let controller = null;
+  const btnPrev = {};
+  const btnCurr = {};
+  const kbPrev = {};
+  const kbCurr = {};
+  window.addEventListener('keydown', e => {
+    if (['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Enter',' '].includes(e.key))
+      e.preventDefault();
+    kbCurr[e.key] = true;
+  });
+  window.addEventListener('keyup', e => { kbCurr[e.key] = false; });
+  function edgePressedKB(key) {
+    const prev = kbPrev[key] || false;
+    const curr = kbCurr[key] || false;
+    kbPrev[key] = curr;
+    return curr && !prev;
+  }
+  function edgePressed(idx) {
+    return !!(btnCurr[idx] && !btnPrev[idx]);
+  }
+
+  // Axis state
+  let aimX = 0, aimY = 0;
+  let povValue = -100;  // -100 = neutral, else -1..+1 (8-direction axis value)
+
+  // Find which axis is the 8-direction one (sits out-of-range when idle)
+  function find8DirAxis(gp) {
+    for (let i = 0; i < gp.axes.length; i++) {
+      const v = gp.axes[i];
+      if (typeof v === 'number' && (v > 1.05 || v < -1.05)) return i;
+    }
+    return -1;
+  }
+  let aimAxis = -1;
+
+  // Scope wheel state with wrap detection
+  let scopeValue = 0;
+  let lastScopeRaw = null;
+  let lastScopeRawValid = false;
+  let scopeAccum = 0;
+
+  function readController() {
+    const pads = navigator.getGamepads();
+    if (!controller) {
+      for (const p of pads) {
+        if (p) { controller = p; break; }
+      }
+      if (controller) {
+        aimAxis = find8DirAxis(controller);
+        if (aimAxis < 0) aimAxis = 9;  // fallback
+      }
+    }
+    if (!controller) return;
+    const live = pads[controller.index];
+    if (!live) return;
+    controller = live;
+
+    // Buttons
+    for (let i = 0; i < controller.buttons.length; i++) {
+      btnPrev[i] = btnCurr[i] || false;
+      btnCurr[i] = controller.buttons[i].pressed;
+    }
+
+    // Log EVERY button press to the console (including unrecognized ones)
+    const KNOWN_BTNS = [0, 1, 2, 3];
+    for (let i = 0; i < controller.buttons.length; i++) {
+      if (btnCurr[i] && !btnPrev[i]) {
+        const raw = controller.buttons[i];
+        const bName = (typeof raw.name === 'string' && raw.name) ? raw.name : ('Button ' + i);
+        const known = KNOWN_BTNS.includes(i);
+        console.log(`[BTN] #${i} "${bName}" pressed${known ? '' : ' (unrecognized)'}`);
+      }
+    }
+
+    // Aim axis (8-direction)
+    if (aimAxis >= 0 && aimAxis < controller.axes.length) {
+      const a = controller.axes[aimAxis];
+      if (typeof a === 'number' && !isNaN(a) && a >= -1.05 && a <= 1.05 && Math.abs(a) <= 2) {
+        povValue = a;
+      } else {
+        povValue = -100;
+      }
+    } else {
+      povValue = -100;
+    }
+    aimX = 0;
+    aimY = 0;
+
+    // Scope wheel (axis 7) with wrap detection
+    if (controller.axes.length > 7) {
+      const s = controller.axes[7];
+      if (typeof s === 'number' && !isNaN(s)) {
+        let processed = s;
+        if (lastScopeRawValid) {
+          let delta = s - lastScopeRaw;
+          if (delta > 1.4) delta -= 2;
+          else if (delta < -1.4) delta += 2;
+          if (delta > 0 && scopeAccum < 1) scopeAccum += delta;
+          else if (delta < 0 && scopeAccum > -1) scopeAccum += delta;
+          if (scopeAccum > 1) scopeAccum = 1;
+          if (scopeAccum < -1) scopeAccum = -1;
+        }
+        lastScopeRaw = s;
+        lastScopeRawValid = true;
+        scopeValue = scopeAccum;
+      }
+    }
+  }
+
+  // Convert 8-direction axis value to a direction bucket
+  function axisToDirection(a) {
+    if (typeof a !== 'number' || isNaN(a)) return null;
+    if (a < -1.05 || a > 1.05) return null;
+    const centers = [-1.000, -0.714, -0.429, -0.143, 0.143, 0.429, 0.714, 1.000];
+    let bestI = 0, bestD = Infinity;
+    for (let i = 0; i < 8; i++) {
+      const d = Math.abs(a - centers[i]);
+      if (d < bestD) { bestD = d; bestI = i; }
+    }
+    if (bestD > 0.18) return null;
+    const dirs = [
+      { x:  0, y: -1 }, { x:  1, y: -1 }, { x:  1, y:  0 }, { x:  1, y:  1 },
+      { x:  0, y:  1 }, { x: -1, y:  1 }, { x: -1, y:  0 }, { x: -1, y: -1 }
+    ];
+    const d = dirs[bestI];
+    const m = Math.hypot(d.x, d.y) || 1;
+    return { x: d.x / m, y: d.y / m, idx: bestI };
+  }
+
+  // ===================== CANVAS + DOM =====================
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const crosshair = document.getElementById('crosshair');
+  const scoreEl = document.getElementById('score');
+  const ammoEl = document.getElementById('ammo');
+  const lvlLabelEl = document.getElementById('lvlLabel');
+  const startBtn = document.getElementById('startBtn');
+  const actAgain = document.getElementById('actAgain');
+  const actMenu = document.getElementById('actMenu');
+
+  let cursX = window.innerWidth / 2, cursY = window.innerHeight / 2;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const uiScale = Math.max(0.8, Math.min(2.0, window.innerHeight / 720));
+    document.documentElement.style.setProperty('--ui-scale', uiScale);
+    // Keep cursor inside new bounds
+    cursX = Math.max(0, Math.min(canvas.width, cursX));
+    cursY = Math.max(0, Math.min(canvas.height, cursY));
+  }
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+
+  function screenScale() {
+    const ref = 1280 * 720;
+    const area = canvas.width * canvas.height;
+    const s = Math.sqrt(area / ref);
+    return Math.max(0.7, Math.min(2.0, s));
+  }
+
+  // ===================== GAME STATE =====================
+  let gameState = 'intro';
+  let menuIndex = 0;
+  let currentLevel = 0;
+  let sniperAimX = canvas.width / 2, sniperAimY = canvas.height / 2;
+  const aimSpeed = 12;
+  let recoil = 0;
+  let targets = [];
+  let bulletHoles = [];
+  let hits = 0, shots = 0;
+  let spawnTimer = 0;
+  let targetsLeft = 0;
+  let startTime = 0;
+  let elapsed = 0;
+  let mag = 20;
+  let magSize = 20;
+  let maxReloads = 0;
+  let reloadsUsed = 0;
+  let rpgWall = null;
+  let currentDamage = 1;
+  let currentReloadTime = null;
+  let rpgImpact = 0;
+  let rpgLoadoutIndex = 0;
+  let selectedRpg = null;
+
+  // Mission state
+  let activeMission = null;
+  let missionAssignedTime = 0;
+  let missionComplete = false;
+  let missionFailed = false;
+  let missionBannerText = '';
+  let missionBannerTimer = 0;
+  let missionShowObjective = 0;
+  let missionHitsInRow = 0;
+  let missionReloads = 0;
+  let missionCurrentCombo = 0;
+  let missionMaxCombo = 0;
+
+  // Score / floating feedback
+  let score = 0;
+  let highScore = 0;
+  let hitCombo = 0;
+  let maxHitCombo = 0;
+  let comboBreakShow = 0;
+  let floaters = [];
+  let sparks = [];
+  let shake = 0;
+  let tracer = null;
+
+  // ===================== ACCOUNTS / PROGRESSION =====================
+  let maxUnlocked = 1;
+  let levelStars = new Array(LEVELS.length).fill(0);
+  let bestScores = new Array(LEVELS.length).fill(0);
+  let bestTimes = new Array(LEVELS.length).fill(Infinity);
+  let starsEarned = 0;
+  let accounts = [];
+  let activeAccount = null;
+  const ACCT_COLORS = ['#ffeb3b', '#43a4ff', '#4caf50', '#ff9b36', '#9a5cff', '#ff5252', '#26c6da', '#f48fb1'];
+
+  function freshProgress() {
+    return {
+      maxUnlocked: 1,
+      levelStars: new Array(LEVELS.length).fill(0),
+      bestScores: new Array(LEVELS.length).fill(0),
+      bestTimes: new Array(LEVELS.length).fill(Infinity),
+      highScore: 0
+    };
+  }
+
+  function applyProgress(p) {
+    maxUnlocked = (p && typeof p.maxUnlocked === 'number') ? p.maxUnlocked : 1;
+    levelStars = (p && Array.isArray(p.levelStars)) ? p.levelStars.slice(0, LEVELS.length) : new Array(LEVELS.length).fill(0);
+    bestScores = (p && Array.isArray(p.bestScores)) ? p.bestScores.slice(0, LEVELS.length) : new Array(LEVELS.length).fill(0);
+    bestTimes = (p && Array.isArray(p.bestTimes)) ? p.bestTimes.slice(0, LEVELS.length) : new Array(LEVELS.length).fill(Infinity);
+    highScore = (p && typeof p.highScore === 'number') ? p.highScore : 0;
+    starsEarned = levelStars.reduce((a, b) => a + (b || 0), 0);
+  }
+
+  function normalizeAccount(a) {
+    return {
+      id: a.id,
+      name: String(a.name || '').slice(0, 12),
+      color: a.color || ACCT_COLORS[accounts.length % ACCT_COLORS.length],
+      progress: Object.assign(freshProgress(), a.progress || {})
+    };
+  }
+
+  function genId() { return 'acct-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 7); }
+
+  function switchTo(id) {
+    const a = accounts.find(x => x.id === id);
+    if (!a) return false;
+    activeAccount = a;
+    applyProgress(a.progress);
+    saveProgress();
+    return true;
+  }
+
+  function persistAccounts() {
+    try {
+      localStorage.setItem('aimAccounts', JSON.stringify({
+        accounts,
+        activeId: activeAccount ? activeAccount.id : null
+      }));
+      // Mirror for diagnostics / legacy fallback
+      if (activeAccount) {
+        localStorage.setItem('aimRangeProgress', JSON.stringify(activeAccount.progress));
+      }
+    } catch (e) { /* storage may be unavailable */ }
+  }
+
+  function saveProgress() {
+    if (activeAccount) {
+      activeAccount.progress = {
+        maxUnlocked,
+        levelStars: levelStars.slice(0),
+        bestScores: bestScores.slice(0),
+        bestTimes: bestTimes.slice(0),
+        highScore
+      };
+      starsEarned = levelStars.reduce((a, b) => a + (b || 0), 0);
+    }
+    persistAccounts();
+  }
+
+  function createAccount(name) {
+    const a = normalizeAccount({ id: genId(), name: name.trim().toUpperCase(), progress: freshProgress() });
+    accounts.push(a);
+    return a;
+  }
+
+  function loadAccounts() {
+    try {
+      const raw = localStorage.getItem('aimAccounts');
+      if (raw) {
+        const d = JSON.parse(raw);
+        if (Array.isArray(d.accounts) && d.accounts.length) {
+          accounts = d.accounts.map(normalizeAccount);
+          const target = d.activeId ? accounts.find(x => x.id === d.activeId) : null;
+          switchTo(target ? target.id : accounts[0].id);
+          return;
+        }
+      }
+    } catch (e) { /* ignore corrupted save */ }
+    // Legacy single-account save -> migrate into "PLAYER 1"
+    try {
+      const leg = localStorage.getItem('aimRangeProgress');
+      if (leg) {
+        const d = JSON.parse(leg);
+        const a = createAccount('PLAYER 1');
+        a.progress = Object.assign(freshProgress(), d);
+        switchTo(a.id);
+        persistAccounts();
+        return;
+      }
+    } catch (e) { /* ignore */ }
+    // Very first run: no account yet — name your sharpshooter
+    accounts = [];
+    activeAccount = null;
+  }
+  loadAccounts();
+
+  // UI feedback state
+  let emptyFlash = 0;
+  let reloadPopup = 0;
+  let reloadPopupKind = '';
+  let resultFlash = 0;
+  let resultIndex = 0;
+  let transitionUntil = 0;
+  let lastMenuNav = 0;
+  let lastAimStep = 0;
+  let lastAutoShot = 0;
+  let lastResultNav = 0;
+  let lastFrame = performance.now();
+  const FIRE_COOLDOWN_MS = 333;
+
+  // ===================== HUD =====================
+  function updateMagIconRow() {
+    const row = document.getElementById('magIconRow');
+    if (!row) return;
+    if (!maxReloads || maxReloads <= 0) { row.style.display = 'none'; row.innerHTML = ''; return; }
+    if (row.children.length !== maxReloads) {
+      row.innerHTML = '';
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < maxReloads; i++) {
+        const img = document.createElement('img');
+        img.src = 'gun_mag.png';
+        img.alt = '';
+        frag.appendChild(img);
+      }
+      row.appendChild(frag);
+    }
+    const filledCount = (maxReloads - reloadsUsed);
+    for (let i = 0; i < maxReloads; i++) {
+      row.children[i].classList.toggle('empty', i >= filledCount);
+    }
+    row.style.display = 'flex';
+  }
+
+  function updateBulletIconRow() {
+    const row = document.getElementById('bulletIconRow');
+    if (!row) return;
+    if (mag < 0) mag = 0;
+    if (mag > 99) mag = 99;
+    if (row.children.length !== mag) {
+      const frag = document.createDocumentFragment();
+      for (let i = 0; i < mag; i++) {
+        const img = document.createElement('img');
+        img.src = 'bullet.png';
+        img.alt = '';
+        frag.appendChild(img);
+      }
+      row.innerHTML = '';
+      row.appendChild(frag);
+    }
+    row.style.display = 'flex';
+  }
+
+  function updateHud() {
+    const lvl = LEVELS[currentLevel];
+    if (lvl.rpg) {
+      scoreEl.textContent = `RPG DMG: ${currentDamage}  •  SHIELDS: ${rpgWall ? rpgWall.current : 0}/${rpgWall ? rpgWall.layers.length : 0}`;
+    } else if (activeMission && !missionComplete && !missionFailed) {
+      const m = activeMission;
+      if (m.kind === 'hits') {
+        scoreEl.textContent = `MISSION: ${hits}/${m.target} hits`;
+      } else if (m.kind === 'noMiss') {
+        scoreEl.textContent = `STREAK: ${missionHitsInRow}/${m.target}`;
+      } else if (m.kind === 'accuracy') {
+        const acc = shots > 0 ? Math.round((hits / shots) * 100) : 0;
+        scoreEl.textContent = `ACCURACY: ${acc}% (need ≥${m.target}%)`;
+      } else if (m.kind === 'speed') {
+        const timeLimit = m.target === 3 ? 5 : 8;
+        const elapsedSec = ((performance.now() - missionAssignedTime) / 1000).toFixed(1);
+        scoreEl.textContent = `COMBO IN ${timeLimit}s: ${missionCurrentCombo}/${m.target} (${elapsedSec}s)`;
+      } else if (m.kind === 'reload') {
+        scoreEl.textContent = `RELOADS: ${missionReloads}/${m.target}`;
+      } else if (m.kind === 'combo') {
+        scoreEl.textContent = `COMBO: ${missionCurrentCombo}/${m.target}`;
+      } else if (m.kind === 'survive' || m.kind === 'noFire') {
+        const elapsedSec = elapsed.toFixed(1);
+        const status = m.kind === 'noFire' ? 'NO FIRE' : 'SURVIVE';
+        scoreEl.textContent = `${status}: ${elapsedSec}s / ${m.target}s`;
+      } else if (m.kind === 'timeTrial') {
+        scoreEl.textContent = `SPEEDRUN: ${elapsed.toFixed(1)}s / under ${m.target}s`;
+      } else {
+        scoreEl.textContent = `Hits: ${hits}/${lvl.targets}`;
+      }
+    } else {
+      scoreEl.textContent = `Hits: ${hits}/${lvl.targets}`;
+    }
+    const isSniperHud = lvl.sniper;
+    ammoEl.textContent = `SCORE ${score}` + (hitCombo >= 3 ? `  ×${comboMul() + 1} COMBO (${hitCombo})` : '');
+    if (isSniperHud) {
+      const mr = document.getElementById('magIconRow');
+      const br = document.getElementById('bulletIconRow');
+      if (mr) mr.style.display = 'none';
+      if (br) br.style.display = 'none';
+    } else {
+      updateMagIconRow();
+      updateBulletIconRow();
+    }
+  }
+
+  // ===================== MENU =====================
+  const levelsDiv = document.getElementById('levels');
+  LEVELS.forEach((lvl, i) => {
+    const el = document.createElement('div');
+    let cls = 'lvl';
+    if (lvl.sniper) cls += ' sniper';
+    if (lvl.rpg) cls += ' rpg';
+    el.className = cls;
+    el.dataset.idx = i;
+    el.innerHTML = `<span class="typeChip chicken">${lvl.sniper ? 'SNIPER' : (lvl.rpg ? 'RPG' : 'RANGE')}</span>
+      <b class="lvlNum">${lvl.name}</b>
+      <small>${lvl.desc}</small>
+      <span class="lvlStars"></span>
+      <span class="lvlLock">🔒</span>`;
+    el.onclick = () => {
+      if (i >= maxUnlocked) return;
+      menuIndex = i;
+      updateMenu();
+      if (LEVELS[i].rpg) selectedRpg = null;  // force RPG picker
+      startLevel(i);
+    };
+    levelsDiv.appendChild(el);
+  });
+  const MENU_COUNT = LEVELS.length + 1;  // levels grid + players tile
+  {
+    const el = document.createElement('div');
+    el.className = 'lvl acct';
+    el.id = 'menuAccountsTile';
+    el.innerHTML = `<span class="typeChip chicken acct">PLAYERS</span>
+      <b class="lvlNum acct">👤</b>
+      <small>switch player</small>
+      <span class="lvlStars acct"></span>`;
+    el.onclick = () => { menuIndex = LEVELS.length; updateMenu(); gotoAccounts(); };
+    levelsDiv.appendChild(el);
+  }
+  const chipClasses = { RANGE: 'range', SNIPER: 'sniper', RPG: 'rpg' };
+  function updateMenu() {
+    document.querySelectorAll('.lvl').forEach((el, i) => {
+      const locked = i >= maxUnlocked;
+      el.classList.toggle('selected', i === menuIndex && !locked);
+      el.classList.toggle('locked', locked);
+      const numEl = el.querySelector('.lvlNum');
+      if (numEl) {
+        numEl.classList.toggle('locked', locked);
+        numEl.textContent = locked ? '🔒' : LEVELS[i].name;
+      }
+      const chip = el.querySelector('.typeChip');
+      if (chip) {
+        chip.textContent = locked ? 'LOCKED' : (LEVELS[i].sniper ? 'SNIPER' : (LEVELS[i].rpg ? 'RPG' : 'RANGE'));
+        chip.className = 'typeChip ' + (locked ? 'locked' : chipClasses[LEVELS[i].sniper ? 'SNIPER' : (LEVELS[i].rpg ? 'RPG' : 'RANGE')]);
+      }
+      const stars = el.querySelector('.lvlStars');
+      if (stars) stars.textContent = (levelStars[i] || 0) > 0 ? '★'.repeat(Math.min(3, levelStars[i] || 0)) + '☆'.repeat(Math.max(0, 3 - (levelStars[i] || 0))) : '';
+    });
+    const tile = document.getElementById('menuAccountsTile');
+    if (tile) {
+      tile.classList.toggle('selected', menuIndex === LEVELS.length);
+      tile.classList.toggle('locked', false);
+      const tStars = tile.querySelector('.lvlStars');
+      if (tStars) tStars.textContent = accounts.length ? (activeAccount ? activeAccount.name : 'PLAYERS') : 'CREATE PLAYER';
+    }
+  }
+  updateMenu();
+
+  function getMenuCols() { return 5; }
+
+  // ===================== ACCOUNTS SCREEN =====================
+  const acctListEl = document.getElementById('acctList');
+  let acctIndex = 0;
+  let acctDelArmed = null;
+
+  function gotoAccounts() {
+    acctIndex = Math.min(acctIndex, accounts.length);  // 0 = NEW PLAYER, 1..N = accounts
+    acctDelArmed = null;
+    showScreen('accounts');
+  }
+
+  function accountStats(a) {
+    const p = a.progress || {};
+    const stars = (p.levelStars || []).reduce((s, v) => s + (v || 0), 0);
+    const unlocked = Math.min((p.maxUnlocked || 1), LEVELS.length);
+    return `★ ${stars}  •  ⚡ ${LEVELS.length >= unlocked ? 'LVL ' + unlocked : unlocked}  •  HI ${p.highScore || 0}`;
+  }
+
+  function renderAcctList() {
+    if (!acctListEl) return;
+    acctListEl.innerHTML = '';
+    const rowNew = document.createElement('div');
+    rowNew.className = 'acctRow new';
+    rowNew.innerHTML = `<span class="acctName">＋ NEW PLAYER</span>`;
+    rowNew.onclick = () => openNameScreen('new');
+    acctListEl.appendChild(rowNew);
+
+    accounts.forEach((a, i) => {
+      const row = document.createElement('div');
+      row.className = 'acctRow';
+      row.style.setProperty('--a', a.color || '#ffeb3b');
+      const active = activeAccount && activeAccount.id === a.id;
+      row.innerHTML = `
+        <span class="acctName" style="color:${a.color || '#fff'}">${a.name}</span>
+        <span class="acctMeta">${accountStats(a)}</span>
+        ${active ? '<span class="acctActive">▶ ACTIVE</span>' : ''}
+        ${acctDelArmed === a.id ? '<span class="acctDel">DELETE? AGAIN</span>' : ''}`;
+      row.onclick = () => {
+        acctIndex = i + 1;
+        renderAcctList();
+        switchTo(a.id);
+        showScreen('menu');
+      };
+      acctListEl.appendChild(row);
+    });
+
+    [...acctListEl.children].forEach((el, i) => el.classList.toggle('selected', i === acctIndex));
+  }
+
+  function updateAccountsInput() {
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastMenuNav > 220) {
+      const up = (dir.idx === 0 || dir.idx === 1 || dir.idx === 7);
+      const down = (dir.idx === 3 || dir.idx === 4 || dir.idx === 5);
+      if (up && acctIndex > 0) acctIndex--;
+      else if (down && acctIndex < accounts.length) acctIndex++;
+      if (up || down) { lastMenuNav = performance.now(); acctDelArmed = null; renderAcctList(); }
+    }
+    if (performance.now() < transitionUntil) return;
+    if (edgePressed(0)) {
+      acctDelArmed = null;
+      if (acctIndex === 0) openNameScreen('new');
+      else {
+        const a = accounts[acctIndex - 1];
+        if (a && switchTo(a.id)) showScreen('menu');
+      }
+    }
+    if (edgePressed(1)) {
+      if (acctIndex > 0) {
+        const a = accounts[acctIndex - 1];
+        if (a) openNameScreen('rename', a.id);
+      }
+    }
+    if (edgePressed(2)) {
+      if (acctIndex > 0) {
+        const a = accounts[acctIndex - 1];
+        if (a) {
+          if (acctDelArmed === a.id) {
+            accounts = accounts.filter(x => x.id !== a.id);
+            acctDelArmed = null;
+            acctIndex = Math.max(0, Math.min(acctIndex, accounts.length));
+            if (activeAccount && activeAccount.id === a.id) {
+              if (accounts.length) switchTo(accounts[0].id);
+              else { activeAccount = null; maxUnlocked = 1; }
+            }
+            saveProgress();
+          } else acctDelArmed = a.id;
+          renderAcctList();
+        }
+      }
+    }
+    if (edgePressed(3)) {
+      if (!accounts.length) return;  // must create a player first
+      showScreen('menu');
+    }
+    // Keyboard fallback
+    if (edgePressedKB('ArrowUp') && acctIndex > 0) { acctIndex--; acctDelArmed = null; renderAcctList(); }
+    if (edgePressedKB('ArrowDown') && acctIndex < accounts.length) { acctIndex++; acctDelArmed = null; renderAcctList(); }
+    if (edgePressedKB('Enter')) {
+      acctDelArmed = null;
+      if (acctIndex === 0) openNameScreen('new');
+      else {
+        const a = accounts[acctIndex - 1];
+        if (a && switchTo(a.id)) showScreen('menu');
+      }
+    }
+  }
+
+  // ===================== NAME / VIRTUAL KEYBOARD =====================
+  const KB_CELLS = [];
+  {
+    const rows = [
+      '1234567890',
+      'QWERTYUIOP',
+      'ASDFGHJKL'
+    ];
+    rows.forEach((str, ri) => [...str].forEach((ch, ci) => KB_CELLS.push({ ch, r: ri + 1, c: ci + 1, action: 'char' })));
+    KB_CELLS.push({ ch: '⌫', r: 3, c: 10, action: 'del', special: true });
+    [...'ZXCVBNM'].forEach((ch, ci) => KB_CELLS.push({ ch, r: 4, c: ci + 1, action: 'char' }));
+    KB_CELLS.push({ ch: '␣', r: 4, c: 8, action: 'space', wide: true });
+    KB_CELLS.push({ ch: '✓', r: 4, c: 10, action: 'ok', ok: true });
+  }
+  const NAME_MAX = 12;
+  let nameMode = 'new';   // 'new' | 'rename'
+  let nameEditId = null;
+  let nameValue = '';
+  let kbSel = 0;          // index into KB_CELLS
+  let lastKbNav = 0;
+
+  function openNameScreen(mode, id) {
+    nameMode = mode;
+    nameEditId = id || null;
+    if (mode === 'rename') {
+      const a = accounts.find(x => x.id === id);
+      nameValue = a ? a.name : '';
+    } else nameValue = '';
+    kbSel = 12;  // start on letter "H"
+    lastKbNav = performance.now() + 300;
+    showScreen('name');
+  }
+
+  function kbCellAt(r, c) {
+    let best = null, bd = Infinity;
+    for (let i = 0; i < KB_CELLS.length; i++) {
+      const cell = KB_CELLS[i];
+      if (cell.r !== r) continue;
+      const d = Math.abs(cell.c - c);
+      if (d < bd) { bd = d; best = i; }
+    }
+    return best === null ? 0 : best;
+  }
+
+  function kbMove(dir) {
+    const cell = KB_CELLS[kbSel];
+    let r = cell.r, c = cell.c;
+    if (dir === 'up' && r > 1) r--;
+    else if (dir === 'down' && r < 4) r++;
+    else if (dir === 'left' && c > 1) c--;
+    else if (dir === 'right' && c < 10) c++;
+    else return null;
+    kbSel = kbCellAt(r, c);
+    return true;
+  }
+
+  function kbPress() {
+    const cell = KB_CELLS[kbSel];
+    if (cell.action === 'char' || cell.action === 'space') {
+      const ch = cell.action === 'space' ? ' ' : cell.ch;
+      if (nameValue.length < NAME_MAX) nameValue += ch;
+    } else if (cell.action === 'del') {
+      nameValue = nameValue.slice(0, -1);
+    } else if (cell.action === 'ok') {
+      commitName();
+    }
+    renderKB();
+  }
+
+  function commitName() {
+    const nm = nameValue.trim().toUpperCase();
+    if (!nm) return;
+    if (nameMode === 'new') {
+      const a = createAccount(nm);
+      switchTo(a.id);
+      showScreen('menu');
+    } else if (nameMode === 'rename') {
+      const a = accounts.find(x => x.id === nameEditId);
+      if (a) {
+        a.name = nm.slice(0, NAME_MAX);
+        saveProgress();
+      }
+      showScreen('accounts');
+      if (a) { acctIndex = accounts.indexOf(a) + 1; renderAcctList(); }
+    }
+  }
+
+  function renderKB() {
+    const grid = document.getElementById('kbGrid');
+    const preview = document.getElementById('namePreview');
+    const title = document.getElementById('nameTitle');
+    if (title) title.textContent = nameMode === 'rename' ? 'RENAME PLAYER' : 'NEW PLAYER';
+    if (grid) {
+      grid.innerHTML = '';
+      KB_CELLS.forEach((cell, i) => {
+        const k = document.createElement('button');
+        k.type = 'button';
+        k.className = 'kbKey' + (i === kbSel ? ' selected' : '') + (cell.wide ? ' wide' : '') + (cell.special ? ' special' : '') + (cell.ok ? ' ok' : '');
+        k.textContent = cell.ch;
+        k.onclick = () => { kbSel = i; renderKB(); kbPress(); };
+        grid.appendChild(k);
+      });
+    }
+    if (preview) {
+      const okActive = nameValue.trim().length > 0;
+      preview.innerHTML = (nameValue || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '<span class="cur">_</span>';
+      preview.classList.toggle('ready', okActive);
+    }
+    const okKey = document.querySelector('#kbGrid .kbKey.ok');
+    if (okKey) okKey.classList.toggle('disabled', !(nameValue.trim().length > 0));
+  }
+
+  function updateNameInput() {
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastKbNav > 200) {
+      const moved = kbMove(dir.y < 0 ? 'up' : dir.y > 0 ? 'down' : dir.x < 0 ? 'left' : dir.x > 0 ? 'right' : null);
+      lastKbNav = performance.now();
+      if (moved) renderKB();
+    }
+    if (performance.now() < transitionUntil) return;
+    if (edgePressed(0)) kbPress();
+    if (edgePressed(1)) { nameValue = nameValue.slice(0, -1); renderKB(); }
+    if (edgePressed(3)) { showScreen('accounts'); }
+  }
+
+  // Physical keyboard typing on the name screen
+  document.addEventListener('keydown', e => {
+    if (gameState !== 'name') return;
+    const k = e.key;
+    if (k === 'Enter') { commitName(); e.preventDefault(); }
+    else if (k === 'Backspace') { nameValue = nameValue.slice(0, -1); renderKB(); }
+    else if (k === 'Escape') { showScreen('accounts'); }
+    else if (k.length === 1) {
+      if (/^[a-zA-Z0-9 ]$/.test(k)) {
+        if (nameValue.length < NAME_MAX) { nameValue += k.toUpperCase(); renderKB(); }
+        e.preventDefault();
+      }
+    }
+  });
+
+  // ===================== RPG LOADOUT UI =====================
+  function updateRpgLoadoutUI() {
+    const container = document.getElementById('rpgLoadouts');
+    if (!container) return;
+    const maxMagSize = Math.max(...RPG_LOADOUTS.map(l => l.magSize));
+    const maxDamage = Math.max(...RPG_LOADOUTS.map(l => l.damage));
+    const minReload = Math.min(...RPG_LOADOUTS.map(l => l.reloadTime));
+
+    if (container.children.length !== RPG_LOADOUTS.length) {
+      container.innerHTML = '';
+      RPG_LOADOUTS.forEach((loadout, i) => {
+        const card = document.createElement('div');
+        card.className = 'rpgLoadout';
+        card.style.setProperty('--acc', loadout.accent);
+        const magPct = (loadout.magSize / maxMagSize) * 100;
+        const dmgPct = (loadout.damage / maxDamage) * 100;
+        const speedPct = (minReload / loadout.reloadTime) * 100;
+        card.innerHTML = `
+          <div class="rpgTube"></div>
+          <b class="rpgLoadoutName">${loadout.name}</b>
+          <small class="rpgLoadoutHint">${loadout.hint}</small>
+          <div class="rpgStats">
+            <div class="rpgStat">
+              <span class="rpgStatLabel">Mag</span>
+              <div class="rpgStatBar"><div class="rpgStatFill" style="width:${magPct}%"></div></div>
+              <span class="rpgStatValue">${loadout.magSize}</span>
+            </div>
+            <div class="rpgStat">
+              <span class="rpgStatLabel">Damage</span>
+              <div class="rpgStatBar"><div class="rpgStatFill damage" style="width:${dmgPct}%"></div></div>
+              <span class="rpgStatValue">${loadout.damage}</span>
+            </div>
+            <div class="rpgStat">
+              <span class="rpgStatLabel">Speed</span>
+              <div class="rpgStatBar"><div class="rpgStatFill speed" style="width:${speedPct}%"></div></div>
+              <span class="rpgStatValue">${loadout.reloadTime.toFixed(1)}s</span>
+            </div>
+          </div>
+        `;
+        card.onclick = () => {
+          rpgLoadoutIndex = i;
+          selectedRpg = RPG_LOADOUTS[i];
+          startLevel(currentLevel, true);
+        };
+        container.appendChild(card);
+      });
+    }
+    [...container.children].forEach((card, i) => {
+      card.classList.toggle('selected', i === rpgLoadoutIndex);
+    });
+  }
+
+  // ===================== SCREEN TRANSITIONS =====================
+  function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(name).classList.add('active');
+    gameState = (name === 'menu') ? 'menu'
+              : (name === 'game') ? 'play'
+              : (name === 'rpgSelect') ? 'rpgSelect'
+              : (name === 'result') ? 'result'
+              : (name === 'accounts') ? 'accounts'
+              : (name === 'name') ? 'name'
+              : 'intro';
+    // Update body class for sniper-specific styling
+    const lvl = LEVELS[currentLevel];
+    const inSniperLevel = (gameState === 'play' && lvl && lvl.sniper);
+    document.body.classList.toggle('sniper', inSniperLevel);
+    if (name === 'rpgSelect') updateRpgLoadoutUI();
+    if (name === 'menu') {
+      const hs = document.getElementById('highScore');
+      if (hs) {
+        hs.textContent = highScore > 0 ? `★ HIGH SCORE  ${highScore}` : '';
+        hs.classList.toggle('hidden', highScore <= 0);
+      }
+      const mp = document.getElementById('menuPlayer');
+      if (mp) mp.textContent = activeAccount ? `▸ PLAYING AS  ${activeAccount.name}` : 'NO PLAYER SELECTED';
+      updateMenu();
+    }
+    if (name === 'accounts') {
+      acctIndex = activeAccount ? accounts.findIndex(a => a.id === activeAccount.id) + 1 : 0;
+      renderAcctList();
+    }
+    if (name === 'name') renderKB();
+    transitionUntil = performance.now() + 400;
+  }
+
+  function resetMissionState() {
+    activeMission = null;
+    missionComplete = false;
+    missionFailed = false;
+    missionBannerText = '';
+    missionBannerTimer = 0;
+    missionShowObjective = 0;
+    missionHitsInRow = 0;
+    missionReloads = 0;
+    missionCurrentCombo = 0;
+    missionMaxCombo = 0;
+    missionAssignedTime = 0;
+  }
+
+  // ===================== LEVEL START =====================
+  let missionTimerId = null;
+  function startLevel(i, fromRpgSelect = false) {
+    currentLevel = i;
+    const lvl = LEVELS[i];
+
+    // Clear any pending mission assignment
+    if (missionTimerId) { clearTimeout(missionTimerId); missionTimerId = null; }
+
+    // RPG levels always show the loadout picker unless returning from it
+    if (lvl.rpg && !fromRpgSelect) {
+      rpgLoadoutIndex = 0;
+      selectedRpg = null;
+      showScreen('rpgSelect');
+      updateRpgLoadoutUI();
+      return;
+    }
+
+    resetMissionState();
+    gameState = 'play';
+    targets = [];
+    bulletHoles = [];
+    hits = 0;
+    shots = 0;
+    spawnTimer = 0;
+    score = 0;
+    hitCombo = 0;
+    maxHitCombo = 0;
+    floaters = [];
+    shake = 0;
+    tracer = null;
+    comboBreakShow = 0;
+
+    if (lvl.rpg && selectedRpg) {
+      magSize = selectedRpg.magSize;
+      maxReloads = 0;
+      currentDamage = selectedRpg.damage;
+      currentReloadTime = selectedRpg.reloadTime;
+    } else if (lvl.sniper) {
+      magSize = 1;
+      maxReloads = 0;
+      currentDamage = 1;
+    } else {
+      magSize = 20;
+      maxReloads = lvl.maxReloads || 0;
+      currentDamage = 1;
+    }
+    mag = magSize;
+    reloadsUsed = 0;
+    targetsLeft = lvl.rpg ? 1 : lvl.targets;
+    rpgWall = lvl.rpg ? { layers: lvl.shields.map((hp, idx) => ({ hp, maxHp: hp, idx })), current: 0, lastDmg: performance.now(), regenDelay: 7, regenRate: 0.08 } : null;
+    rpgImpact = 0;
+    cursX = canvas.width / 2;
+    cursY = canvas.height / 2;
+    sniperAimX = canvas.width / 2;
+    sniperAimY = canvas.height / 2;
+    startTime = performance.now();
+    elapsed = 0;
+    showScreen('game');
+    lvlLabelEl.textContent = `Level ${lvl.name}`;
+    startMusic();
+    if (lvl.sniper) { scopeValue = -1; scopeAccum = -1; lastScopeRaw = null; lastScopeRawValid = false; }
+    if (lvl.sniper) {
+      for (let n = 0; n < lvl.targets; n++) spawnTarget();
+    }
+    // Assign a mission 1 second in (RPG excluded — sniper gets scope-friendly missions)
+    if (!lvl.rpg) {
+      missionTimerId = setTimeout(() => {
+        missionTimerId = null;
+        if (gameState !== 'play') return;
+        activeMission = lvl.sniper
+          ? pickRandomMission(lvl.targets || 0, SNIPER_MISSION_KINDS)
+          : pickRandomMission(lvl.targets || 0);
+        missionAssignedTime = performance.now();
+        missionShowObjective = 3.5;
+        missionBannerText = '▶ MISSION: ' + activeMission.text;
+        missionBannerTimer = 3;
+      }, 1000);
+    }
+  }
+
+  // ===================== SPAWNING =====================
+  function hudSafeBounds() {
+    const hud = document.getElementById('gameUI');
+    const hudBottom = hud ? hud.getBoundingClientRect().bottom : 0;
+    return { top: hudBottom + 20, bottom: canvas.height };
+  }
+
+  function spawnTarget() {
+    const lvl = LEVELS[currentLevel];
+    const isSniper = lvl.sniper;
+    const margin = 60;
+    const bounds = hudSafeBounds();
+    const safeTop = Math.min(bounds.bottom - margin, Math.max(bounds.top + margin, margin));
+    const safeBottom = bounds.bottom - margin;
+    const targetRadius = (lvl.sizeBase !== undefined ? lvl.sizeBase * canvas.width : lvl.size) * screenScale();
+
+    let x = 0, y = 0, found = false;
+    if (isSniper) {
+      for (let attempt = 0; attempt < 40; attempt++) {
+        x = margin + Math.random() * (canvas.width - 2 * margin);
+        y = safeTop + Math.random() * Math.max(1, safeBottom - safeTop);
+        let tooClose = false;
+        for (const t of targets) {
+          if (Math.hypot(x - t.x, y - t.y) < t.r * 3) { tooClose = true; break; }
+        }
+        if (!tooClose) { found = true; break; }
+      }
+      if (!found) {
+        x = margin + Math.random() * (canvas.width - 2 * margin);
+        y = safeTop + Math.random() * Math.max(1, safeBottom - safeTop);
+      }
+    } else {
+      const maxAimSpeed = aimSpeed * 2.5 * 60;
+      const safetyTime = lvl.lifeTime - 0.5;
+      const maxDist = (safetyTime > 0 ? safetyTime : 0) * maxAimSpeed;
+      for (let attempt = 0; attempt < 30; attempt++) {
+        x = margin + Math.random() * (canvas.width - 2 * margin);
+        y = safeTop + Math.random() * Math.max(1, safeBottom - safeTop);
+        const dx = x - cursX, dy = y - cursY;
+        const dist = Math.hypot(dx, dy);
+        let tooClose = false;
+        for (const t of targets) {
+          if (Math.hypot(x - t.x, y - t.y) < t.r * 2) { tooClose = true; break; }
+        }
+        if (dist <= maxDist && !tooClose) { found = true; break; }
+      }
+      if (!found) {
+        const ang = Math.random() * Math.PI * 2;
+        x = cursX + Math.cos(ang) * maxDist;
+        y = cursY + Math.sin(ang) * maxDist;
+        x = Math.max(margin, Math.min(canvas.width - margin, x));
+        y = Math.max(safeTop, Math.min(safeBottom, y));
+      }
+    }
+
+    // Random direction for movement
+    const moveSpeed = (30 + currentLevel * 8) * screenScale();
+    const moveAng = Math.random() * Math.PI * 2;
+    const moveVx = Math.cos(moveAng) * moveSpeed;
+    const moveVy = Math.sin(moveAng) * moveSpeed;
+    const isBonus = !isSniper && Math.random() < 0.18;
+    // Target variety (normal levels only): armored = 2 hits / high value, swift = fast + short-lived
+    let type = 'standard', rMul = 1, vMul = 1, hp = 1, lifeMul = 1;
+    if (!isSniper && !lvl.rpg && currentLevel >= 1) {
+      const roll = Math.random();
+      if (roll < 0.13) { type = 'armored'; rMul = 1.12; vMul = 0.6; hp = 2; }
+      else if (roll < 0.27) { type = 'swift'; rMul = 0.72; vMul = 2.2; lifeMul = 0.6; }
+    }
+    targets.push({
+      x, y,
+      r: targetRadius * rMul,
+      life: isSniper ? Infinity : lvl.lifeTime * lifeMul,
+      vx: isSniper ? 0 : moveVx * vMul,
+      vy: isSniper ? 0 : moveVy * vMul,
+      spawn: 0,
+      hit: 0,
+      hitX: 0, hitY: 0,
+      bonus: isBonus,
+      type, hp, maxHp: hp,
+      particles: []
+    });
+  }
+
+  // ===================== FIRE / RELOAD =====================
+  function comboMul() {
+    if (hitCombo >= 10) return 3;
+    if (hitCombo >= 6) return 2;
+    if (hitCombo >= 3) return 1;
+    return 0;
+  }
+
+  function fire() {
+    const lvl = LEVELS[currentLevel];
+    const isSniperMode = lvl.sniper;
+
+    // No-fire mission: ANY fire attempt = failure (check before consuming)
+    if (activeMission && activeMission.kind === 'noFire' && !missionComplete && !missionFailed) {
+      emptyFlash = 1;
+      failMission('you fired');
+      return;
+    }
+
+    if (mag <= 0) {
+      emptyFlash = 1;
+      if (!isSniperMode && !audio.reloadPlaying) {
+        reloadPopup = 1;
+        reloadPopupKind = 'NEED';
+      }
+      return;
+    }
+    mag--;
+    if (mag === 0) {
+      emptyFlash = 1;
+      if (!isSniperMode) {
+        reloadPopup = 1;
+        reloadPopupKind = 'NEED';
+      }
+    }
+    shots++;
+    playShot(isSniperMode);
+    recoil = 3;
+    tracer = isSniperMode ? { x1: sniperAimX, y1: sniperAimY, x2: sniperAimX + 1, y2: sniperAimY + 1, life: 0.04 }
+                          : { x1: cursX, y1: cursY, x2: cursX, y2: cursY, life: 0.06 };
+
+    if (lvl.rpg) {
+      fireRpg(lvl);
+      return;
+    }
+
+    const aimXWorld = isSniperMode ? sniperAimX : cursX;
+    const aimYWorld = isSniperMode ? sniperAimY : cursY;
+    let hitAnything = false;
+    for (let i = targets.length - 1; i >= 0; i--) {
+      const t = targets[i];
+      if (t.hit > 0) continue;
+      const dx = aimXWorld - t.x, dy = aimYWorld - t.y;
+      const fade = Math.min(1, t.spawn);
+      const scopeZoomFire = 1 + (scopeValue + 1) * 1.5;
+      const visR = t.r * fade * (isSniperMode ? scopeZoomFire : 1);
+      const hitR = Math.max(t.r * fade * 1.3, visR * 0.8);
+      if (dx * dx + dy * dy < hitR * hitR) {
+        if (t.hp && t.hp > 1) {
+          // Armored target: chip the armor, target survives
+          t.hp--;
+          if (tracer) { tracer.x2 = t.x; tracer.y2 = t.y; tracer.life = 0.09; }
+          hitAnything = true;
+          const pts = isSniperMode ? 60 : 40;
+          score += pts;
+          sparks.push({ x: t.x, y: t.y, vx: (Math.random() - 0.5) * 300, vy: (Math.random() - 0.5) * 300, life: 0.35 });
+          sparks.push({ x: t.x, y: t.y, vx: (Math.random() - 0.5) * 300, vy: (Math.random() - 0.5) * 300, life: 0.35 });
+          floaters.push({ x: t.x, y: t.y - t.r, text: 'ARMOR +' + pts, color: '#8fd0ff', life: 0.7, vy: -55 });
+          shake = Math.min(8, shake + 2);
+          break;
+        }
+        t.hit = 0.01;
+        t.hitX = t.x;
+        t.hitY = t.y;
+        if (tracer) { tracer.x2 = t.x; tracer.y2 = t.y; tracer.life = 0.09; }
+        hitAnything = true;
+        t.particles = [];
+        for (let p = 0; p < 24; p++) {
+          const ang = Math.random() * Math.PI * 2;
+          const spd = 80 + Math.random() * 200;
+          t.particles.push({
+            x: t.x, y: t.y,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd,
+            life: 0.8 + Math.random() * 1.0
+          });
+        }
+        hits++;
+        targetsLeft--;
+        hitCombo++;
+        if (hitCombo > maxHitCombo) maxHitCombo = hitCombo;
+        let pts = 100 * (isSniperMode ? 3 : 1) * (1 + Math.min(comboMul(), 3) * 0.25);
+        if (t.bonus) pts *= 3;
+        score += Math.round(pts);
+        floaters.push({ x: t.x, y: t.y - t.r, text: t.bonus ? 'BONUS +' + Math.round(pts) : '+' + Math.round(pts), color: t.bonus ? '#ffd000' : '#ffeb3b', life: 0.9, vy: -60 });
+        shake = Math.min(10, shake + (isSniperMode ? 8 : 4));
+        // Mission tracking
+        if (activeMission && !missionComplete && !missionFailed) {
+          missionHitsInRow++;
+          missionCurrentCombo++;
+          if (missionCurrentCombo > missionMaxCombo) missionMaxCombo = missionCurrentCombo;
+          const m = activeMission;
+          if (m.kind === 'hits' && hits >= m.target) completeMission();
+          else if (m.kind === 'noMiss' && missionHitsInRow >= m.target) completeMission();
+          else if (m.kind === 'accuracy' && shots > 0 && (hits / shots) * 100 >= m.target) completeMission();
+          else if (m.kind === 'speed' && missionCurrentCombo >= m.target &&
+                   (performance.now() - missionAssignedTime) / 1000 <= (m.target === 3 ? 5 : 8)) completeMission();
+          else if (m.kind === 'combo' && missionCurrentCombo >= m.target) completeMission();
+        }
+        break;
+      }
+    }
+    if (!isSniperMode && !hitAnything) {
+      bulletHoles.push({ x: aimXWorld, y: aimYWorld, life: 4.0 });
+      if (hitCombo >= 5) { comboBreakShow = 1; floaters.push({ x: aimXWorld, y: aimYWorld - 24, text: 'COMBO ENDED ×' + maxHitCombo, color: '#ff5252', life: 1.0, vy: -40 }); }
+      hitCombo = 0;
+      floaters.push({ x: aimXWorld, y: aimYWorld - 16, text: 'MISS', color: '#9aa', life: 0.7, vy: -50 });
+      // Mission: track miss for combo/no-miss
+      if (activeMission && !missionComplete && !missionFailed) {
+        const hadProgress = missionHitsInRow > 0;
+        missionHitsInRow = 0;
+        missionCurrentCombo = 0;
+        if (activeMission.kind === 'noMiss' && hadProgress) {
+          failMission('broke streak');
+        } else if (activeMission.kind === 'accuracy' && activeMission.target >= 100) {
+          failMission('accuracy broken');
+        }
+      }
+    }
+  }
+
+  function fireRpg() {
+    if (!rpgWall || rpgWall.current >= rpgWall.layers.length) return;
+    const layer = rpgWall.layers[rpgWall.current];
+    layer.hp = Math.max(0, layer.hp - currentDamage);
+    rpgImpact = 1;
+    rpgWall.lastDmg = performance.now();
+    shake = Math.min(10, shake + 6);
+    if (layer.hp === 0) {
+      rpgWall.current++;
+      hits++;
+      const pts = 500 * (rpgWall.layers.length - rpgWall.current + 1);
+      score += pts;
+      floaters.push({ x: canvas.width / 2, y: layer.y || canvas.height * 0.4, text: 'LAYER DOWN +' + pts, color: '#ff9b36', life: 1.0, vy: -55 });
+      if (rpgWall.current >= rpgWall.layers.length) {
+        targetsLeft = 0;
+        score += 2000;
+        floaters.push({ x: canvas.width / 2, y: canvas.height * 0.35, text: 'WALL BREACHED +2000', color: '#ffeb3b', life: 1.4, vy: -50 });
+      }
+    }
+  }
+
+  function reload() {
+    if (maxReloads > 0 && reloadsUsed >= maxReloads) {
+      emptyFlash = 1;
+      return;
+    }
+    reloadsUsed++;
+    missionReloads++;
+    mag = 0;
+    emptyFlash = 0;
+    if (!audio.reloadPlaying) {
+      reloadPopup = 1;
+      reloadPopupKind = 'DONE';
+    }
+    const lvl = LEVELS[currentLevel];
+    if (activeMission && activeMission.kind === 'reload' && !missionComplete && !missionFailed) {
+      if (missionReloads === activeMission.target) completeMission();
+      else if (missionReloads > activeMission.target) failMission('too many reloads');
+    }
+    playReload(lvl.sniper, lvl.rpg ? currentReloadTime : null);
+  }
+
+  function completeMission() {
+    if (missionComplete || missionFailed) return;
+    missionComplete = true;
+    missionBannerText = '✓ COMPLETE: ' + activeMission.text;
+    missionBannerTimer = 3;
+  }
+  function failMission(reason) {
+    if (missionFailed || missionComplete) return;
+    missionFailed = true;
+    missionBannerText = '✗ FAILED' + (reason ? ' — ' + reason : '');
+    missionBannerTimer = 3;
+  }
+
+  // ===================== END / RESULT =====================
+  function formatTime(s) {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s - m * 60);
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+  }
+
+  function endLevel() {
+    gameState = 'result';
+    stopMusic();
+    if (missionTimerId) { clearTimeout(missionTimerId); missionTimerId = null; }
+
+    // Time-trial mission resolves at the end of the level
+    if (activeMission && !missionComplete && !missionFailed && activeMission.kind === 'timeTrial') {
+      if (elapsed <= activeMission.target) completeMission();
+      else failMission('too slow');
+    }
+
+    const acc = shots > 0 ? Math.round(100 * hits / shots) : (hits > 0 ? 100 : 0);
+    const lvl = LEVELS[currentLevel];
+    document.getElementById('rScore').textContent = score;
+    document.getElementById('rHits').textContent = hits;
+    document.getElementById('rAcc').textContent = acc + '%';
+    document.getElementById('rCombo').textContent = maxHitCombo;
+    document.getElementById('rTime').textContent = formatTime(elapsed);
+
+    // Star rating: 1 for clearing, +1 for accuracy >= 85%, +1 for flawless / big combo
+    let earned = 1;
+    if (acc >= 85) earned++;
+    if ((acc >= 99 && hits >= 2) || maxHitCombo >= 8) earned++;
+    if (lvl.sniper && hits > 0 && shots === hits) earned = 3;
+    earned = Math.min(3, earned);
+    const prevStars = levelStars[currentLevel];
+    levelStars[currentLevel] = Math.max(prevStars, earned);
+    starsEarned = levelStars.reduce((a, b) => a + (b || 0), 0);
+    const isNewBestScore = score > bestScores[currentLevel];
+    if (isNewBestScore) bestScores[currentLevel] = score;
+    if (elapsed < bestTimes[currentLevel]) bestTimes[currentLevel] = elapsed;
+    const prevUnlocked = maxUnlocked;
+    if (currentLevel + 1 < LEVELS.length) maxUnlocked = Math.max(maxUnlocked, currentLevel + 2);
+    const unlockedNew = maxUnlocked > prevUnlocked;
+    const goodRecord = isNewBestScore || unlockedNew || levelStars[currentLevel] > prevStars;
+    if (score > highScore) highScore = score;
+    saveProgress();
+
+    const starRow = document.getElementById('resultStars');
+    if (starRow) {
+      starRow.innerHTML = '';
+      for (let s = 0; s < 3; s++) {
+        const sp = document.createElement('span');
+        sp.className = 'resultStar' + (s < earned ? ' on' : '');
+        sp.textContent = '★';
+        starRow.appendChild(sp);
+      }
+    }
+    document.getElementById('resultExtra').textContent =
+      (goodRecord ? '★ NEW BEST ★  ' : '') +
+      (unlockedNew && currentLevel + 1 < LEVELS.length ? `Level ${currentLevel + 2} unlocked!` : '');
+
+    // Letter grade (S/A/B/C/D) based on accuracy + mission
+    let grade = 'D';
+    const gradeColor = { S: 'var(--accent)', A: '#4caf50', B: '#43a4ff', C: '#ff9b36', D: '#ff5252' };
+    if (acc >= 100 && hits >= 8) grade = 'S';
+    else if (acc >= 90) grade = 'A';
+    else if (acc >= 75) grade = 'B';
+    else if (acc >= 50) grade = 'C';
+    if (missionComplete) grade = grade === 'S' ? 'S' : (grade === 'D' ? 'C' : (grade.charCodeAt(0) - 64 <= 2 ? 'S' : grade));
+    const gradeEl = document.getElementById('resultGrade');
+    gradeEl.textContent = grade;
+    gradeEl.style.color = gradeColor[grade] || 'var(--accent)';
+    document.getElementById('resultTitle').textContent =
+      missionComplete ? 'PERFECT!' : (missionFailed ? 'CLEARED' : 'COMPLETE!');
+
+    const missionEl = document.getElementById('resultMission');
+    if (activeMission) {
+      missionEl.textContent = missionComplete ? `MISSION: "${activeMission.text}" COMPLETED ✓`
+                             : missionFailed ? `MISSION: "${activeMission.text}" FAILED ✗`
+                             : `MISSION: "${activeMission.text}"`;
+      missionEl.className = missionComplete ? 'completed' : (missionFailed ? 'failed' : '');
+    } else {
+      missionEl.textContent = '—';
+      missionEl.className = '';
+    }
+
+    showScreen('result');
+    resultIndex = 0;
+    updateResultResultUI();
+    resultFlash = 1;
+  }
+
+  function updateResultResultUI() {
+    const ag = document.getElementById('actAgain');
+    const am = document.getElementById('actMenu');
+    if (ag) ag.classList.toggle('actionSelected', resultIndex === 0);
+    if (am) am.classList.toggle('actionSelected', resultIndex === 1);
+  }
+
+  // ===================== INPUT PER SCREEN =====================
+  function updateIntroInput() {
+    for (let i = 0; i < 20; i++) {
+      if (edgePressed(i)) { gotoAccounts(); return; }
+    }
+    if (edgePressedKB('Enter')) gotoAccounts();
+    if (edgePressedKB(' ')) gotoAccounts();
+  }
+
+  function updateMenuInput() {
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastMenuNav > 220) {
+      const cols = getMenuCols();
+      const row = Math.floor(menuIndex / cols);
+      const col = menuIndex % cols;
+      const i = dir.idx;
+      const up    = (i === 0 || i === 1 || i === 7);
+      const down  = (i === 3 || i === 4 || i === 5);
+      const left  = (i === 5 || i === 6 || i === 7);
+      const right = (i === 1 || i === 2 || i === 3);
+      let next = menuIndex;
+      if (up && row > 0) next -= cols;
+      else if (down && next + cols < MENU_COUNT) next += cols;
+      else if (left && col > 0) next--;
+      else if (right && col < cols - 1 && next + 1 < MENU_COUNT) next++;
+      if (next !== menuIndex) { menuIndex = next; lastMenuNav = performance.now(); updateMenu(); }
+    }
+    if (performance.now() >= transitionUntil && edgePressed(0)) menuConfirm(() => startLevel(menuIndex));
+    const cols = getMenuCols();
+    if (edgePressedKB('ArrowUp'))    { menuIndex = Math.max(0, menuIndex - cols); updateMenu(); }
+    if (edgePressedKB('ArrowDown'))  { menuIndex = Math.min(MENU_COUNT - 1, menuIndex + cols); updateMenu(); }
+    if (edgePressedKB('ArrowLeft'))  { menuIndex = Math.max(0, menuIndex - 1); updateMenu(); }
+    if (edgePressedKB('ArrowRight')) { menuIndex = Math.min(MENU_COUNT - 1, menuIndex + 1); updateMenu(); }
+    if (edgePressedKB('Enter')) menuConfirm(() => startLevel(menuIndex));
+    if (edgePressed(3)) { stopMusic(); gotoAccounts(); }
+  }
+
+  function menuConfirm(run) {
+    if (menuIndex >= LEVELS.length) { gotoAccounts(); return; }
+    if (menuIndex < maxUnlocked) run();
+  }
+
+  function updateRpgSelectInput() {
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastMenuNav > 220) {
+      if (dir.x < 0 && rpgLoadoutIndex > 0) rpgLoadoutIndex--;
+      else if (dir.x > 0 && rpgLoadoutIndex < RPG_LOADOUTS.length - 1) rpgLoadoutIndex++;
+      lastMenuNav = performance.now();
+      updateRpgLoadoutUI();
+    }
+    if (performance.now() >= transitionUntil && edgePressed(0)) {
+      selectedRpg = RPG_LOADOUTS[rpgLoadoutIndex];
+      startLevel(currentLevel, true);
+    }
+    if (edgePressed(3)) { selectedRpg = null; showScreen('menu'); }
+  }
+
+  function updateGameInput() {
+    const isSniperMode = LEVELS[currentLevel].sniper;
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastAimStep > 30) {
+      if (isSniperMode) {
+        const scopeZoomSpeed = 1 + (scopeValue + 1) * 1.5;
+        const speedScale = 2.5 / scopeZoomSpeed;
+        sniperAimX += dir.x * aimSpeed * speedScale;
+        sniperAimY += dir.y * aimSpeed * speedScale;
+      } else {
+        cursX += dir.x * aimSpeed * 2.5;
+        cursY += dir.y * aimSpeed * 2.5;
+      }
+      lastAimStep = performance.now();
+    }
+    cursX = Math.max(0, Math.min(canvas.width, cursX));
+    cursY = Math.max(0, Math.min(canvas.height, cursY));
+    sniperAimX = Math.max(-100, Math.min(canvas.width + 100, sniperAimX));
+    sniperAimY = Math.max(-100, Math.min(canvas.height + 100, sniperAimY));
+
+    if (performance.now() < transitionUntil) return;
+    const now = performance.now();
+    if (now - lastAutoShot < FIRE_COOLDOWN_MS) return;
+    if (edgePressed(0) || (btnCurr[0] && mag > 0)) {
+      fire();
+      lastAutoShot = now;
+    }
+    if (edgePressed(1)) reload();
+    if (edgePressed(3)) { stopMusic(); showScreen('menu'); }
+    // Keyboard fallback
+    if (edgePressedKB(' ')) fire();
+    if (edgePressedKB('r') || edgePressedKB('R')) reload();
+    if (edgePressedKB('Escape')) { stopMusic(); showScreen('menu'); }
+  }
+
+  function updateResultInput() {
+    const dir = axisToDirection(povValue);
+    if (dir && performance.now() - lastResultNav > 220) {
+      if ((dir.idx === 2 || dir.idx === 1) && resultIndex < 1) {
+        resultIndex = 1; lastResultNav = performance.now(); updateResultResultUI();
+      } else if ((dir.idx === 6 || dir.idx === 7) && resultIndex > 0) {
+        resultIndex = 0; lastResultNav = performance.now(); updateResultResultUI();
+      }
+    }
+    if (performance.now() >= transitionUntil && edgePressed(0)) {
+      if (resultIndex === 0) startLevel(currentLevel);
+      else { stopMusic(); showScreen('menu'); }
+    }
+    if (edgePressed(3)) { stopMusic(); showScreen('menu'); }
+    for (let i = 1; i < 20; i++) {
+      if (i === 3) continue;
+      if (edgePressed(i)) {
+        if (resultIndex === 0) startLevel(currentLevel);
+        else { stopMusic(); showScreen('menu'); }
+        break;
+      }
+    }
+  }
+
+  // ===================== MAIN UPDATE =====================
+  function update(dt) {
+    if (gameState === 'intro') updateIntroInput();
+    else if (gameState === 'menu') updateMenuInput();
+    else if (gameState === 'accounts') updateAccountsInput();
+    else if (gameState === 'name') updateNameInput();
+    else if (gameState === 'rpgSelect') updateRpgSelectInput();
+    else if (gameState === 'result') updateResultInput();
+    else if (gameState === 'play') {
+      updateGameInput();
+      const lvl = LEVELS[currentLevel];
+      const isSniperLocal = lvl.sniper;
+      const scopeZoomLocal = isSniperLocal ? (1 + (scopeValue + 1) * 1.5) : 1;
+      elapsed = (performance.now() - startTime) / 1000;
+      spawnTimer -= dt;
+      if (emptyFlash > 0) emptyFlash = Math.max(0, emptyFlash - dt * 3);
+      if (reloadPopup > 0) reloadPopup = Math.max(0, reloadPopup - dt * 1.2);
+      if (resultFlash > 0) resultFlash = Math.max(0, resultFlash - dt * 5);
+      if (rpgImpact > 0) rpgImpact = Math.max(0, rpgImpact - dt * 3);
+      if (missionShowObjective > 0) missionShowObjective = Math.max(0, missionShowObjective - dt);
+      if (missionBannerTimer > 0) missionBannerTimer = Math.max(0, missionBannerTimer - dt);
+      if (shake > 0) shake = Math.max(0, shake - dt * 30);
+      if (comboBreakShow > 0) comboBreakShow = Math.max(0, comboBreakShow - dt * 1.5);
+      if (tracer) { tracer.life -= dt; if (tracer.life <= 0) tracer = null; }
+      for (let i = floaters.length - 1; i >= 0; i--) {
+        const f = floaters[i];
+        f.y += f.vy * dt;
+        f.life -= dt;
+        if (f.life <= 0) floaters.splice(i, 1);
+      }
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const s = sparks[i];
+        s.x += s.vx * dt;
+        s.y += s.vy * dt;
+        s.vx *= 0.92;
+        s.vy *= 0.92;
+        s.life -= dt;
+        if (s.life <= 0) sparks.splice(i, 1);
+      }
+
+      // Spawn regular targets (non-sniper, non-rpg)
+      if (!lvl.rpg && !lvl.sniper && targets.length < 3 + currentLevel && spawnTimer <= 0 && targetsLeft > 0) {
+        spawnTarget();
+        spawnTimer = lvl.spawnMin + Math.random() * (lvl.spawnMax - lvl.spawnMin);
+      }
+
+      // RPG shield slowly regenerates after a delay — keep the pressure on
+      if (lvl.rpg && rpgWall && rpgWall.current < rpgWall.layers.length) {
+        const sec = (performance.now() - rpgWall.lastDmg) / 1000;
+        if (sec > rpgWall.regenDelay) {
+          const layer = rpgWall.layers[rpgWall.current];
+          layer.hp = Math.min(layer.maxHp, layer.hp + rpgWall.regenRate * dt);
+        }
+      }
+
+      // Age bullet holes
+      for (let i = bulletHoles.length - 1; i >= 0; i--) {
+        bulletHoles[i].life -= dt;
+        if (bulletHoles[i].life <= 0) bulletHoles.splice(i, 1);
+      }
+
+      // Update targets
+      const hud = document.getElementById('gameUI');
+      const protectedTop = hud ? hud.getBoundingClientRect().bottom + 20 : 0;
+      for (let i = targets.length - 1; i >= 0; i--) {
+        const t = targets[i];
+        if (t.hit > 0) {
+          t.hit = Math.min(1, t.hit + dt / 1.5);
+          for (const p of t.particles) {
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.vy += 200 * dt;
+            p.life -= dt;
+          }
+          t.particles = t.particles.filter(p => p.life > 0);
+          if (t.hit >= 1 && t.particles.length === 0) targets.splice(i, 1);
+        } else {
+          t.spawn = Math.min(1, t.spawn + dt * 4);
+          t.x += t.vx * dt;
+          t.y += t.vy * dt;
+          // Compute bounce bounds (sniper uses world coords)
+          let minX, maxX, minY, maxY;
+          if (isSniperLocal) {
+            const halfW = canvas.width / (2 * scopeZoomLocal);
+            const halfH = canvas.height / (2 * scopeZoomLocal);
+            minX = sniperAimX - halfW + t.r;
+            maxX = sniperAimX + halfW - t.r;
+            minY = sniperAimY - halfH + t.r;
+            maxY = sniperAimY + halfH - t.r;
+          } else {
+            minX = t.r;
+            maxX = canvas.width - t.r;
+            const topLimit = Math.max(t.r, protectedTop + t.r);
+            minY = topLimit;
+            maxY = canvas.height - t.r;
+          }
+          if (t.x < minX) { t.x = minX; t.vx = Math.abs(t.vx) * 0.7; }
+          else if (t.x > maxX) { t.x = maxX; t.vx = -Math.abs(t.vx) * 0.7; }
+          if (t.y < minY) { t.y = minY; t.vy = Math.abs(t.vy) * 0.7; }
+          else if (t.y > maxY) { t.y = maxY; t.vy = -Math.abs(t.vy) * 0.7; }
+          // Damp velocity and ensure minimum movement
+          t.vx *= 0.995;
+          t.vy *= 0.995;
+          const speed = Math.hypot(t.vx, t.vy);
+          if (speed < 20) {
+            const ang = Math.random() * Math.PI * 2;
+            t.vx += Math.cos(ang) * 5;
+            t.vy += Math.sin(ang) * 5;
+          }
+          if (t.life !== Infinity) {
+            t.life -= dt;
+            if (t.life <= 0) targets.splice(i, 1);
+          }
+        }
+      }
+
+      // End conditions
+      if (targetsLeft <= 0) {
+        const stillFading = targets.some(t => t.hit > 0 && t.hit < 1);
+        if (!stillFading) { endLevel(); }
+      }
+      // Time-based mission completion
+      if (activeMission && !missionComplete && !missionFailed) {
+        const m = activeMission;
+        if ((m.kind === 'survive' || m.kind === 'noFire') && elapsed >= m.target) {
+          completeMission();
+        } else if (m.kind === 'speed') {
+          const limit = m.target === 3 ? 5 : 8;
+          if ((performance.now() - missionAssignedTime) / 1000 > limit) {
+            failMission('time up');
+          }
+        }
+      }
+    }
+    updateHud();
+  }
+
+  // ===================== RENDERING =====================
+  function drawRangeBackdrop() {
+    // Sky with sun glow
+    const sky = ctx.createLinearGradient(0, 0, 0, canvas.height);
+    sky.addColorStop(0, '#1e3a5f');
+    sky.addColorStop(0.2, '#4a7ab5');
+    sky.addColorStop(0.45, '#9bc7e8');
+    sky.addColorStop(0.55, '#c8e4f0');
+    sky.addColorStop(0.56, '#7a9a4f');
+    sky.addColorStop(0.8, '#4a7235');
+    sky.addColorStop(1, '#2d4a20');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Sun glow
+    const sunX = canvas.width * 0.7;
+    const sunY = canvas.height * 0.18;
+    const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, 180);
+    sunGrad.addColorStop(0, 'rgba(255,240,180,0.9)');
+    sunGrad.addColorStop(0.3, 'rgba(255,220,150,0.5)');
+    sunGrad.addColorStop(1, 'rgba(255,200,120,0)');
+    ctx.fillStyle = sunGrad;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Sun disc
+    ctx.fillStyle = '#fff8e0';
+    ctx.shadowColor = 'rgba(255,240,180,0.8)';
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.arc(sunX, sunY, 25, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    // Distant mountains
+    const horizon = canvas.height * 0.55;
+    ctx.fillStyle = 'rgba(60, 80, 95, 0.85)';
+    ctx.beginPath();
+    ctx.moveTo(0, horizon);
+    for (let x = 0; x <= canvas.width; x += 60) {
+      const peak = horizon - 30 - (Math.sin(x * 0.015) + 1) * 35 - Math.abs(Math.sin(x * 0.04)) * 20;
+      ctx.lineTo(x + 30, peak);
+    }
+    ctx.lineTo(canvas.width, horizon); ctx.closePath(); ctx.fill();
+    // Closer hills
+    ctx.fillStyle = 'rgba(74, 114, 53, 0.9)';
+    ctx.beginPath();
+    ctx.moveTo(0, horizon + 5);
+    for (let x = 0; x <= canvas.width; x += 80) {
+      const peak = horizon - 5 - (Math.sin(x * 0.011) + 1) * 25;
+      ctx.lineTo(x + 40, peak);
+    }
+    ctx.lineTo(canvas.width, horizon + 5); ctx.closePath(); ctx.fill();
+    // Grass base
+    ctx.fillStyle = 'rgba(85, 130, 60, 1)';
+    ctx.fillRect(0, horizon + 5, canvas.width, canvas.height - horizon);
+    // Animated grass blades
+    const tNow = performance.now() * 0.001;
+    for (let i = 0; i < 60; i++) {
+      const gx = (i * 73) % (canvas.width + 20) - 10;
+      const gy = horizon + 10 + ((i * 31) % (canvas.height - horizon - 30));
+      const sway = Math.sin(tNow * 1.5 + i) * 1.5;
+      const shade = 60 + (i % 3) * 15;
+      ctx.strokeStyle = `rgba(${shade}, ${shade + 40}, ${shade - 10}, 0.7)`;
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(gx + sway, gy - 6);
+      ctx.stroke();
+    }
+    // Perspective range lanes
+    ctx.strokeStyle = 'rgba(255,255,255,0.22)';
+    ctx.lineWidth = 1;
+    const vanishX = canvas.width / 2;
+    const vanishY = horizon + 2;
+    for (let i = 0; i < 5; i++) {
+      const xStart = canvas.width * (i / 4);
+      ctx.beginPath();
+      ctx.moveTo(xStart, canvas.height);
+      ctx.lineTo(vanishX, vanishY);
+      ctx.stroke();
+    }
+    // Horizontal range markers
+    for (let d = 50; d < canvas.height - horizon; d += 50) {
+      const t = d / (canvas.height - horizon);
+      const y = horizon + d;
+      const w = (1 - t) * canvas.width * 0.8;
+      ctx.beginPath();
+      ctx.moveTo(canvas.width / 2 - w/2, y);
+      ctx.lineTo(canvas.width / 2 + w/2, y);
+      ctx.stroke();
+    }
+  }
+
+  function drawRpgWall() {
+    if (!rpgWall || rpgWall.current >= rpgWall.layers.length) return;
+    const wallW = Math.min(canvas.width * 0.58, 620);
+    const wallH = Math.min(canvas.height * 0.42, 360);
+    const x = (canvas.width - wallW) / 2;
+    const y = Math.max(canvas.height * 0.28, 190);
+    const layer = rpgWall.layers[rpgWall.current];
+    const colors = ['#43a4ff', '#9a5cff', '#ff4f83', '#ff9b36', '#f5e642'];
+    const color = colors[layer.idx % colors.length];
+    ctx.save();
+    ctx.fillStyle = '#39434c'; ctx.fillRect(x, y, wallW, wallH);
+    ctx.strokeStyle = '#182027'; ctx.lineWidth = 12; ctx.strokeRect(x, y, wallW, wallH);
+    for (let i = rpgWall.current; i < rpgWall.layers.length; i++) {
+      const inset = 18 + (i - rpgWall.current) * 13;
+      ctx.globalAlpha = i === rpgWall.current ? 0.82 : 0.26;
+      ctx.strokeStyle = colors[i % colors.length]; ctx.lineWidth = 10;
+      ctx.strokeRect(x + inset, y + inset, wallW - inset * 2, wallH - inset * 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)'; ctx.fillRect(x + 35, y + wallH * 0.44, wallW - 70, 36);
+    ctx.fillStyle = color; ctx.fillRect(x + 39, y + wallH * 0.44 + 4, (wallW - 78) * (layer.hp / layer.maxHp), 28);
+    ctx.fillStyle = '#fff'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
+    ctx.fillText(`SHIELD ${rpgWall.current + 1}/${rpgWall.layers.length}  •  ${layer.hp}/${layer.maxHp} HP`, canvas.width / 2, y + wallH * 0.44 + 27);
+    if (rpgImpact > 0) { ctx.globalAlpha = rpgImpact; ctx.fillStyle = '#fff5b0'; ctx.beginPath(); ctx.arc(canvas.width / 2, y + wallH / 2, 26 + (1-rpgImpact)*90, 0, Math.PI * 2); ctx.fill(); }
+    ctx.restore();
+  }
+
+  function drawBulletHoles() {
+    for (const h of bulletHoles) {
+      const alpha = Math.min(1, h.life / 1.5);
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = '#3a2a18';
+      ctx.beginPath(); ctx.arc(h.x, h.y, 9, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#000';
+      ctx.beginPath(); ctx.arc(h.x, h.y, 4, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#5d4037';
+      for (let d = 0; d < 5; d++) {
+        const ang = (d / 5) * Math.PI * 2 + h.x * 0.07;
+        const dx = h.x + Math.cos(ang) * 12;
+        const dy = h.y + Math.sin(ang) * 12;
+        ctx.beginPath(); ctx.arc(dx, dy, 1.8, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+  }
+
+  function drawTargets(isSniper) {
+    for (const t of targets) {
+      if (t.hit > 0) {
+        // Explosion
+        const fadeOut = 1 - t.hit;
+        const ringR = t.r * (1 + t.hit * 5);
+        ctx.save();
+        ctx.globalAlpha = fadeOut * 0.9;
+        ctx.strokeStyle = '#ff3030';
+        ctx.lineWidth = 10;
+        ctx.shadowColor = '#ff3030';
+        ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.arc(t.hitX, t.hitY, ringR, 0, Math.PI * 2); ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = fadeOut;
+        ctx.strokeStyle = '#ffeb3b';
+        ctx.lineWidth = 7;
+        ctx.beginPath(); ctx.arc(t.hitX, t.hitY, ringR * 0.7, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = fadeOut * 0.7;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(t.hitX, t.hitY, ringR * 0.45, 0, Math.PI * 2); ctx.stroke();
+        ctx.restore();
+        for (const p of t.particles) {
+          const a = Math.max(0, Math.min(1, p.life / 1.8));
+          ctx.save();
+          ctx.globalAlpha = a;
+          ctx.fillStyle = '#ffeb3b';
+          ctx.beginPath(); ctx.arc(p.x, p.y, 4, 0, Math.PI * 2); ctx.fill();
+          ctx.fillStyle = '#ff5252';
+          ctx.beginPath(); ctx.arc(p.x, p.y, 2, 0, Math.PI * 2); ctx.fill();
+          ctx.restore();
+        }
+        ctx.save();
+        ctx.globalAlpha = fadeOut * 0.8;
+        ctx.fillStyle = '#fff5b0';
+        ctx.beginPath(); ctx.arc(t.hitX, t.hitY, 12 + (1 - t.hit) * 18, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+      } else {
+        // Live target
+        const fade = Math.min(1, t.spawn);
+        const r = t.r * fade;
+        const pulse = 1 + Math.sin(performance.now() * 0.006 + t.x * 0.01) * 0.08;
+        ctx.save();
+        ctx.translate(t.x, t.y);
+        ctx.fillStyle = 'rgba(0,0,0,0.35)';
+        ctx.beginPath(); ctx.ellipse(3, 4, r * 0.95, r * 0.55, 0, 0, Math.PI * 2); ctx.fill();
+        if (t.bonus) {
+          ctx.shadowColor = '#ffd000';
+          ctx.shadowBlur = 18;
+          ctx.strokeStyle = `rgba(255,208,0,${0.6 + 0.4 * Math.abs(Math.sin(performance.now() * 0.004))})`;
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.arc(0, 0, r * 1.05 * pulse, 0, Math.PI * 2); ctx.stroke();
+          ctx.shadowBlur = 0;
+        }
+        const isArmored = t.hp && t.hp > 1;
+        const isSwift = t.type === 'swift';
+        const fillC = t.bonus ? 'rgba(229,57,53,ALPHA)' : isSwift ? 'rgba(30,136,229,ALPHA)' : isArmored ? 'rgba(117,117,117,ALPHA)' : 'rgba(229,57,53,ALPHA)';
+        const a1 = 0.5 + 0.5 * fade;
+        const a2 = 0.9 * fade;
+        const a3 = fade;
+        ctx.fillStyle = fillC.replace('ALPHA', a1);
+        ctx.beginPath(); ctx.arc(0, 0, r * pulse, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = t.bonus ? `rgba(255,224,80,${a2})` : isSwift ? `rgba(144,202,249,${a2})` : isArmored ? `rgba(224,224,224,${a2})` : `rgba(255,255,255,${a2})`;
+        ctx.beginPath(); ctx.arc(0, 0, r * 0.65 * pulse, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = t.bonus ? `rgba(255,180,0,${a3})` : isSwift ? `rgba(21,101,192,${a3})` : isArmored ? `rgba(66,66,66,${a3})` : `rgba(229,57,53,${a3})`;
+        ctx.beginPath(); ctx.arc(0, 0, r * 0.35 * pulse, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = `rgba(255,255,255,${t.bonus ? a3 : a3 * 0.8})`;
+        ctx.beginPath(); ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2); ctx.fill();
+        if (isArmored) {
+          ctx.strokeStyle = `rgba(224,224,224,${fade})`;
+          ctx.lineWidth = Math.max(2, r * 0.1);
+          ctx.beginPath(); ctx.arc(0, 0, r * 1.06 * pulse, 0, Math.PI * 2); ctx.stroke();
+          ctx.strokeStyle = `rgba(250,250,250,${fade})`;
+          ctx.lineWidth = 2;
+          for (let i = 0; i < t.hp; i++) {
+            const ang = -Math.PI / 2 + (i - (t.maxHp - 1) / 2) * 0.5;
+            ctx.beginPath(); ctx.arc(0, 0, r * 0.9, ang - 0.16, ang + 0.16); ctx.stroke();
+          }
+        } else if (isSwift) {
+          ctx.strokeStyle = `rgba(33,150,243,${0.5 + 0.5 * Math.abs(Math.sin(performance.now() * 0.01))})`;
+          ctx.lineWidth = 3;
+          ctx.setLineDash([4, 4]);
+          ctx.beginPath(); ctx.arc(0, 0, r * 1.25 * pulse, 0, Math.PI * 2); ctx.stroke();
+          ctx.setLineDash([]);
+        }
+        ctx.strokeStyle = `rgba(180,30,30,${fade})`;
+        ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(0, 0, r * pulse, 0, Math.PI * 2); ctx.stroke();
+        if (t.bonus) {
+          ctx.fillStyle = '#ffd000';
+          ctx.font = 'bold ' + Math.max(9, r * 0.32) + 'px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('★', 0, -r * 1.15);
+        }
+        ctx.restore();
+      }
+    }
+  }
+
+  function drawSniperOverlay(scopeZoom) {
+    const vg = ctx.createRadialGradient(
+      canvas.width/2, canvas.height/2, Math.min(canvas.width, canvas.height) * 0.25,
+      canvas.width/2, canvas.height/2, Math.min(canvas.width, canvas.height) * 0.55
+    );
+    vg.addColorStop(0, 'rgba(0,0,0,0)');
+    vg.addColorStop(1, 'rgba(0,0,0,0.65)');
+    ctx.fillStyle = vg;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Crosshair — pixel-aligned for crisp lines
+    const cx = Math.round(canvas.width / 2) + 0.5;
+    const cy = Math.round(canvas.height / 2) + 0.5;
+    ctx.strokeStyle = 'rgba(255, 235, 59, 0.95)';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'butt';
+    ctx.shadowColor = 'rgba(0,0,0,0.9)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    // Horizontal ticks (left + right)
+    ctx.beginPath();
+    ctx.moveTo(cx - 120, cy); ctx.lineTo(cx - 22, cy);
+    ctx.moveTo(cx + 22, cy);  ctx.lineTo(cx + 120, cy);
+    // Vertical ticks (top + bottom)
+    ctx.moveTo(cx, cy - 120); ctx.lineTo(cx, cy - 22);
+    ctx.moveTo(cx, cy + 22);  ctx.lineTo(cx, cy + 120);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    // Outer ring
+    ctx.beginPath();
+    ctx.arc(cx, cy, 70, 0, Math.PI * 2);
+    ctx.stroke();
+    // Center dot
+    ctx.fillStyle = '#ff3030';
+    ctx.beginPath();
+    ctx.arc(cx, cy, 1.5, 0, Math.PI * 2);
+    ctx.fill();
+    // Rotating mil-dots around the reticle
+    const tNow = performance.now() * 0.001;
+    ctx.fillStyle = 'rgba(255,235,59,0.85)';
+    for (let d = 0; d < 8; d++) {
+      const ang = (d / 8) * Math.PI * 2 + tNow * 0.3;
+      const dx = cx + Math.cos(ang) * 50;
+      const dy = cy + Math.sin(ang) * 50;
+      ctx.beginPath();
+      ctx.arc(dx, dy, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    const bw = 220, bh = 50;
+    const bx = canvas.width / 2 - bw / 2, by = canvas.height - bh - 16;
+    ctx.fillStyle = 'rgba(0,0,0,0.75)';
+    ctx.strokeStyle = '#ffeb3b';
+    ctx.lineWidth = 2;
+    ctx.fillRect(bx, by, bw, bh);
+    ctx.strokeRect(bx, by, bw, bh);
+    ctx.fillStyle = '#ffeb3b';
+    ctx.font = 'bold 18px Arial Black';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`SCOPE ${scopeZoom.toFixed(1)}x`, canvas.width / 2, by + 18);
+    ctx.font = '11px Arial';
+    ctx.fillStyle = 'rgba(255,235,59,0.7)';
+    ctx.fillText('move JOYSTICK to look around', canvas.width / 2, by + 36);
+  }
+
+  function drawEmptyFlash() {
+    if (emptyFlash <= 0) return;
+    const a = emptyFlash * 0.6;
+    ctx.fillStyle = `rgba(255, 60, 60, ${a})`;
+    ctx.fillRect(0, 0, canvas.width, 30 * emptyFlash);
+    ctx.fillRect(0, canvas.height - 30 * emptyFlash, canvas.width, 30 * emptyFlash);
+    ctx.fillRect(0, 0, 30 * emptyFlash, canvas.height);
+    ctx.fillRect(canvas.width - 30 * emptyFlash, 0, 30 * emptyFlash, canvas.height);
+  }
+
+  function drawMissionBanner() {
+    if (missionShowObjective > 0 && missionBannerText) {
+      const a = Math.min(1, missionShowObjective / 1.5);
+      const slide = (1 - missionShowObjective / 3.5) * 200;
+      ctx.save();
+      ctx.translate(canvas.width / 2, 80 + slide);
+      ctx.globalAlpha = a;
+      const w = Math.min(620, canvas.width * 0.85);
+      const h = 70;
+      ctx.shadowColor = '#ffcf4c';
+      ctx.shadowBlur = 20;
+      ctx.fillStyle = 'rgba(15,15,30,0.92)';
+      ctx.strokeStyle = '#ffcf4c';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.roundRect ? ctx.roundRect(-w/2, -h/2, w, h, 12) : ctx.rect(-w/2, -h/2, w, h);
+      ctx.fill();
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#ffcf4c';
+      ctx.font = 'bold 11px Arial Black';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('▶ MISSION', 0, -18);
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 18px Arial Black';
+      ctx.fillText(missionBannerText, 0, 12);
+      ctx.restore();
+    }
+  }
+
+  function drawMissionResult() {
+    if (missionBannerTimer <= 0 || (!missionComplete && !missionFailed)) return;
+    const a = Math.min(1, missionBannerTimer / 1.5);
+    const scale = 0.8 + 0.2 * (1 - missionBannerTimer / 3);
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = a;
+    const color = missionComplete ? '#4caf50' : '#ff5252';
+    const title = missionComplete ? '✓ COMPLETE' : '✗ FAILED';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 30;
+    const w = 480, h = 90;
+    ctx.fillStyle = 'rgba(15,15,30,0.95)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-w/2, -h/2, w, h, 16) : ctx.rect(-w/2, -h/2, w, h);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = color;
+    ctx.font = 'bold 28px Arial Black';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, 0, -16);
+    ctx.fillStyle = '#fff';
+    ctx.font = '14px Arial';
+    ctx.fillText(missionBannerText, 0, 18);
+    ctx.restore();
+  }
+
+  function drawReloadPopup() {
+    if (reloadPopup <= 0) return;
+    const a = Math.min(1, reloadPopup * 3);
+    const scale = 0.85 + 0.15 * (reloadPopup / 0.5);
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(scale, scale);
+    ctx.globalAlpha = a;
+    const color = reloadPopupKind === 'NEED' ? '#ff5252' : '#4caf50';
+    const title = reloadPopupKind === 'NEED' ? '⚠ RELOAD!' : '✓ RELOADED';
+    const sub = reloadPopupKind === 'NEED' ? 'Press RED SIDE BUTTON' : 'Magazine full';
+    ctx.shadowColor = color;
+    ctx.shadowBlur = 30;
+    const boxW = 360, boxH = 130;
+    ctx.fillStyle = 'rgba(15,15,30,0.92)';
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.roundRect ? ctx.roundRect(-boxW/2, -boxH/2, boxW, boxH, 16) : ctx.rect(-boxW/2, -boxH/2, boxW, boxH);
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = color;
+    ctx.font = 'bold 44px Arial Black';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(title, 0, -18);
+    ctx.fillStyle = '#ddd';
+    ctx.font = 'bold 16px Arial';
+    ctx.fillText(sub, 0, 30);
+    ctx.restore();
+  }
+
+  function drawFloaters() {
+    if (!floaters.length) return;
+    ctx.save();
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    for (const f of floaters) {
+      const a = Math.min(1, f.life / 0.4);
+      ctx.globalAlpha = a;
+      ctx.font = 'bold 16px Arial Black';
+      ctx.strokeStyle = 'rgba(0,0,0,0.8)';
+      ctx.lineWidth = 3;
+      ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillStyle = f.color;
+      ctx.fillText(f.text, f.x, f.y);
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function drawSparks() {
+    if (!sparks.length) return;
+    ctx.save();
+    for (const s of sparks) {
+      const a = Math.min(1, s.life / 0.35);
+      ctx.globalAlpha = a;
+      ctx.fillStyle = '#ffb74d';
+      ctx.beginPath(); ctx.arc(s.x, s.y, 3, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#fff176';
+      ctx.beginPath(); ctx.arc(s.x, s.y, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (gameState !== 'play') return;
+
+    const lvl = LEVELS[currentLevel];
+    const isSniper = lvl.sniper;
+    const scopeZoom = isSniper ? (1 + (scopeValue + 1) * 1.5) : 1;
+
+    ctx.save();
+    if (recoil > 0 || shake > 0) {
+      const k = recoil + shake;
+      ctx.translate((Math.random() - 0.5) * k, (Math.random() - 0.5) * k);
+      recoil *= 0.85;
+      if (recoil < 0.1) recoil = 0;
+    }
+    if (isSniper) {
+      ctx.translate(cursX, cursY);
+      ctx.scale(scopeZoom, scopeZoom);
+      ctx.translate(-sniperAimX, -sniperAimY);
+    }
+
+    // Tracer line (in world space)
+    if (tracer && !isSniper) {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(255,235,59,0.7)';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#ffeb3b';
+      ctx.shadowBlur = 6;
+      ctx.beginPath();
+      ctx.moveTo(tracer.x1, tracer.y1);
+      ctx.lineTo(tracer.x2, tracer.y2);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // Background
+    if (isSniper) {
+      ctx.fillStyle = '#5fa8d3';
+      const padX = canvas.width * 2, padY = canvas.height * 2;
+      ctx.fillRect(-padX, -padY, canvas.width + 2 * padX, canvas.height + 2 * padY);
+    } else {
+      drawRangeBackdrop();
+    }
+
+    // Grid lines
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = 1;
+    const gMinX = isSniper ? -canvas.width * 2 : 0;
+    const gMaxX = isSniper ? canvas.width * 3 : canvas.width;
+    const gMinY = isSniper ? -canvas.height * 2 : 0;
+    const gMaxY = isSniper ? canvas.height * 3 : canvas.height;
+    for (let x = gMinX; x < gMaxX; x += 50) {
+      ctx.beginPath(); ctx.moveTo(x, gMinY); ctx.lineTo(x, gMaxY); ctx.stroke();
+    }
+    for (let y = gMinY; y < gMaxY; y += 50) {
+      ctx.beginPath(); ctx.moveTo(gMinX, y); ctx.lineTo(gMaxX, y); ctx.stroke();
+    }
+
+    if (lvl.rpg) drawRpgWall();
+    drawBulletHoles();
+    drawTargets(isSniper);
+
+    ctx.restore();
+    drawEmptyFlash();
+    drawFloaters();
+    drawSparks();
+
+    // Crosshair
+    let sx, sy;
+    if (isSniper) {
+      sx = window.innerWidth / 2;
+      sy = window.innerHeight / 2;
+    } else {
+      sx = (cursX / canvas.width) * window.innerWidth;
+      sy = (cursY / canvas.height) * window.innerHeight;
+    }
+    crosshair.style.left = sx + 'px';
+    crosshair.style.top = sy + 'px';
+
+    if (isSniper) drawSniperOverlay(scopeZoom);
+    drawMissionBanner();
+    drawMissionResult();
+    drawReloadPopup();
+  }
+
+  // ===================== MAIN LOOP =====================
+  function loop(now) {
+    const dt = Math.min(0.05, (now - lastFrame) / 1000);
+    lastFrame = now;
+    readController();
+    update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+
+  // ===================== FALLBACK BUTTONS =====================
+  if (startBtn && !startBtn._wired) {
+    startBtn._wired = true;
+    startBtn.addEventListener('click', () => gotoAccounts());
+  }
+  if (actAgain && !actAgain._wired) {
+    actAgain._wired = true;
+    actAgain.addEventListener('click', () => { resultIndex = 0; updateResultResultUI(); startLevel(currentLevel); });
+  }
+  if (actMenu && !actMenu._wired) {
+    actMenu._wired = true;
+    actMenu.addEventListener('click', () => { resultIndex = 1; updateResultResultUI(); stopMusic(); showScreen('menu'); });
+  }
+
+  // Re-detect controller after a user gesture (Chrome requirement)
+  window.addEventListener('keydown', () => {
+    if (!controller) {
+      const pads = navigator.getGamepads();
+      for (const p of pads) if (p) { controller = p; break; }
+    }
+  });
+
+  console.log('Aim Range initialized. Levels: ' + LEVELS.length + '. RPG loadouts: ' + RPG_LOADOUTS.length);
+})();
+
+</script>
+</body>
+</html>
