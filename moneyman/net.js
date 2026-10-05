@@ -116,6 +116,7 @@ const Net = (()=>{
     hostId = null; phase = "off"; players = {}; order = [];
     round = 0; winner = null; finalBoard = null;
     started = false; resultsShown = false;
+    everJoined = false; roomCode = "";
     netPaint();
   }
   function isHost(){ return hostId === myId; }
@@ -422,7 +423,7 @@ const Net = (()=>{
     else { hostId = heir.id; lastSnapAt = Date.now(); }
   }
   function clientTick(){
-    if(isHost() || !everJoined) return;
+    if(!room || isHost() || !everJoined) return;
     if(hostId === null) tryElect();
     else if(Date.now() - lastSnapAt > HOST_TIMEOUT) tryElect();
   }

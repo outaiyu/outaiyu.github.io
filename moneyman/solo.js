@@ -118,6 +118,10 @@ const Solo = (()=>{
   function install(){
     MODE.name = "solo";
     MODE.livesLabel = "SHELTERS";
+    /* Neutralise the net tick. install() is what the title screen runs to
+       leave a room, so if we don't take this hook back the previous mode's
+       tick keeps firing and drags the player back to the lobby forever. */
+    MODE.tick = function(){};
     MODE.afterResolve = afterResolve;
     MODE.afterTimeout = afterTimeout;
     MODE.afterEvac = afterEvac;

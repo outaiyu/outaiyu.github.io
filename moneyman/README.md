@@ -155,7 +155,7 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
 
 ## Tests
 
-91 checks run headless under jsdom:
+114 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -165,10 +165,14 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
 - **royale (42)** — eight independent browser instances joined over a fake WebRTC bus:
   lobby, countdown, distinct questions per player, correct/wrong/timeout all scoring
   correctly, shield loss, elimination, spectating, a winner, and host migration.
+- **stuck (23)** — every path that can land you on the lobby must have a working way
+  out: hosting alone, leaving, double-leaving, starting with no peers, and re-entering
+  a room afterwards. Guards a real bug where the net tick survived leaving and dragged
+  the player back to the lobby on every frame.
 
 ```bash
 cd /tmp/opencode/t && npm install jsdom
-node boot.js && node solo.js && node royale.js
+node boot.js && node solo.js && node stuck.js && node royale.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC
