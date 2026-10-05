@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MONEYMAN — Hurricane Katrina Quiz Tycoon</title>
+<meta name="description" content="Race the clock through Hurricane Katrina trivia, stack fake FEMA cash, and go head-to-head in an 8-player peer-to-peer battle royale.">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="bgfx"><div class="glow g1"></div><div class="glow g2"></div><div class="glow g3"></div><div id="rain"></div><div id="radar"></div><div class="bolt" id="bolt"></div></div>
+
+<div class="boot" id="boot"><div class="ring"></div><div style="color:#5ad2ff;letter-spacing:4px;font-size:13px">LOADING STORM SYSTEMS…</div></div>
+
+<div id="app">
+<header class="top">
+  <div class="logo"><b>MONEYMAN</b><span>HURRICANE KATRINA QUIZ TYCOON</span></div>
+  <div class="stat" id="statCash"><em>BALANCE</em><b>$0</b></div>
+  <div class="stat" id="statMult"><em>MULTIPLIER</em><b>x1.0</b></div>
+  <div class="stat" id="statLives"><em>SHELTERS</em><b>★★★</b></div>
+  <div class="stat" id="statQ"><em>QUESTION</em><b>0</b></div>
+  <div class="stat" id="statBest"><em>BEST RUN</em><b>$0</b></div>
+  <button class="iconbtn" id="btnMusic" title="Music on/off">🎵</button>
+  <button class="iconbtn" id="btnSfx" title="Sound effects on/off">🔊</button>
+  <button class="iconbtn" id="btnPause" title="Pause (P)">⏸</button>
+</header>
+
+<div class="cols">
+<main>
+  <!-- ══════════ TITLE ══════════ -->
+  <section class="card" id="screenStart">
+    <h1 class="big">MONEYMAN<span>HURRICANE KATRINA · NEW ORLEANS · AUGUST 2005</span></h1>
+    <p class="lede">Race the clock through <b>64 questions</b> about Hurricane Katrina and stack up fake FEMA cash. Answer fast, build a multiplier, buy upgrades, survive the boss rounds — or take on <b>7 other players in a peer-to-peer battle royale</b>. <b>Every dollar here is pretend. Every fact is real.</b></p>
+    <div class="types">
+      <div class="badge">🎯 MULTIPLE CHOICE</div><div class="badge">⚖️ TRUE / FALSE</div>
+      <div class="badge">☑️ SELECT ALL</div><div class="badge">🔢 TYPE A NUMBER</div>
+      <div class="badge">🔀 PUT IN ORDER</div><div class="badge">🎚️ SLIDER GUESS</div>
+      <div class="badge">☠️ BOSS ROUNDS</div>
+    </div>
+
+    <div class="namebox"><label for="nameInput">YOUR NAME</label><input type="text" id="nameInput" maxlength="14" placeholder="Player" autocomplete="off" spellcheck="false"></div>
+
+    <div class="modebtns">
+      <button class="btn" id="btnStart">▶ SOLO RUN</button>
+      <button class="btn ghost" id="btnCreate">🛡️ HOST BATTLE ROYALE</button>
+      <button class="btn ghost" id="btnJoinHow">🔑 JOIN WITH A CODE</button>
+    </div>
+    <div class="joinrow" id="joinRow" style="display:none;margin-top:11px">
+      <input type="text" id="codeInput" maxlength="8" placeholder="ROOM CODE" autocomplete="off" spellcheck="false">
+      <button class="btn" id="btnJoin">JOIN</button>
+    </div>
+
+    <div class="howto">
+      <div><b>⏱ Beat The Clock</b>Each question runs its own countdown. Faster answers pay up to 60% more.</div>
+      <div><b>🔥 Combo Multiplier</b>Every correct answer adds +10% to your multiplier. Break it and it resets.</div>
+      <div><b>☠️ Battle Royale</b>2–8 players. Everyone gets a <b>different question on their own clock</b> so nobody can copy.</div>
+      <div><b>🛡️ Shields</b>Wrong or out of time costs a shield and 25% of your cash. Zero shields is out.</div>
+      <div><b>🛒 Spend It All</b>8 upgrades, all saved to your browser. Buy between questions or mid-timer.</div>
+      <div><b>🏆 Milestones</b>Every $10K triggers a cash bonus, confetti and a level-up fanfare.</div>
+    </div>
+    <p class="fine">Keys <span class="kbd">1</span><span class="kbd">2</span><span class="kbd">3</span><span class="kbd">4</span> answer · <span class="kbd">F</span> 50/50 · <span class="kbd">E</span> evacuate · <span class="kbd">P</span> pause · <span class="kbd">Enter</span> submit<br>Multiplayer connects browsers directly over WebRTC via public Nostr relays — no server, no account, nothing stored anywhere.<br>Question bank drawn from the Hurricane Katrina class presentation + NOAA / NHC storm records.</p>
+  </section>
+
+  <!-- ══════════ GAME ══════════ -->
+  <section class="card" id="screenGame" style="display:none">
+    <div id="roundBanner" class="rb"></div>
+    <div class="qhead">
+      <span class="chip" id="qcat">CATEGORY</span>
+      <span style="display:flex;gap:6px;flex-wrap:wrap">
+        <span class="chip gold" id="qtype">MULTIPLE CHOICE</span>
+        <span class="chip" id="qdif">DIFFICULTY ★</span>
+      </span>
+    </div>
+    <div class="bar"><i id="qprog" style="width:0%"></i></div>
+    <div id="qText"></div>
+    <div id="qHint"></div>
+    <div id="timerWrap"><div id="timerBar"></div><div id="timerTxt">0s</div></div>
+    <div id="answers"></div>
+    <div class="submitrow" id="submitRow" style="display:none"><button class="bigsub" id="btnSubmit">LOCK IT IN ⏎</button></div>
+    <div id="combo"><div class="comborow"><span>COMBO</span><b id="comboTxt">0 streak</b></div><div class="combob"><i id="comboBar" style="width:0%"></i></div></div>
+    <div id="why"></div>
+    <div class="tools">
+      <button class="tool" id="btnFifty">🛰️ 50 / 50<small id="fiftyInfo">locked</small></button>
+      <button class="tool" id="btnEvac">🚗 Evacuate<small id="evacInfo">no charges</small></button>
+    </div>
+    <div id="royaleWait">LOCKED IN — waiting for the room<span>the round ends when everyone has answered</span></div>
+  </section>
+
+  <!-- ══════════ LOBBY ══════════ -->
+  <section class="card" id="screenLobby" style="display:none">
+    <h1 class="big" style="font-size:34px">BATTLE ROYALE<span>2–8 PLAYERS · LAST ONE STANDING WINS</span></h1>
+    <div class="codebox">
+      <em>ROOM CODE</em>
+      <b id="roomCode">-----</b>
+      <small id="roomHint">Send this code to your friends, then start when everyone's in.</small>
+    </div>
+    <div class="qhead" style="margin-bottom:12px">
+      <span class="chip" id="royalePhase">LOBBY</span>
+      <span class="chip" id="royaleRound">LOBBY</span>
+      <span class="chip gold" id="royaleCount">0 / 8</span>
+    </div>
+    <div id="rosterLobby" class="card" style="background:rgba(255,255,255,.03);margin-bottom:14px"><div id="rosterL"></div></div>
+    <button class="btn" id="btnStartRoyale">☠️ START BATTLE ROYALE</button>
+    <button class="btn ghost" id="btnLeave" style="margin-top:9px">← Leave room</button>
+    <p class="fine" id="hostOnly" style="display:none">You're the host. If you leave, the longest-present player takes over automatically — nobody gets stuck.</p>
+  </section>
+
+  <!-- ══════════ SPECTATE ══════════ -->
+  <section class="card" id="spectate" style="display:none">
+    <h2>YOU'RE OUT</h2>
+    <p>Both your shields are gone. Spectating the survivors until the last one is standing.</p>
+    <div id="specBody"></div>
+  </section>
+</main>
+
+<!-- SIDEBAR -->
+<div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+  <aside class="card aside" id="royale" style="display:none">
+    <h3>STORM ROOM <span class="chip" id="royaleRoomChip">LOBBY</span></h3>
+    <div id="roster"></div>
+    <div id="royaleTimer" style="display:none"></div>
+  </aside>
+
+  <aside class="card aside" id="shop">
+    <h3>RECOVERY SHOP</h3>
+    <p class="sub">Cash buys permanent gear. Saved locally.</p>
+    <div id="shopList"></div>
+    <div class="ach">
+      <h4>ACHIEVEMENTS</h4>
+      <div class="achg" id="achList"></div>
+    </div>
+    <div class="ach">
+      <h4>AUDIO</h4>
+      <div style="display:flex;align-items:center;gap:9px;margin-bottom:7px">
+        <span style="font-size:10.5px;color:var(--dim);width:44px;letter-spacing:1px">MUSIC</span>
+        <input type="range" id="volMusic" min="0" max="100" value="26" style="margin:0;flex:1;height:7px">
+      </div>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span style="font-size:10.5px;color:var(--dim);width:44px;letter-spacing:1px">SFX</span>
+        <input type="range" id="volSfx" min="0" max="100" value="75" style="margin:0;flex:1;height:7px">
+      </div>
+    </div>
+    <button class="btn ghost" id="btnReset" style="margin-top:16px">🗑️ Reset upgrades &amp; records</button>
+  </aside>
+</div>
+</div>
+
+<footer>Educational quiz game about Hurricane Katrina (August 2005). All currency is fictional — no real money is involved.<br>
+Sources: NOAA / National Hurricane Center storm reports, Wikipedia, and classroom material on Katrina's cost, damage and timeline.</footer>
+</div>
+
+<div class="over" id="over"><div class="box card">
+  <h2 id="overTitle">BANKRUPT</h2>
+  <p class="lede" id="overMsg"></p>
+  <div class="score" id="overCash">$0</div>
+  <div class="sline" id="overStats"></div>
+  <button class="btn" id="btnAgain" style="margin-top:22px">↻ RUN IT BACK</button>
+  <button class="btn ghost" id="btnHome" style="margin-top:10px">Back to title</button>
+</div></div>
+
+<div class="paused" id="pausedBox"><div>PAUSED<small>press P to resume</small></div></div>
+
+<div id="netfail" class="card" style="display:none;position:fixed;inset:auto 20px 20px 20px;max-width:520px;margin:0 auto;z-index:60;border-color:rgba(255,95,109,.5)">
+  <h3 style="color:#ff5f6d;margin-top:0">Peer link unavailable</h3>
+  <p style="font-size:13px;color:#8ba6c4;line-height:1.6" id="netfailMsg"></p>
+  <button class="btn ghost" id="btnNetFailOk">OK</button>
+</div>
+
+<audio id="music" loop preload="auto" src="electro_dymanics.mp3"></audio>
+
+<script src="trystero.js"></script>
+<script src="engine.js"></script>
+<script src="solo.js"></script>
+<script src="net.js"></script>
+<script src="boot.js"></script>
+</body>
+</html>
