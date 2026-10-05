@@ -27,7 +27,7 @@ Solo works from `file://` too, but the music will not load there.
 
 ```bash
 git init
-git add index.html style.css engine.js solo.js net.js boot.js trystero.js electro_dymanics.mp3 README.md
+git add index.html style.css engine.js solo.js net.js diag.js boot.js trystero.js README.md
 git commit -m "MONEYMAN: solo + 8-player battle royale"
 git branch -M main
 git remote add origin https://github.com/<you>/<repo>.git
@@ -115,9 +115,14 @@ migrating host and a stale one cannot both take over.
 | `engine.js` | question bank, scoring, renderers, audio, upgrades, HUD, timer loop |
 | `solo.js` | single-player mode — installs the solo `MODE` hooks |
 | `net.js` | battle royale — transport, host authority, migration, roster UI |
+| `diag.js` | connection report — why multiplayer failed |
 | `boot.js` | the only file that knows a button exists |
 | `trystero.js` | vendored WebRTC/Nostr library |
-| `electro_dymanics.mp3` | background music |
+
+**There are no binary assets.** Not one. The music, the sound effects and the
+wind/rain ambience are all synthesised with the Web Audio API at runtime, and the favicon
+is an inline `data:` SVG. Nothing to upload alongside the code, nothing to 404, no
+download penalty, and it works just as well from a plain `file://` as from a server.
 
 `engine.js` holds a single `MODE` object. Each mode installs its own hooks
 (`afterResolve`, `afterTimeout`, `afterEvac`, `tick`, `togglePause`, `livesLabel`), so
@@ -226,14 +231,11 @@ The relay report is the useful one for iPads: if it says all relays failed, the 
 blocking `wss://`, and no amount of code changes will help. If relays are fine and the
 self-test passes but peers still cannot connect, it is device-specific WebRTC behaviour.
 
-Note that `electro_dymanics.mp3` must actually be uploaded — it is missing from one
-deployment, and the music will simply not play.
-
 ---
 
 ## Tests
 
-264 checks run headless under jsdom:
+330 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -266,7 +268,8 @@ deployment, and the music will simply not play.
 ```bash
 cd /tmp/opencode/t && npm install jsdom
 node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js \
-  && node calm.js && node tiers.js && node royale.js && node diag.js
+  && node calm.js && node tiers.js && node royale.js && node diag.js \
+  && node assets.js && node music.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC

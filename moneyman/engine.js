@@ -282,13 +282,15 @@ let queue = [];
 
 
 /* ───────────────────────────  AUDIO  ─────────────────────────────────
-   Synthesised SFX + wind/rain ambience + the looping music track, with a
-   procedural 128 BPM fallback if the mp3 is missing.
+   Everything is synthesised at runtime: SFX, the wind/rain ambience and
+   the music loop. There are no audio files to fetch — nothing to 404, no
+   binary payload, and it works from a plain file:// as happily as https.
+   Music and SFX run through separate buses so each has its own volume.
    ─────────────────────────────────────────────────────────────────── */
 
 const AU = (()=>{
-  let ctx=null, bus=null, noise=null, wind=null, windF=null, windG=null, rainG=null;
-  let musicOk=false, procTimer=null, procStep=0;
+  let ctx=null, bus=null, mbus=null, noise=null, wind=null, windF=null, windG=null, rainG=null;
+  let procTimer=null, procStep=0, duckT=null;
 
   function init(){
     if(ctx) return ctx;
@@ -300,7 +302,11 @@ const AU = (()=>{
     comp.attack.value = .004; comp.release.value = .25;
     bus = ctx.createGain();
     bus.gain.value = S.volSfx / 100;
-    bus.connect(comp); comp.connect(ctx.destination);
+    bus.connect(comp);
+    mbus = ctx.createGain();
+    mbus.gain.value = S.volMusic / 100;
+    mbus.connect(comp);
+    comp.connect(ctx.destination);
 
     // shared noise buffer
     const len = ctx.sampleRate * 2;
@@ -309,11 +315,12 @@ const AU = (()=>{
     for(let i=0;i<len;i++) d[i] = Math.random()*2 - 1;
 
     startAmbience();
+    if(S.music) procStart();
     return ctx;
   }
   function resume(){ init(); if(ctx && ctx.state === "suspended") ctx.resume(); }
 
-  function tone(f, dur, {type="sine", vol=.2, at=0, slideTo=null, detune=0}={}){
+  function tone(f, dur, {type="sine", vol=.2, at=0, slideTo=null, detune=0}={}, dest=null){
     if(!S.sfx || !ctx) return;
     const t0 = ctx.currentTime + at;
     const o = ctx.createOscillator(), g = ctx.createGain();
@@ -322,9 +329,9 @@ const AU = (()=>{
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(.02, dur*.2));
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    o.connect(g); g.connect(bus); o.start(t0); o.stop(t0 + dur + .02);
+    o.connect(g); g.connect(dest || bus); o.start(t0); o.stop(t0 + dur + .02);
   }
-  function burst(dur, {vol=.2, freq=1200, q=1, type="bandpass", at=0, sweepTo=null, rate=1}={}){
+  function burst(dur, {vol=.2, freq=1200, q=1, type="bandpass", at=0, sweepTo=null, rate=1}={}, dest=null){
     if(!S.sfx || !ctx) return;
     const t0 = ctx.currentTime + at;
     const src = ctx.createBufferSource(); src.buffer = noise; src.playbackRate.value = rate;
@@ -334,7 +341,7 @@ const AU = (()=>{
     g.gain.setValueAtTime(0.0001, t0);
     g.gain.exponentialRampToValueAtTime(vol, t0 + Math.min(.03, dur*.15));
     g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-    src.connect(f); f.connect(g); g.connect(bus);
+    src.connect(f); f.connect(g); g.connect(dest || bus);
     src.start(t0, Math.random() * 1.2); src.stop(t0 + dur + .02);
   }
 
@@ -366,50 +373,58 @@ const AU = (()=>{
     rainG.gain.setTargetAtTime(.010 + x*.026, t, 1.2);
   }
 
-  /* ---- music ---- */
-  const el = $("#music");
-  function musicStart(){
-    if(!S.music) return;
-    el.volume = S.volMusic / 100;
-    if(musicOk){ el.play().catch(()=>{}); return; }
-    el.play().then(()=>{ musicOk = true; })
-            .catch(()=>{ musicOk = false; procStart(); });   // file missing → procedural beat
-    el.addEventListener("canplay", ()=>{ if(musicOk || el.readyState >= 2){ musicOk = true; procStop(); } }, {once:true});
-    el.addEventListener("error", ()=>{ musicOk = false; procStart(); }, {once:true});
+  /* ---- music: a 128bpm electro loop, synthesised ---- */
+  function musicStart(){ if(S.music){ init(); procStart(); } }
+  function musicStop(){ procStop(); }
+  function musicVol(){
+    if(mbus) mbus.gain.value = S.volMusic / 100;
+    if(S.music) procStart(); else procStop();
   }
-  function musicStop(){ el.pause(); procStop(); }
-  function musicVol(){ el.volume = S.volMusic / 100; if(S.music) musicStart(); else { el.pause(); procStop(); } }
 
   // duck the music briefly so SFX cut through
   function duck(ms=320, amt=.55){
-    if(!S.music || !musicOk) return;
-    const base = S.volMusic/100;
-    el.volume = base * amt;
-    setTimeout(()=>{ if(S.music) el.volume = base; }, ms);
+    if(!S.music || !mbus) return;
+    const base = S.volMusic / 100;
+    mbus.gain.cancelScheduledValues(ctx.currentTime);
+    mbus.gain.setTargetAtTime(base * amt, ctx.currentTime, .02);
+    clearTimeout(duckT);
+    duckT = setTimeout(()=>{
+      if(mbus) mbus.gain.setTargetAtTime(S.music ? S.volMusic/100 : base, ctx.currentTime, .08);
+    }, ms);
   }
 
-  /* ---- procedural fallback: 128bpm electro loop ---- */
   const SCALE=[0,3,5,7,10,12];
   function procStart(){
     if(procTimer || !ctx) return;
     const bpm = 128, spb = 60/bpm/2;   // eighth notes
     procStep = 0;
     procTimer = setInterval(()=>{
-      if(!S.music || !ctx || ctx.state!=="running") return;
+      if(!S.music || !ctx || ctx.state!=="running" || !mbus) return;
+      const M = mbus;
       const s = procStep % 16, bar = Math.floor(procStep/16);
       // kick
-      if(s%2===0) tone(150,.16,{type:"sine",vol:.5,slideTo:44});
+      if(s%2===0) tone(150,.16,{type:"sine",vol:.5,slideTo:44},M);
       // hat
-      if(s%2===1) burst(.035,{vol:.09,freq:8200,q:.8,type:"highpass"});
-      if(s===4||s===12) burst(.09,{vol:.16,freq:1900,q:.7});
+      if(s%2===1) burst(.035,{vol:.09,freq:8200,q:.8,type:"highpass"},M);
+      if(s===4||s===12) burst(.09,{vol:.16,freq:1900,q:.7},M);
       // bass
       const roots=[55,55,65.41,49];
       const rf=roots[bar%4] * (s<8?1:1.5);
-      if(s%2===0) tone(rf,.19,{type:"sawtooth",vol:.14});
+      if(s%2===0) tone(rf,.19,{type:"sawtooth",vol:.14},M);
       // arp
       if(s%2===1){
         const n = SCALE[(s+bar)%SCALE.length];
-        tone(220*Math.pow(2,n/12),.11,{type:"square",vol:.055,detune:8});
+        tone(220*Math.pow(2,n/12),.11,{type:"square",vol:.055,detune:8},M);
+      }
+      // every 8 bars, open the filter up for a bar so it doesn't loop flatly
+      if(bar%8===7 && s===0){
+        const pad = ctx.createGain(); pad.gain.value = .05;
+        pad.connect(M);
+        [0,7,12].forEach(n=>{
+          const o=ctx.createOscillator(); o.type="sawtooth";
+          o.frequency.value=220*Math.pow(2,n/12);
+          o.connect(pad); o.start(); o.stop(ctx.currentTime+spb*16);
+        });
       }
       procStep++;
     }, spb*1000);

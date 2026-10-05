@@ -239,7 +239,6 @@ $("#btnSfx").textContent = S.sfx ? "🔊" : "🔇";
 $("#btnSfx").classList.toggle("off", !S.sfx);
 $("#volMusic").value = S.volMusic;
 $("#volSfx").value = S.volSfx;
-$("#music").volume = S.volMusic / 100;
 
 Solo.install();            // solo is the default mode
 showScreen("start");
