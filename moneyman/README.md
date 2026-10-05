@@ -124,6 +124,15 @@ migrating host and a stale one cannot both take over.
 the scoring and rendering code is written once and never needs to know whether a solo
 run or a royale is in progress.
 
+### Calm desktop layer
+
+`style.css` ends with a `@media(min-width:941px)` block that quiets the desktop
+presentation without touching mobile: it stops the animated gradients, the
+spinning radar and the drifting glows, flattens the eight boxes in the top bar
+into one row of plain numbers, removes the hover lift-offs, and gives the
+question column more width. Phones and tablets keep the original treatment. It
+is a self-contained block at the end of the file, so deleting it reverts cleanly.
+
 Classic `<script>` tags are used deliberately — no bundler, no build step, no ES
 modules, so it runs from any static host.
 
@@ -155,7 +164,7 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
 
 ## Tests
 
-114 checks run headless under jsdom:
+166 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -169,10 +178,16 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
   out: hosting alone, leaving, double-leaving, starting with no peers, and re-entering
   a room afterwards. Guards a real bug where the net tick survived leaving and dragged
   the player back to the lobby on every frame.
+- **cash (10)** — the payout path with WebAudio missing and with a broken
+  AudioContext, asserting the money is banked *and* rendered.
+- **keyboard (15)** — the desktop-only input path: answering with number keys,
+  typing digits then Enter, and not hijacking keys while typing in a text field.
+- **calm (27)** — parses `style.css` through the CSSOM and asserts the desktop
+  layer applies, that mobile is untouched, and that the base rules survive.
 
 ```bash
 cd /tmp/opencode/t && npm install jsdom
-node boot.js && node solo.js && node stuck.js && node royale.js
+node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js && node calm.js && node royale.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC

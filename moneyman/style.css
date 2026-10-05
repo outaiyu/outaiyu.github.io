@@ -363,3 +363,83 @@ input[type=text]::placeholder{color:rgba(160,190,215,.45);letter-spacing:0}
 .br.you{border-color:rgba(90,210,255,.5);background:rgba(90,210,255,.1)}
 body.royale #statLives em::after{content:""}
 body.royale .aside{padding-top:16px}
+
+/* ════════════════════════════════════════════════════════════════════════
+   CALM DESKTOP
+   Desktop-only. The screen was doing too much at once: animated gradients,
+   a spinning radar, drifting rain, three moving glows and a hover nudge on
+   almost every element. None of that carries information — it just competes
+   with the question. This layer keeps the whole look but stops the motion,
+   flattens the surfaces and gives the question the visual top job.
+   Scoped to >=941px so phones/tablets keep the original treatment.
+   ════════════════════════════════════════════════════════════════════════ */
+@media(min-width:941px){
+
+  /* ── stop the idle animation; keep the atmosphere, lose the movement ── */
+  .logo b, h1.big{animation:none}
+  #radar{display:none}
+  #rain{animation:none;opacity:.10}
+  body.storm #rain{animation:none;opacity:.28}
+  #bgfx .glow{animation:none;filter:blur(130px);opacity:.42}
+  body.storm #bgfx .glow{filter:blur(140px);opacity:.6}
+  .over h2{animation:none}
+
+  /* ── flatter, quieter surfaces ── */
+  .card{background:rgba(9,16,27,.74);border-color:rgba(120,190,255,.10);
+    border-radius:16px;box-shadow:0 8px 26px rgba(0,0,0,.34)}
+  header.top{background:rgba(8,14,24,.93);border-color:rgba(120,190,255,.09);
+    border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.38);padding:10px 8px 10px 18px}
+
+  /* ── top bar: one row of quiet numbers instead of eight boxes ── */
+  .logo{flex-direction:row;align-items:baseline;gap:12px;margin-right:22px}
+  .logo b{font-size:19px;letter-spacing:2.5px;font-weight:800;
+    background:none;-webkit-text-fill-color:var(--txt);color:var(--txt)}
+  .logo span{font-size:9px;letter-spacing:2px;margin-top:0;color:#617c98}
+
+  .stat{background:none;border:none;border-left:1px solid rgba(120,190,255,.11);
+    border-radius:0;padding:0 20px;min-width:0;text-align:left}
+  .stat:first-of-type{border-left:none}
+  .stat em{font-size:8.5px;letter-spacing:1.8px;color:#6b86a3}
+  .stat b{font-size:19px;margin-top:1px}
+  #statCash b{font-size:25px;text-shadow:none}
+  #statLives b{text-shadow:none}
+  #statBest b{color:#8ba6c4}
+
+  .iconbtn{background:none;border:1px solid transparent;color:#6b86a3;
+    padding:8px 9px;min-width:34px;font-size:14px}
+  .iconbtn:hover{background:rgba(120,190,255,.07);border-color:rgba(120,190,255,.18);
+    color:var(--txt);transform:none}
+  .iconbtn.off{opacity:.32}
+
+  /* ── the question is the hero ── */
+  #qText{font-size:23px;line-height:1.45;margin:0 0 20px}
+  .ans{padding:16px 18px;font-size:16px;background:rgba(255,255,255,.028)}
+  .ans::before{display:none}
+  .ans:hover:not(:disabled){background:rgba(120,190,255,.06);
+    border-color:rgba(120,190,255,.32);transform:none}
+  .orditem:hover{border-color:rgba(120,190,255,.32);background:rgba(120,190,255,.05);transform:none}
+
+  /* ── no more lift-off on hover; colour alone carries the feedback ── */
+  .howto div:hover,.up:hover,.tool:hover:not(:disabled),.buy:hover:not(:disabled),
+  .btn:hover,.btn:active,.keypad button:hover,.iconbtn:hover,
+  .bigsub:hover:not(:disabled),.iconbtn.off:hover{transform:none}
+  .howto div:hover{background:rgba(4,11,20,.6);border-color:var(--line)}
+  .btn:hover{box-shadow:0 8px 24px rgba(30,136,200,.35);filter:brightness(1.04)}
+
+  /* ── more room for the question column ── */
+  #app{max-width:1280px}
+  .cols{grid-template-columns:1fr 312px;gap:20px;margin-top:18px}
+
+  /* ── sidebar recedes until you look at it ── */
+  .aside h3{color:#6b86a3;letter-spacing:2.2px}
+  .aside p.sub{display:none}
+  .up{background:rgba(255,255,255,.022);border-color:rgba(120,190,255,.08)}
+  .achg span{background:rgba(255,255,255,.03)}
+  .ach{border-top-color:rgba(120,190,255,.09)}
+
+  /* ── one accent, used sparingly ── */
+  .chip{background:rgba(120,190,255,.08);border-color:rgba(120,190,255,.22);color:#8fc9e8}
+  .bar i{box-shadow:none}
+  .msgtag{box-shadow:0 8px 24px rgba(0,0,0,.4);border-color:rgba(120,190,255,.3)}
+  footer{color:#4a637d}
+}
