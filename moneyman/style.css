@@ -443,3 +443,96 @@ body.royale .aside{padding-top:16px}
   .msgtag{box-shadow:0 8px 24px rgba(0,0,0,.4);border-color:rgba(120,190,255,.3)}
   footer{color:#4a637d}
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+   DEVICE TIERS
+   The layout has to work on exactly three things: an iPad, a laptop and a
+   desktop PC. The awkward part is that an iPad in portrait is 744-834px —
+   wide enough to look like a small laptop, but it is touch, so it still needs
+   phone-grade single-column flow AND desktop-scale type and tap targets.
+   Falling through to the phone base gave it 15.5px answers and 40px buttons.
+     700-940px   iPad portrait / small tablet   (touch, one column)
+     941-1599px  laptop + iPad landscape        (calm desktop layer above)
+     1600px+     large desktop                  (use the space)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────── 1. iPad portrait: touch-first, but not phone-sized ─────────── */
+@media(min-width:700px) and (max-width:940px){
+  #app{max-width:860px;padding:16px 16px 56px}
+  .card{padding:26px 24px;border-radius:18px}
+
+  /* type scaled up: a 10" screen held at arm's length is not a phone */
+  #qText{font-size:23px;line-height:1.45;margin-bottom:22px}
+  #qHint{font-size:13px}
+
+  /* tap targets: 44px is the floor for a finger, aim comfortably above it */
+  .ans{padding:19px 20px;font-size:17.5px;border-radius:15px}
+  .ans .key{flex:0 0 38px;height:38px;font-size:15px;border-radius:11px}
+  .ans .tick{font-size:22px}
+  .btn{padding:19px;font-size:21px;border-radius:16px}
+  .btn.ghost{padding:15px;font-size:15.5px}
+  .iconbtn{min-width:46px;padding:12px 14px;font-size:17px}
+  .tool{padding:15px;font-size:14px}
+  .tool small{font-size:11.5px}
+  .bigsub{padding:17px;font-size:16.5px}
+  .buy{padding:12px 15px;font-size:14px}
+  .keypad button{padding:17px 0;font-size:22px}
+  .numwrap{grid-template-columns:1fr 210px}
+  .numdisplay{font-size:52px;min-height:118px}
+  .sldval{font-size:52px}
+  .tfgrid .ans{padding:34px;font-size:25px}
+  .orditem{padding:16px 18px;font-size:16px}
+
+  /* top bar: let it breathe, and stop the labels colliding */
+  header.top{gap:12px;padding:13px 16px}
+  .stat{min-width:92px;padding:7px 13px}
+  .stat b{font-size:20px}
+  #statCash b{font-size:24px}
+
+  /* the shop is a long single list on one column — pair it up so it is
+     half as tall and reachable without a long scroll */
+  #shopList{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+  .up{margin-bottom:0;padding:13px}
+  .up .nm b{font-size:13.5px}
+  .achg{gap:8px}
+  .achg span{font-size:11.5px;padding:6px 11px}
+}
+
+/* ─────────── 2. touch never gets hover states ───────────
+   iPads report :hover on tap and then keep it stuck, so a finger tapping an
+   answer leaves it looking selected. Gate every hover affordance on a real
+   pointer. Desktop keeps them; touch devices get colour-free feedback. */
+@media(hover:none){
+  .ans:hover:not(:disabled){background:rgba(6,16,29,.88);border-color:var(--line);transform:none}
+  .orditem:hover{background:rgba(6,16,29,.88);border-color:var(--line);transform:none}
+  .howto div:hover{background:rgba(4,11,20,.6);border-color:var(--line);transform:none}
+  .up:hover{background:rgba(4,11,20,.62);border-color:var(--line);transform:none}
+  .iconbtn:hover{background:rgba(90,210,255,.1);color:var(--cyan);transform:none}
+  .tool:hover:not(:disabled),.buy:hover:not(:disabled),
+  .keypad button:hover,.bigsub:hover:not(:disabled){transform:none}
+  .btn:hover,.btn:active{transform:none;filter:none;box-shadow:0 8px 24px rgba(30,136,200,.35)}
+}
+
+/* ─────────── 3. large desktop: actually use the width ───────────
+   Capped at 1280px, a 1920px monitor had 640px of dead space either side. */
+@media(min-width:1600px){
+  #app{max-width:1520px;padding:18px 18px 60px}
+  .cols{grid-template-columns:1fr 372px;gap:26px;margin-top:22px}
+  .card{padding:30px 28px}
+  header.top{padding:12px 10px 12px 22px}
+  .stat{padding:0 26px}
+  .stat b{font-size:21px}
+  #statCash b{font-size:30px}
+  .logo b{font-size:21px}
+  #qText{font-size:27px;line-height:1.42}
+  .ans{padding:19px 22px;font-size:17.5px}
+  .ans .key{flex:0 0 40px;height:40px;font-size:16px}
+  .numwrap{grid-template-columns:1fr 240px}
+  .numdisplay{font-size:58px}
+  .sldval{font-size:58px}
+  .tfgrid .ans{padding:32px;font-size:27px}
+  .keypad button{padding:16px 0;font-size:22px}
+  .up{padding:13px}
+  .up .ico{font-size:24px;flex:0 0 34px}
+  .up .nm b{font-size:13.5px}
+}

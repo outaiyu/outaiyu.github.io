@@ -133,6 +133,27 @@ into one row of plain numbers, removes the hover lift-offs, and gives the
 question column more width. Phones and tablets keep the original treatment. It
 is a self-contained block at the end of the file, so deleting it reverts cleanly.
 
+### Device tiers
+
+The audience is iPad, laptop and desktop PC, so the layout is built around three
+real ranges rather than generic breakpoints:
+
+| Width | Device | Treatment |
+| --- | --- | --- |
+| `<700px` | phone | original mobile-first, single column |
+| `700–940px` | **iPad portrait** (744–834px) | touch-first but **not** phone-sized: 17.5px answers, 38px key badges, 46px icon buttons, 17px keypad, question text at 23px, and the upgrade shop paired into a 2-up grid so it is half as tall |
+| `941–1599px` | iPad landscape + laptop | calm desktop layer, single row of stats, 312px sidebar |
+| `1600px+` | large desktop | frame widens to 1520px, 372px sidebar, 27px question text |
+
+The awkward case is an iPad in portrait: wide enough to look like a small laptop,
+but it is touch, so it needs phone-grade single-column flow *and* desktop-scale
+type and tap targets. Letting it fall through to the phone base gave it 15.5px
+answers and 40px buttons.
+
+There is also an `@media(hover:none)` block. iPads report `:hover` on tap and then
+keep it stuck, so a finger tapping an answer leaves it looking permanently
+selected; every hover affordance is gated behind a real pointer.
+
 Classic `<script>` tags are used deliberately — no bundler, no build step, no ES
 modules, so it runs from any static host.
 
@@ -164,7 +185,7 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
 
 ## Tests
 
-166 checks run headless under jsdom:
+205 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -184,10 +205,14 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
   typing digits then Enter, and not hijacking keys while typing in a text field.
 - **calm (27)** — parses `style.css` through the CSSOM and asserts the desktop
   layer applies, that mobile is untouched, and that the base rules survive.
+- **tiers (39)** — resolves the CSS cascade by hand at eight real device widths
+  (iPad mini/Air/Pro portrait and landscape, 1280, 1440, 1920, 390) and asserts
+  each tier wins, that the boundaries at 700/940/941/1600 are exact, and that
+  phones are unaffected.
 
 ```bash
 cd /tmp/opencode/t && npm install jsdom
-node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js && node calm.js && node royale.js
+node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js && node calm.js && node tiers.js && node royale.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC
