@@ -183,9 +183,57 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
 
 ---
 
+## Diagnosing multiplayer on iPads and iPhones
+
+Multiplayer used to fail **silently**. You tapped JOIN, it said `CONNECTING…`, and then
+nothing — no error, ever. On a desktop that is merely annoying. On an iPad it made two
+completely different problems look identical, which is why this took a while to pin down.
+
+Four things now happen instead:
+
+1. **The room code has a COPY button.** On iPadOS, switching to another app to share the
+   code *freezes the page*: JS is suspended, relay sockets drop, and the room is dead when
+   you come back. Copying from inside the page means you never have to leave it. A
+   `visibilitychange` handler also warns you on return if the page was frozen mid-match.
+2. **A watchdog reports silent failures.** If nobody has joined ~25s after you try to join
+   (45s when hosting), the connection report opens automatically instead of leaving you
+   staring at `CONNECTING…`.
+3. **Errors are reported, not swallowed.** A failed join shows the actual message, and a
+   real exception opens the report too.
+4. **Audio can no longer block joining.** `safeAudio()` wraps the Web Audio init. On some
+   mobile browsers the API exists but throws while initialising, which used to abort the
+   whole join handler and leave the button doing nothing at all. It now degrades to silent
+   play.
+
+### The connection report
+
+**TEST MY CONNECTION** on the title screen, or it opens itself when something fails. Nine
+measured checks:
+
+| Check | Why it matters |
+| --- | --- |
+| Secure context | WebRTC needs HTTPS or localhost; falls back to a protocol check where `isSecureContext` is missing |
+| Browser | names iPad/iOS Safari and the iOS version |
+| Trystero library | confirms `trystero.js` loaded and `joinRoom` exists |
+| `crypto.subtle` | Trystero throws without it, and it only exists in a secure context |
+| WebRTC APIs | `RTCPeerConnection` + `RTCDataChannel` present |
+| Nostr relays | **measured**, not assumed — a `WebSocket` wrapper installed before `trystero.js` logs every relay Trystero opens and whether it connected |
+| WebRTC self-test | builds two connections *inside the page* and pushes real bytes between them, isolating WebRTC from the network and the other device |
+| Page state | whether the tab is backgrounded right now |
+| Backgrounded earlier | whether the tab lost focus at any point this session |
+
+The relay report is the useful one for iPads: if it says all relays failed, the network is
+blocking `wss://`, and no amount of code changes will help. If relays are fine and the
+self-test passes but peers still cannot connect, it is device-specific WebRTC behaviour.
+
+Note that `electro_dymanics.mp3` must actually be uploaded — it is missing from one
+deployment, and the music will simply not play.
+
+---
+
 ## Tests
 
-205 checks run headless under jsdom:
+264 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -209,15 +257,23 @@ FEMA Shelter, Golden Lifeline, Emergency Satellite, Evacuate Early.
   (iPad mini/Air/Pro portrait and landscape, 1280, 1440, 1920, 390) and asserts
   each tier wins, that the boundaries at 700/940/941/1600 are exact, and that
   phones are unaffected.
+- **diag (59)** — the failure-reporting path. Asserts the relay recorder installs
+  before Trystero, the watchdog cancels when you leave, no bare unguarded
+  `AU.init()` call site survives, the clipboard path is awaited with a working
+  fallback, and that `Diag.run` produces a full report in a browser with no
+  WebRTC at all instead of throwing.
 
 ```bash
 cd /tmp/opencode/t && npm install jsdom
-node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js && node calm.js && node tiers.js && node royale.js
+node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js \
+  && node calm.js && node tiers.js && node royale.js && node diag.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC
 transport itself is stubbed. Actual peer-to-peer connectivity still needs a manual test
-between two real browsers or devices.
+between two real browsers or devices — which is exactly what the in-game **connection
+report** is for. It measures relays and WebRTC on the real device and says which of the
+two failed.
 
 ---
 

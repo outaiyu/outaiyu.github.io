@@ -47,8 +47,9 @@
       <button class="btn ghost" id="btnJoinHow">🔑 JOIN WITH A CODE</button>
     </div>
     <div class="joinrow" id="joinRow" style="display:none;margin-top:11px">
-      <input type="text" id="codeInput" maxlength="8" placeholder="ROOM CODE" autocomplete="off" spellcheck="false">
+      <input type="text" id="codeInput" maxlength="8" placeholder="ROOM CODE" autocomplete="off" spellcheck="false" autocapitalize="characters">
       <button class="btn" id="btnJoin">JOIN</button>
+      <button class="btn ghost" id="btnDiag">📡 TEST MY CONNECTION</button>
     </div>
 
     <div class="howto">
@@ -94,6 +95,8 @@
       <em>ROOM CODE</em>
       <b id="roomCode">-----</b>
       <small id="roomHint">Send this code to your friends, then start when everyone's in.</small>
+      <button class="btn copy" id="btnCopyCode">📋 COPY ROOM CODE</button>
+      <small class="copynote" id="copyNote">Copy it here instead of switching apps — leaving this page on an iPad stops the connection.</small>
     </div>
     <div class="qhead" style="margin-bottom:12px">
       <span class="chip" id="royalePhase">LOBBY</span>
@@ -167,12 +170,46 @@ Sources: NOAA / National Hurricane Center storm reports, Wikipedia, and classroo
   <button class="btn ghost" id="btnNetFailOk">OK</button>
 </div>
 
+<div id="diag" class="card" style="display:none;position:fixed;inset:auto 20px 20px 20px;max-width:560px;margin:0 auto;z-index:70">
+  <h3 style="color:#5ad2ff;margin-top:0">📡 Connection report</h3>
+  <div id="diagBody" class="diagbody"></div>
+  <button class="btn ghost" id="btnDiagOk">CLOSE</button>
+</div>
+
+<div id="bgwarn" style="display:none;position:fixed;top:0;left:0;right:0;z-index:80;background:rgba(255,159,67,.14);border-bottom:1px solid rgba(255,159,67,.5);color:#ffcf8a;font-size:13px;padding:9px 16px;text-align:center">
+  ⚠️ You left the page. On an iPad this freezes the connection — reopen the game and join the room again.
+</div>
+
 <audio id="music" loop preload="auto" src="electro_dymanics.mp3"></audio>
 
+<script>
+/* Record every relay socket Trystero opens, so the diagnostics panel can
+   report which relays were actually reached instead of guessing. Must run
+   before trystero.js. Silently passes through anything we don't recognise. */
+(function(){
+  var Native = window.WebSocket;
+  if (!Native || Native.__recorder) return;
+  var log = window.__RELAYLOG = [];
+  var Wrapped = function(url, protocols){
+    var ws = protocols === undefined ? new Native(url) : new Native(url, protocols);
+    log.push({ url: String(url), state: "connecting" });
+    var i = log.length - 1;
+    ws.addEventListener("open",  function(){ log[i].state = "open"; });
+    ws.addEventListener("error", function(){ log[i].state = "error"; log[i].detail = "connection refused or blocked"; });
+    ws.addEventListener("close", function(e){ if (log[i].state !== "open") { log[i].state = "closed"; log[i].detail = "closed before opening (" + (e && e.code || "?") + ")"; } });
+    return ws;
+  };
+  Wrapped.prototype = Native.prototype;
+  ["CONNECTING","OPEN","CLOSING","CLOSED"].forEach(function(k){ Wrapped[k] = Native[k]; });
+  Wrapped.__recorder = true;
+  window.WebSocket = Wrapped;
+})();
+</script>
 <script src="trystero.js"></script>
 <script src="engine.js"></script>
 <script src="solo.js"></script>
 <script src="net.js"></script>
+<script src="diag.js"></script>
 <script src="boot.js"></script>
 </body>
 </html>

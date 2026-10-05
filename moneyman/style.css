@@ -536,3 +536,33 @@ body.royale .aside{padding-top:16px}
   .up .ico{font-size:24px;flex:0 0 34px}
   .up .nm b{font-size:13.5px}
 }
+
+/* ══════════════════════════════════════════════════════════════════════
+   Connection diagnostics + room-code copy
+   ══════════════════════════════════════════════════════════════════════ */
+.btn.copy{
+  margin-top:11px;width:100%;font-size:14px;letter-spacing:1px;
+  background:linear-gradient(180deg,#1d5f8f,#12405f);border-color:rgba(90,210,255,.45);
+}
+.btn.copy.done{background:linear-gradient(180deg,#1c7a5a,#10503a);border-color:rgba(46,230,182,.6)}
+.copynote{display:block;margin-top:8px;font-size:11px;color:#5f7c99;line-height:1.5}
+.diagbody{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.dg{
+  display:grid;grid-template-columns:52px 1fr;gap:4px 10px;align-items:baseline;
+  padding:9px 11px;border-radius:9px;background:rgba(255,255,255,.035);
+  border-left:3px solid rgba(139,166,196,.5);
+}
+.dg b{font-size:13px;color:#dbe7f4}
+.dg em{grid-column:2;font-style:normal;font-size:11px;color:#7d99b5;line-height:1.5;word-break:break-word}
+.dgs{font-size:10px;font-weight:800;letter-spacing:1px;text-align:center;padding:2px 0;border-radius:4px}
+.dg.ok  {border-left-color:#2ee6b6}
+.dg.ok  .dgs{background:rgba(46,230,182,.16);color:#2ee6b6}
+.dg.bad {border-left-color:#ff5f6d;background:rgba(255,95,109,.07)}
+.dg.bad .dgs{background:rgba(255,95,109,.16);color:#ff5f6d}
+.dg.warn{border-left-color:#ff9f43}
+.dg.warn .dgs{background:rgba(255,159,67,.16);color:#ff9f43}
+
+@media(max-width:940px){
+  .dg{grid-template-columns:46px 1fr}
+  #diag,#netfail{max-width:none;left:12px;right:12px}
+}

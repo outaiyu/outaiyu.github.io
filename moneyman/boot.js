@@ -22,10 +22,19 @@ function netFail(msg){
   $("#netfail").style.display = "block";
 }
 
+/* Audio must never be able to prevent someone playing online. On some mobile
+   browsers the Web Audio API exists but throws while initialising, which used
+   to abort the whole join handler and leave the button doing nothing at all. */
+function safeAudio(){
+  try { AU.resume(); AU.init(); return true; }
+  catch(err){ tag("AUDIO UNAVAILABLE — PLAYING SILENT", 2600); return false; }
+}
+
 /* ─────────────────────────── mode switching ─────────────────────────── */
 let mode = "solo";   // "solo" | "royale"
 
 function toTitle(){
+  clearTimeout(watchPeerArrival._t);
   Net.leave();
   mode = "solo";
   Solo.install();
@@ -40,7 +49,7 @@ function toTitle(){
 
 function playSolo(){
   rememberName();
-  AU.resume(); AU.init();
+  safeAudio();
   mode = "solo";
   Solo.install();
   Solo.start();
@@ -48,11 +57,13 @@ function playSolo(){
 
 function enterRoom(asHost){
   if(!Net.available()){
-    netFail("The peer-to-peer library (vendor/trystero.js) did not load.");
+    netFail("The peer-to-peer library (trystero.js) did not load. " +
+            "Open CONNECTION REPORT below for the full reason.");
+    Diag.show("trystero.js did not load");
     return;
   }
   rememberName();
-  AU.resume(); AU.init();
+  safeAudio();
   const code = asHost ? Net.makeCode() : Net.normCode($("#codeInput").value);
   if(!asHost && code.length < 4){
     tag("ENTER A ROOM CODE", 2000);
@@ -70,12 +81,29 @@ function enterRoom(asHost){
   try{
     Net.connect(code, playerName(), asHost);
     $("#roomCode").textContent = Net.code;
-    tag(asHost ? "ROOM OPEN — SHARE THE CODE" : "CONNECTING…", 2200);
+    tag(asHost ? "ROOM OPEN — COPY THE CODE ABOVE" : "CONNECTING…", 2200);
     if(!asHost) AU.play("swoosh");
+    watchPeerArrival(asHost);
   }catch(err){
     netFail(err && err.message ? err.message : "Could not join the room.");
+    Diag.show("joining threw: " + (err && err.message ? err.message : err));
     toTitle();
   }
+}
+
+/* Joining used to fail silently: you tapped JOIN, it said "CONNECTING…", and
+   then nothing — no error, ever. If nobody has arrived a little while after
+   the attempt, work out why instead of leaving you guessing. */
+function watchPeerArrival(asHost){
+  clearTimeout(watchPeerArrival._t);
+  const waited = asHost ? 45000 : 25000;
+  const label = asHost ? "No players joined your room" : "Could not reach the host";
+  watchPeerArrival._t = setTimeout(() => {
+    if (mode !== "royale") return;
+    if (Net.state.count > 1) return;
+    tag(label + " — OPENING CONNECTION REPORT", 3200);
+    Diag.show(label + " (waited " + Math.round(waited / 1000) + "s)");
+  }, waited);
 }
 
 /* ─────────────────────────── button wiring ─────────────────────────── */
@@ -91,6 +119,53 @@ $("#btnJoin").onclick  = ()=> enterRoom(false);
 $("#btnStartRoyale").onclick = ()=>{ AU.play("boss"); Net.startRoyale(); };
 $("#btnLeave").onclick = ()=>{ AU.play("swoosh"); toTitle(); };
 $("#btnNetFailOk").onclick = ()=>{ $("#netfail").style.display = "none"; };
+
+/* ── connection diagnostics ─────────────────────────────────────────────── */
+$("#btnDiag").onclick  = ()=> Diag.show("");
+$("#btnDiagOk").onclick = ()=>{ $("#diag").style.display = "none"; };
+
+/* ── room code copy ───────────────────────────────────────────────────────
+   On an iPad, switching to another app to share the code freezes this page:
+   iOS suspends JS, the relay sockets drop and the room is dead on return.
+   Copying from the page means you never have to leave it. */
+$("#btnCopyCode").onclick = async ()=>{
+  const btn = $("#btnCopyCode"), code = Net.code || "";
+  if(!code || code === "-----"){ tag("NO ROOM CODE YET", 1600); return; }
+  let done = false;
+  try{
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      await navigator.clipboard.writeText(code);
+      done = true;
+    }
+  }catch(e){ /* clipboard API blocked — fall back below */ }
+  if(!done){
+    const sel = window.getSelection(), range = document.createRange();
+    const node = $("#roomCode");
+    range.selectNodeContents(node);
+    sel.removeAllRanges(); sel.addRange(range);
+    try{ done = document.execCommand("copy"); }catch(e){}
+    sel.removeAllRanges();
+  }
+  btn.textContent = done ? "✅ COPIED — NOW PASTE IT" : "SELECT AND COPY ABOVE";
+  btn.classList.toggle("done", done);
+  setTimeout(()=>{ btn.textContent = "📋 COPY ROOM CODE"; btn.classList.remove("done"); }, 2600);
+};
+
+/* ── backgrounded warning ───────────────────────────────────────────────
+   iOS silently freezes the page in the background. Tell the player the moment
+   they come back, because by then the room is usually already gone. */
+let wasHidden = false;
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden){ wasHidden = true; return; }
+  if(!wasHidden) return;
+  wasHidden = false;
+  window.__BGWARN = true;
+  if(mode === "royale"){
+    $("#bgwarn").style.display = "block";
+    setTimeout(()=>{ $("#bgwarn").style.display = "none"; }, 9000);
+    tag("PAGE WAS PAUSED — YOU MAY NEED TO REJOIN", 3400);
+  }
+});
 
 $("#btnAgain").onclick = ()=>{
   $("#over").classList.remove("show");
@@ -177,6 +252,6 @@ setTimeout(()=>{ const b = $("#boot"); if(b) b.remove(); }, 1200);
 /* first real interaction unlocks WebAudio in every browser */
 ["pointerdown","keydown"].forEach(ev=>
   document.addEventListener(ev, function once(){
-    AU.resume(); AU.init();
+    safeAudio();
     document.removeEventListener(ev, once);
   }, { once:true }));
