@@ -249,11 +249,11 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
 
 ## Tests
 
-375 checks run headless under jsdom:
+353 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
-- **solo (31)** — all 64 questions well-formed, boss cadence, deck cycling, all six
+- **solo (33)** — all 64 questions well-formed, boss cadence, deck cycling, all six
   question types played through the real UI, cash stays finite, wrong answers cost a
   shelter, bankruptcy ends the run, upgrades persist.
 - **royale (42)** — eight independent browser instances joined over a fake WebRTC bus:
