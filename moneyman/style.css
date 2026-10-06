@@ -566,3 +566,15 @@ body.royale .aside{padding-top:16px}
   .dg{grid-template-columns:46px 1fr}
   #diag,#netfail{max-width:none;left:12px;right:12px}
 }
+
+/* Connection self-test. Deliberately a full-width row of its own, directly
+   under the mode buttons: it used to live inside the "join with a code" row,
+   which is display:none until you click something else — so the one button
+   that explains a broken connection was invisible on the title screen. */
+.btn.diagbtn{
+  width:100%;margin-top:11px;font-size:12px;letter-spacing:.6px;
+  color:#8fb6d6;border:1px dashed rgba(90,210,255,.34);background:rgba(90,210,255,.05);
+  padding:10px 12px;line-height:1.45;
+}
+.btn.diagbtn:hover{border-style:solid;background:rgba(90,210,255,.11);color:#bfe4ff}
+@media(max-width:940px){ .btn.diagbtn{font-size:11px;padding:11px 10px} }

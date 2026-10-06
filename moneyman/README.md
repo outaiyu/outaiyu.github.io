@@ -273,7 +273,7 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
 
 ## Tests
 
-411 checks run headless under jsdom:
+416 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
