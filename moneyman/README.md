@@ -252,7 +252,7 @@ Four things now happen instead:
 
 **TEST MY CONNECTION** on the title screen, or it opens itself when something fails. It
 first opens a real WebSocket to a batch of relays itself — **measured, not assumed** — and
-then reports what it found. Ten measured checks:
+then reports what it found. Eleven measured checks:
 
 | Check | Why it matters |
 | --- | --- |
@@ -266,6 +266,7 @@ then reports what it found. Ten measured checks:
 | WebRTC self-test | builds two connections *inside the page* and pushes real bytes between them, isolating WebRTC from the network and the other device |
 | Page state | whether the tab is backgrounded right now |
 | Backgrounded earlier | whether the tab lost focus at any point this session |
+| WebSocket control | only shown when every relay failed — probes two **non-Nostr** hosts to tell "all WebSockets are blocked" apart from "these relay hosts are filtered specifically" |
 | Verdict | one plain line at the top naming the actual culprit, so the report cannot read as all-clear when it is not |
 
 The live probe times each attempt, which separates the two ways `wss://` fails:
@@ -276,6 +277,12 @@ The live probe times each attempt, which separates the two ways `wss://` fails:
 - **hung until the budget ran out** — packets are being silently dropped, so it is the
   network or a firewall. Try a phone hotspot.
 
+When nothing answers, a **control probe** hits two non-Nostr WebSocket hosts. If those open,
+the device is fine and something is filtering the relay hosts by name — a DNS filter, a
+school/work network rule, or a privacy app with a blocklist. If those fail too, all outbound
+WebSockets are blocked and a VPN or network change is the fix. The close code is captured
+too: **1006** (no close handshake) is the signature of a dropped connection.
+
 This is the report that matters when peers will not connect: if no relay answers, two
 devices cannot find each other no matter how healthy the in-page self-test is.
 
@@ -283,7 +290,7 @@ devices cannot find each other no matter how healthy the in-page self-test is.
 
 ## Tests
 
-391 checks run headless under jsdom:
+397 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -313,7 +320,7 @@ devices cannot find each other no matter how healthy the in-page self-test is.
   prefix. It also drives `Diag.run` with synthetic relay logs to pin the two diagnoses that
   matter — a fast refusal means blocked on the device, a hang means dropped packets — and
   checks the verdict line never claims all-clear while WebRTC is actually missing.
-- **diag (83)** — the failure-reporting path. Asserts the relay recorder installs
+- **diag (89)** — the failure-reporting path. Asserts the relay recorder installs
   before Trystero, the watchdog cancels when you leave, no bare unguarded
   `AU.init()` call site survives, the clipboard path is awaited with a working
   fallback, and that `Diag.run` produces a full report in a browser with no

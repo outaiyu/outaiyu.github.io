@@ -131,9 +131,27 @@ const Diag = (()=>{
       try { ws = new WS(url); }
       catch (err) { return finish("error", err && err.message ? err.message : "could not open"); }
       ws.onopen    = () => finish("open");
-      ws.onerror   = () => finish("error", "refused or blocked");
-      ws.onclose   = () => finish("closed", "closed before opening");
+      // An error event carries no information in most browsers; the close
+      // event that follows it has the code. 1006 means the socket died
+      // without a close handshake, which is what a network/DNS block looks
+      // like. Capture whichever arrives first.
+      ws.onerror   = e => finish("error", "error event" + (e && e.message ? ": " + e.message : " (no detail given by the browser)"));
+      ws.onclose   = e => finish("closed", "close code " + (e && (e.code !== undefined ? e.code : "?"))
+                                    + (e && e.reason ? " (" + e.reason + ")" : "")
+                                    + (e && e.wasClean === false ? ", not clean" : ""));
     });
+  }
+
+  /* A non-Nostr WebSocket control. If this opens but every Nostr relay
+     fails, the network is filtering those hosts specifically rather than
+     blocking WebSockets outright. */
+  const CONTROLS = ["wss://echo.websocket.org/", "wss://ws.postman-echo.com/raw"];
+
+  async function probeControl(budget){
+    const list = CONTROLS.slice(0, 2);
+    const results = [];
+    for (const u of list) results.push(await probeOne(u, budget));
+    return results;
   }
 
   async function probeRelays(budget, cap){
@@ -239,6 +257,17 @@ const Diag = (()=>{
       const probe = await probeRelays(budget, o.cap || 16);
       if (probe && probe.rows && probe.rows.length) add("Relay test (live)", summarise(probe.rows, budget), probe.detail);
       else add("Relay test (live)", probe || warn("no relay pool configured"));
+
+      if (probe && probe.rows && probe.rows.length && !probe.rows.some(r => r.state === "open")){
+        const ctl = await probeControl(budget);
+        const ctlOpen = ctl.filter(r => r.state === "open").length;
+        add("WebSocket control", ctlOpen
+              ? ok("plain WebSockets work (" + ctlOpen + " of " + ctl.length + " control hosts answered)")
+              : bad("plain WebSockets are blocked too"),
+            ctlOpen
+              ? "Plain WebSockets work, so this device is NOT blocking WebSockets. Something specific to the Nostr relay hosts is being filtered - a DNS or network filter for those domains."
+              : "Even non-Nostr WebSocket hosts were refused, so all outbound WebSockets are blocked on this device or network.");
+      }
     }
     const rr = relayReport();
     const passive = window.__RELAYLOG && window.__RELAYLOG.length
@@ -263,6 +292,7 @@ const Diag = (()=>{
     // One plain-language line at the top: of everything that was checked,
     // this is the thing that is actually stopping you playing.
     const relayRow = rows.find(r => r.name === "Relay test (live)") || rows.find(r => r.name === "Nostr relays");
+    const ctlRow   = rows.find(r => r.name === "WebSocket control");
     const webapi   = rows.find(r => r.name === "WebRTC APIs");
     const self     = rows.find(r => r.name === "WebRTC self-test");
     const lib      = rows.find(r => r.name === "Trystero library");
@@ -272,9 +302,14 @@ const Diag = (()=>{
     else if (webapi && webapi.state === "bad")
       verdict = bad("This browser has no WebRTC, so peer connections are impossible. Try a different browser.");
     else if (relayRow && relayRow.state === "bad")
-      verdict = bad("FOUND IT: your browser cannot reach any signalling relay. That alone "
-                  + "stops two devices finding each other, no matter how healthy the "
-                  + "network is between them.");
+      verdict = bad(ctlRow && ctlRow.state === "ok"
+        ? "FOUND IT: plain WebSockets work here, but every Nostr relay was refused. Something "
+          + "is filtering those relay hosts specifically - a DNS or network filter, or a "
+          + "privacy app with a blocklist. The relay hosts must be reachable for two devices "
+          + "to find each other."
+        : "FOUND IT: this device cannot open ANY outbound WebSocket, including non-Nostr "
+          + "hosts. That stops two devices finding each other no matter how healthy the "
+          + "network is between them. Turn off VPN/ad-block/privacy apps, or try another network.");
     else if (self && self.state === "bad")
       verdict = bad("WebRTC itself fails inside this browser even with no network involved.");
     else if (relayRow && relayRow.state === "warn")
