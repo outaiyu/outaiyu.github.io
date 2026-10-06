@@ -116,8 +116,22 @@ migrating host and a stale one cannot both take over.
 | `solo.js` | single-player mode — installs the solo `MODE` hooks |
 | `net.js` | battle royale — transport, host authority, migration, roster UI |
 | `diag.js` | connection report — why multiplayer failed |
+| `build-standalone.js` | packs everything into one `.html` |
 | `boot.js` | the only file that knows a button exists |
 | `trystero.js` | vendored WebRTC/Nostr library |
+
+### Standalone build
+
+```bash
+node build-standalone.js            # → ../moneyman-upload/moneyman-standalone.html
+```
+
+Inlines the stylesheet, all six scripts and the vendored Trystero library into a single
+~226 KB `.html` that makes **zero** network requests. It refuses to write the output if any
+external reference or `.mp3` mention survives the packing, so a broken build fails loudly
+instead of shipping a file that quietly misses a script. Solo runs from it straight off
+`file://`; multiplayer still needs `https` or localhost, which is a browser rule about
+WebRTC rather than something the file can influence.
 
 **There are no binary assets.** Not one. The music, the sound effects and the
 wind/rain ambience are all synthesised with the Web Audio API at runtime, and the favicon
@@ -235,7 +249,7 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
 
 ## Tests
 
-330 checks run headless under jsdom:
+375 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -269,7 +283,7 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
 cd /tmp/opencode/t && npm install jsdom
 node boot.js && node solo.js && node stuck.js && node cash.js && node keyboard.js \
   && node calm.js && node tiers.js && node royale.js && node diag.js \
-  && node assets.js && node music.js
+  && node assets.js && node music.js && node standalone.js
 ```
 
 The multiplayer suite exercises the real host-authority code path; only the WebRTC
