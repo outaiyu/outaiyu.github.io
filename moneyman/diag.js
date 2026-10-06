@@ -64,14 +64,35 @@ const Diag = (()=>{
      logs every socket it opens, so this is measured, not assumed. */
   function relayReport(){
     const log = window.__RELAYLOG || [];
-    if (!log.length) return warn("no relay connections attempted yet");
+    if (!log.length)
+      return warn("no relay connections attempted yet - Trystero may not have started");
     const open = log.filter(r => r.state === "open");
-    const fail = log.filter(r => r.state !== "open");
-    if (open.length)
-      return ok(open.length + " of " + log.length + " relays connected — "
-              + open.slice(0,3).map(r => r.url.replace(/^wss:\/\//,"")).join(", "));
-    return bad("all " + log.length + " relays failed — "
-             + (fail[0] && fail[0].detail ? fail[0].detail : "no detail"));
+    const dead = log.filter(r => r.state !== "open");
+    const host = u => String(u).replace(/^wss:\/\//, "").split("/")[0];
+
+    if (open.length){
+      const times = open.map(r => r.ms || 0).sort((a, b) => a - b);
+      const med = times[Math.floor(times.length / 2)];
+      return ok(open.length + " of " + log.length + " relays connected (median " + med
+                + "ms) - " + open.slice(0, 4).map(r => host(r.url)).join(", "));
+    }
+
+    // Every relay failed. Say which KIND of failure this is, because the two
+    // causes look identical ("it failed") and need opposite fixes.
+    const settled = dead.filter(r => r.ms > 0);
+    const instant = settled.filter(r => r.ms < 700).length;
+    const dropped = settled.length - instant;
+    let why;
+    if (settled.length && instant && !dropped)
+      why = "ALL " + log.length + " refused within a second - blocked on this device, "
+          + "not a relay problem. Ad-blockers, privacy extensions and DNS filters "
+          + "routinely kill WebSockets: try a private window with extensions off.";
+    else if (dropped)
+      why = "ALL " + log.length + " hung instead of being refused - your network or "
+          + "firewall is silently dropping the traffic.";
+    else
+      why = "ALL " + log.length + " relays failed, with no timing captured.";
+    return bad(why + "  [" + dead.slice(0, 6).map(r => host(r.url) + " " + r.ms + "ms").join("  ") + "]");
   }
 
   function browser(){
@@ -129,10 +150,9 @@ const Diag = (()=>{
         "RTCPeerConnection: " + (typeof RTCPeerConnection !== "undefined")
         + " · RTCDataChannel: " + (typeof RTCDataChannel !== "undefined"));
 
-    const tried = (window.__RELAYLOG || []).slice(0, 4)
-      .map(r => r.url.replace(/^wss:\/\//, "").split("/")[0] + ":" + r.state).join("  ");
+    const pool = (typeof Net !== "undefined" && Net.relays) ? Net.relays.length : 0;
     const rr = relayReport();
-    add("Nostr relays", rr, rr.detail && tried ? rr.detail + " — " + tried : tried);
+    add("Nostr relays", rr, rr.detail + (pool ? "  (pool: " + pool + " relays)" : ""));
 
     const lb = await loopback();
     add("WebRTC self-test", lb, lb.detail);
@@ -147,6 +167,29 @@ const Diag = (()=>{
           "iOS freezes JS when you leave the page; the relay link does not survive it");
 
     if (reason) add("Reported problem", warn(reason), reason);
+
+    // One plain-language line at the top: of everything that was checked,
+    // this is the thing that is actually stopping you playing.
+    const relayRow = rows.find(r => r.name === "Nostr relays");
+    const webapi   = rows.find(r => r.name === "WebRTC APIs");
+    const self     = rows.find(r => r.name === "WebRTC self-test");
+    const lib      = rows.find(r => r.name === "Trystero library");
+    let verdict;
+    if (lib && lib.state === "bad")
+      verdict = bad("trystero.js did not load, so nothing multiplayer can work. Reload the page.");
+    else if (webapi && webapi.state === "bad")
+      verdict = bad("This browser has no WebRTC, so peer connections are impossible. Try a different browser.");
+    else if (relayRow && relayRow.state === "bad")
+      verdict = bad("FOUND IT: your browser cannot reach any signalling relay. That alone "
+                  + "stops two devices finding each other, no matter how healthy the "
+                  + "network is between them.");
+    else if (self && self.state === "bad")
+      verdict = bad("WebRTC itself fails inside this browser even with no network involved.");
+    else if (relayRow && relayRow.state === "warn")
+      verdict = warn("Signalling has not been exercised yet. Start a room and re-run this report.");
+    else
+      verdict = ok("Everything checked out. Your browser can reach relays and do peer-to-peer.");
+    rows.unshift({ name: "Verdict", state: verdict.state, detail: verdict.detail });
 
     return rows;
   }

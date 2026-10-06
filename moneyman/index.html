@@ -189,12 +189,21 @@ Sources: NOAA / National Hurricane Center storm reports, Wikipedia, and classroo
   if (!Native || Native.__recorder) return;
   var log = window.__RELAYLOG = [];
   var Wrapped = function(url, protocols){
+    var t0 = Date.now();
     var ws = protocols === undefined ? new Native(url) : new Native(url, protocols);
-    log.push({ url: String(url), state: "connecting" });
+    var rec = { url: String(url), state: "connecting", ms: 0 };
+    log.push(rec);
     var i = log.length - 1;
-    ws.addEventListener("open",  function(){ log[i].state = "open"; });
-    ws.addEventListener("error", function(){ log[i].state = "error"; log[i].detail = "connection refused or blocked"; });
-    ws.addEventListener("close", function(e){ if (log[i].state !== "open") { log[i].state = "closed"; log[i].detail = "closed before opening (" + (e && e.code || "?") + ")"; } });
+    var settle = function(state, detail){
+      if(rec.state !== "connecting") return;
+      rec.state = state; rec.detail = detail || ""; rec.ms = Date.now() - t0;
+    };
+    ws.addEventListener("open",  function(){ settle("open"); });
+    ws.addEventListener("error", function(){ settle("error", "refused or blocked"); });
+    ws.addEventListener("close", function(e){
+      settle("closed", rec.state === "connecting"
+        ? "closed before opening (code " + ((e && e.code) || "?") + ")" : "");
+    });
     return ws;
   };
   Wrapped.prototype = Native.prototype;

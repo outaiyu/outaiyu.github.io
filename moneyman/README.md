@@ -120,6 +120,30 @@ migrating host and a stale one cannot both take over.
 | `boot.js` | the only file that knows a button exists |
 | `trystero.js` | vendored WebRTC/Nostr library |
 
+### Signalling relays
+
+Trystero cannot introduce two browsers to each other by itself. They meet by exchanging
+messages over public Nostr relays, so **no relay means no connection** — regardless of how
+healthy the network between the two devices is.
+
+The vendored copy shipped 28 hardcoded relays and takes only the first few *in order*. Two
+at the front of that list are dead hostnames, so on some networks it only ever attempted
+endpoints that no longer exist and reported "peer link unavailable" while healthy relays
+sat further down the list, never contacted. `net.js` therefore passes its own list:
+
+```js
+relayConfig: { urls: RELAYS, redundancy: 14 }
+```
+
+`RELAYS` is ordered with the large long-running public relays first and spreads different
+providers through the top of the list, so a block aimed at one host or CDN cannot take
+everything out at once. This is the only signalling strategy this build has — the vendored
+library is Nostr-only, with no MQTT or fallback to fall back to.
+
+The connection report distinguishes the two ways this fails, because they look identical
+but need opposite fixes: a relay **refused within a second** was blocked locally (extension,
+DNS filter), while a relay that **hangs** had its packets dropped by a network or firewall.
+
 ### Standalone build
 
 ```bash
@@ -249,7 +273,7 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
 
 ## Tests
 
-353 checks run headless under jsdom:
+411 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -273,7 +297,13 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
   (iPad mini/Air/Pro portrait and landscape, 1280, 1440, 1920, 390) and asserts
   each tier wins, that the boundaries at 700/940/941/1600 are exact, and that
   phones are unaffected.
-- **diag (59)** — the failure-reporting path. Asserts the relay recorder installs
+- **relays** — the pool is passed to `joinRoom` as `relayConfig`, so the diag suite
+  asserts it is wired up at all: no stale `relayUrls` option, no duplicates, every entry
+  a `wss://` URL, `relay.damus.io` first, and a redundancy high enough to get past a bad
+  prefix. It also drives `Diag.run` with synthetic relay logs to pin the two diagnoses that
+  matter — a fast refusal means blocked on the device, a hang means dropped packets — and
+  checks the verdict line never claims all-clear while WebRTC is actually missing.
+- **diag (77)** — the failure-reporting path. Asserts the relay recorder installs
   before Trystero, the watchdog cancels when you leave, no bare unguarded
   `AU.init()` call site survives, the clipboard path is awaited with a working
   fallback, and that `Diag.run` produces a full report in a browser with no

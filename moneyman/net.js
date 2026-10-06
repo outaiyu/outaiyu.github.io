@@ -72,11 +72,62 @@ const Net = (()=>{
   function available(){
     return typeof Trystero !== "undefined" && typeof Trystero.joinRoom === "function";
   }
+  /* ---- Nostr relays: the signalling layer --------------------------
+     Trystero cannot introduce two browsers to each other on its own —
+     they meet by exchanging messages over public Nostr relays. No relay,
+     no connection.
+
+     The copy of Trystero vendored here ships a hardcoded list of 28
+     relays and always tries them *in order*, taking only the first few.
+     Two at the front of that list are dead hostnames, and several others
+     are unreliable, so on some networks it only ever attempted dead
+     endpoints and reported "peer link unavailable" while perfectly good
+     relays sat further down the list, untried.
+
+     So we pass our own list explicitly. This one is ordered with the
+     large, long-running public relays first — those are the ones most
+     likely to be reachable and are the least likely to be on an
+     extension's blocklist — and diversity is spread through the top of
+     the list so a block aimed at one host or CDN cannot take everything
+     out at once. RELAY_REDUNDANCY controls how many are tried; if enough
+     of them answer, the rest never get contacted.
+     ------------------------------------------------------------------ */
+  const RELAYS = [
+    "wss://relay.damus.io",         // largest public relay
+    "wss://nos.lol",
+    "wss://relay.primal.net",
+    "wss://relay.snort.social",
+    "wss://nostr.wine",
+    "wss://nostr.mom",
+    "wss://relay-dev.gulugulu.moe",
+    "wss://nostrcity-club.fly.dev",  // fly.dev
+    "wss://nostr-pub.wellorder.net",
+    "wss://relay.nostr.blockhenge.com",
+    "wss://0x-nostr-relay.fly.dev",  // fly.dev
+    "wss://nostr.oxtr.dev",
+    "wss://cdn.satellite.earth",
+    "wss://relay.hackshed.dev",
+    "wss://relay.agentry.com",
+    "wss://relay.flashapp.me",
+    "wss://relay.layer.systems",
+    "wss://relay.kaleidoswap.com",
+    "wss://nostr.red5d.dev",
+    "wss://relay.nostr.dev.br",
+    "wss://relay.nostrmap.net",
+    "wss://relay.aarpia.com",
+    "wss://relay.piazza.today",
+    "wss://testr.nymble.world",
+  ];
+  const RELAY_REDUNDANCY = 14;
+
   function connect(code, name, asHost){
     if(!available()) throw new Error("Peer library failed to load (trystero.js)");
     myName = (name || "Player").slice(0, 14) || "Player";
     roomCode = normCode(code);
-    room = Trystero.joinRoom({ appId: APP_ID }, normCode(code));
+    room = Trystero.joinRoom({
+      appId: APP_ID,
+      relayConfig: { urls: RELAYS, redundancy: RELAY_REDUNDANCY },
+    }, normCode(code));
     myId = Trystero.selfId;
     hostId = myId;           // optimistic: everyone assumes they are host first
     epoch = 0;
@@ -488,6 +539,7 @@ const Net = (()=>{
 
   return {
     install, connect, leave, makeCode, normCode, available,
+    relays: RELAYS, relayRedundancy: RELAY_REDUNDANCY,
     isHost, startRoyale, reportMine, becomeHost, get code(){ return roomCode; },
     set code(v){ roomCode = v; },
     get state(){
