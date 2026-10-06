@@ -95,6 +95,88 @@ const Diag = (()=>{
     return bad(why + "  [" + dead.slice(0, 6).map(r => host(r.url) + " " + r.ms + "ms").join("  ") + "]");
   }
 
+  /* ── active relay probe ──────────────────────────────────────────────
+     Reporting on what Trystero happened to do is useless from the title
+     screen: no room has started, so the honest answer is always "nothing
+     has been tried yet", which tells you nothing. A connection test has to
+     actually reach out.
+
+     So we open our own short-lived WebSocket to each relay in the pool and
+     time it. Nostr relays accept the socket immediately, so a reachable
+     one opens fast and an unreachable one is refused or hangs - which is
+     exactly the distinction that identifies who is at fault. Sockets are
+     closed again as soon as each verdict is in, so this leaves nothing
+     running. */
+  /* Use the un-wrapped constructor: probing must not pollute __RELAYLOG,
+     which is reserved for connections Trystero itself opened. */
+  function nativeWS(){
+    const WS = window.__NATIVE_WS || window.WebSocket;
+    return typeof WS === "function" ? WS : null;
+  }
+
+  function probeOne(url, budget){
+    return new Promise(resolve => {
+      const t0 = Date.now();
+      let ws = null, settled = false;
+      const finish = (state, detail) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        try { if (ws) ws.close(); } catch (e) {}
+        resolve({ url, state, ms: Date.now() - t0, detail: detail || "" });
+      };
+      const timer = setTimeout(() => finish("timeout", "no response"), budget);
+      const WS = nativeWS();
+      if (!WS) return finish("error", "this browser exposes no WebSocket");
+      try { ws = new WS(url); }
+      catch (err) { return finish("error", err && err.message ? err.message : "could not open"); }
+      ws.onopen    = () => finish("open");
+      ws.onerror   = () => finish("error", "refused or blocked");
+      ws.onclose   = () => finish("closed", "closed before opening");
+    });
+  }
+
+  async function probeRelays(budget, cap){
+    const pool = (typeof Net !== "undefined" && Net.relays) || [];
+    if (!pool.length) return null;
+    if (!nativeWS())
+      return { state: "warn", detail: "this browser exposes no WebSocket, so relays cannot be reached", rows: [] };
+    const list = pool.slice(0, cap || pool.length);
+    const results = [];
+    for (let i = 0; i < list.length; i += 6)          // small batches, don't flood
+      results.push.apply(results, await Promise.all(list.slice(i, i + 6).map(u => probeOne(u, budget))));
+    return { state: "ok", detail: "", rows: results };
+  }
+
+  /* Turn probe results into a verdict, using timing to name the culprit. */
+  function summarise(rows, budget){
+    const host = u => String(u).replace(/^wss:\/\//, "").split("/")[0];
+    const open = rows.filter(r => r.state === "open");
+    const dead = rows.filter(r => r.state !== "open");
+    if (open.length){
+      const times = open.map(r => r.ms).sort((a, b) => a - b);
+      return ok(open.length + " of " + rows.length + " relays reachable (fastest "
+        + times[0] + "ms, median " + times[Math.floor(times.length / 2)]
+        + "ms) - " + open.slice(0, 4).map(r => host(r.url)).join(", ")
+        + (dead.length ? ". Unreachable: " + dead.length : ""));
+    }
+    // A probe that used the whole budget never got an answer; anything that
+    // failed sooner was actively refused. Measure against the real budget
+    // rather than a fixed delay, so short and long budgets both classify right.
+    const cap = budget || 3500;
+    const hung = dead.filter(r => r.state === "timeout" || r.ms >= cap).length;
+    const instant = dead.length - hung;
+    const listed = dead.slice(0, 6).map(r => host(r.url) + " " + r.ms + "ms").join("  ");
+    if (instant && !hung)
+      return bad("ALL " + rows.length + " refused within a second - blocked on THIS DEVICE, "
+        + "not a relay fault. Ad-blockers, privacy extensions and DNS filters routinely kill "
+        + "WebSockets. Try a private window with extensions off.  [" + listed + "]");
+    if (hung)
+      return bad("ALL " + rows.length + " hung with no reply - your network or firewall is "
+        + "silently dropping the traffic. Try a different network or a phone hotspot.  [" + listed + "]");
+    return bad("ALL " + rows.length + " relays unreachable, with no timing captured.  [" + listed + "]");
+  }
+
   function browser(){
     const ua = navigator.userAgent;
     let name = "unknown browser";
@@ -123,7 +205,8 @@ const Diag = (()=>{
     return { secure, via: "protocol fallback" };
   }
 
-  async function run(reason){
+  async function run(reason, opts){
+    const o = opts || {};
     rows.length = 0;
 
     const sec = secureOrigin();
@@ -151,8 +234,17 @@ const Diag = (()=>{
         + " · RTCDataChannel: " + (typeof RTCDataChannel !== "undefined"));
 
     const pool = (typeof Net !== "undefined" && Net.relays) ? Net.relays.length : 0;
+    if (o.live !== false){
+      const budget = o.budget || 3500;
+      const probe = await probeRelays(budget, o.cap || 16);
+      if (probe && probe.rows && probe.rows.length) add("Relay test (live)", summarise(probe.rows, budget), probe.detail);
+      else add("Relay test (live)", probe || warn("no relay pool configured"));
+    }
     const rr = relayReport();
-    add("Nostr relays", rr, rr.detail + (pool ? "  (pool: " + pool + " relays)" : ""));
+    const passive = window.__RELAYLOG && window.__RELAYLOG.length
+      ? "so far in this session: " + rr.detail
+      : "no room has been joined yet, so Trystero has not used a relay yet";
+    add("Nostr relays", rr, passive + (pool ? "  (pool: " + pool + ")" : ""));
 
     const lb = await loopback();
     add("WebRTC self-test", lb, lb.detail);
@@ -170,7 +262,7 @@ const Diag = (()=>{
 
     // One plain-language line at the top: of everything that was checked,
     // this is the thing that is actually stopping you playing.
-    const relayRow = rows.find(r => r.name === "Nostr relays");
+    const relayRow = rows.find(r => r.name === "Relay test (live)") || rows.find(r => r.name === "Nostr relays");
     const webapi   = rows.find(r => r.name === "WebRTC APIs");
     const self     = rows.find(r => r.name === "WebRTC self-test");
     const lib      = rows.find(r => r.name === "Trystero library");
@@ -198,8 +290,10 @@ const Diag = (()=>{
     const el = document.getElementById("diag");
     const body = document.getElementById("diagBody");
     if (!el || !body) return;
-    body.innerHTML = '<div class="fine">running…</div>';
     el.style.display = "block";
+    body.innerHTML = '<div class="fine">checking…</div>'
+      + '<div class="fine" style="margin-top:6px">Reaching out to the signalling relays now — '
+      + 'this takes a few seconds.</div>';
     run(reason).then(rs => {
       body.innerHTML = rs.map(r =>
         '<div class="dg ' + r.state + '"><span class="dgs">' +

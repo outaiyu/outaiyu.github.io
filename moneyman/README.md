@@ -250,8 +250,9 @@ Four things now happen instead:
 
 ### The connection report
 
-**TEST MY CONNECTION** on the title screen, or it opens itself when something fails. Nine
-measured checks:
+**TEST MY CONNECTION** on the title screen, or it opens itself when something fails. It
+first opens a real WebSocket to a batch of relays itself — **measured, not assumed** — and
+then reports what it found. Ten measured checks:
 
 | Check | Why it matters |
 | --- | --- |
@@ -260,20 +261,29 @@ measured checks:
 | Trystero library | confirms `trystero.js` loaded and `joinRoom` exists |
 | `crypto.subtle` | Trystero throws without it, and it only exists in a secure context |
 | WebRTC APIs | `RTCPeerConnection` + `RTCDataChannel` present |
-| Nostr relays | **measured**, not assumed — a `WebSocket` wrapper installed before `trystero.js` logs every relay Trystero opens and whether it connected |
+| Relay test (live) | opens real sockets to up to 16 relays and reports how many answered, using the un-wrapped `WebSocket` so it cannot pollute the room log below |
+| Nostr relays | what Trystero itself has done this session — a `WebSocket` wrapper installed before `trystero.js` logs every relay it opens and whether it connected |
 | WebRTC self-test | builds two connections *inside the page* and pushes real bytes between them, isolating WebRTC from the network and the other device |
 | Page state | whether the tab is backgrounded right now |
 | Backgrounded earlier | whether the tab lost focus at any point this session |
+| Verdict | one plain line at the top naming the actual culprit, so the report cannot read as all-clear when it is not |
 
-The relay report is the useful one for iPads: if it says all relays failed, the network is
-blocking `wss://`, and no amount of code changes will help. If relays are fine and the
-self-test passes but peers still cannot connect, it is device-specific WebRTC behaviour.
+The live probe times each attempt, which separates the two ways `wss://` fails:
+
+- **refused in well under the budget** — something on the device closed the socket at once.
+  Ad-blockers, privacy extensions and DNS filters routinely kill WebSockets. Try a private
+  window with extensions off.
+- **hung until the budget ran out** — packets are being silently dropped, so it is the
+  network or a firewall. Try a phone hotspot.
+
+This is the report that matters when peers will not connect: if no relay answers, two
+devices cannot find each other no matter how healthy the in-page self-test is.
 
 ---
 
 ## Tests
 
-416 checks run headless under jsdom:
+391 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
@@ -303,11 +313,14 @@ self-test passes but peers still cannot connect, it is device-specific WebRTC be
   prefix. It also drives `Diag.run` with synthetic relay logs to pin the two diagnoses that
   matter — a fast refusal means blocked on the device, a hang means dropped packets — and
   checks the verdict line never claims all-clear while WebRTC is actually missing.
-- **diag (77)** — the failure-reporting path. Asserts the relay recorder installs
+- **diag (83)** — the failure-reporting path. Asserts the relay recorder installs
   before Trystero, the watchdog cancels when you leave, no bare unguarded
   `AU.init()` call site survives, the clipboard path is awaited with a working
   fallback, and that `Diag.run` produces a full report in a browser with no
-  WebRTC at all instead of throwing.
+  WebRTC at all instead of throwing. The live probe is driven through all three
+  network behaviours with a fake socket — reachable, instantly refused, and hung —
+  asserting each gets the right verdict and the right named culprit, and that the
+  probe cannot pollute Trystero's own relay log.
 
 ```bash
 cd /tmp/opencode/t && npm install jsdom
@@ -325,4 +338,5 @@ two failed.
 ---
 
 `katrina-moneyman.html` is the original single-file build, kept for reference. The
-multi-file version above is the one to deploy.
+multi-file version above is the one to develop against; `build-standalone.js` packs it
+into the single-file build that gets deployed.

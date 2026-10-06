@@ -188,6 +188,7 @@ Sources: NOAA / National Hurricane Center storm reports, Wikipedia, and classroo
 (function(){
   var Native = window.WebSocket;
   if (!Native || Native.__recorder) return;
+  window.__NATIVE_WS = Native;   // let diagnostics probe relays without polluting this log
   var log = window.__RELAYLOG = [];
   var Wrapped = function(url, protocols){
     var t0 = Date.now();
