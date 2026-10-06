@@ -223,14 +223,46 @@ const Diag = (()=>{
     return { secure, via: "protocol fallback" };
   }
 
+  /* isSecureContext is true for file:// pages, which makes it useless as a
+     multiplayer check on its own. A file:// page has an opaque ("null") origin,
+     and browsers refuse to open a WebSocket from one - so every relay and every
+     control host fails within a few milliseconds, with no packet leaving the
+     device. That is the exact signature of "opened the file directly", so
+     check the scheme itself rather than trusting the property. */
+  function originProblem(){
+    if (location.protocol === "file:")
+      return bad("this page was OPENED AS A LOCAL FILE (file://), which cannot join a room at all",
+        "Browsers refuse every outbound WebSocket from a file:// page because its origin is "
+        + "opaque, so no relay can be reached however healthy the network is. Upload this file "
+        + "and open it over http(s) - https://outaiyu.github.io/moneyman/ - then multiplayer works.");
+    if (location.protocol === "http:"){
+      const h = location.hostname;
+      const local = h === "localhost" || h === "127.0.0.1" || h === "[::1]";
+      if (!local)
+        return bad("this page is served over plain http://, so the browser blocks its WebSockets",
+          "Only https:// (or localhost) is allowed to open a WebSocket. Put the file somewhere "
+          + "that serves https and reload.");
+    }
+    return null;
+  }
+
   async function run(reason, opts){
     const o = opts || {};
     rows.length = 0;
 
+    const origin = originProblem();
+    if (origin){
+      // Report this first and loudest: it explains every relay failure that
+      // follows, and no relay list or setting can work around it.
+      add("Page origin", origin, origin.detail);
+    }
     const sec = secureOrigin();
-    add("Secure context", sec.secure ? ok(sec.via) : bad("no — WebRTC needs HTTPS or localhost"),
-        sec.secure ? (location.protocol + "//" + location.hostname + " is treated as secure (" + sec.via + ")")
-                   : location.protocol + " is not a secure origin — publish over https");
+    add("Secure context", sec.secure && !origin ? ok(sec.via)
+        : origin ? warn("true, but irrelevant here") : bad("no — WebRTC needs HTTPS or localhost"),
+        origin ? "The browser calls this a secure context, but a " + location.protocol
+                + "// page still cannot open a WebSocket. Ignore this line; read Page origin."
+        : sec.secure ? (location.protocol + "//" + location.hostname + " is treated as secure (" + sec.via + ")")
+        : location.protocol + " is not a secure origin — publish over https");
 
     const b = browser();
     add("Browser", ok(b.detail), b.detail);
@@ -297,7 +329,13 @@ const Diag = (()=>{
     const self     = rows.find(r => r.name === "WebRTC self-test");
     const lib      = rows.find(r => r.name === "Trystero library");
     let verdict;
-    if (lib && lib.state === "bad")
+    if (origin)
+      verdict = bad("FOUND IT: this page is open as a LOCAL FILE, not over a web address. "
+        + "A file:// page has an opaque origin, so every browser refuses its WebSockets — "
+        + "that is why all the relays below failed in a few milliseconds. Upload the file and "
+        + "open it from https://outaiyu.github.io/moneyman/ instead. Nothing is wrong with your "
+        + "network or this device.");
+    else if (lib && lib.state === "bad")
       verdict = bad("trystero.js did not load, so nothing multiplayer can work. Reload the page.");
     else if (webapi && webapi.state === "bad")
       verdict = bad("This browser has no WebRTC, so peer connections are impossible. Try a different browser.");
