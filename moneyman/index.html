@@ -31,7 +31,7 @@
   <!-- ══════════ TITLE ══════════ -->
   <section class="card" id="screenStart">
     <h1 class="big">MONEYMAN<span>HURRICANE KATRINA · NEW ORLEANS · AUGUST 2005</span></h1>
-    <p class="lede">Race the clock through <b>64 questions</b> about Hurricane Katrina and stack up fake FEMA cash. Answer fast, build a multiplier, buy upgrades, survive the boss rounds — or take on <b>7 other players in a peer-to-peer battle royale</b>. <b>Every dollar here is pretend. Every fact is real.</b></p>
+    <p class="lede">Race the clock through <b>92 questions</b> about Hurricane Katrina and stack up fake FEMA cash. Answer fast, build a multiplier, buy upgrades, survive the boss rounds — or take on <b>7 other players in a peer-to-peer battle royale</b>. <b>Every dollar here is pretend. Every fact is real.</b></p>
     <div class="types">
       <div class="badge">🎯 MULTIPLE CHOICE</div><div class="badge">⚖️ TRUE / FALSE</div>
       <div class="badge">☑️ SELECT ALL</div><div class="badge">🔢 TYPE A NUMBER</div>
@@ -91,7 +91,7 @@
 
   <!-- ══════════ LOBBY ══════════ -->
   <section class="card" id="screenLobby" style="display:none">
-    <h1 class="big" style="font-size:34px">BATTLE ROYALE<span>2–8 PLAYERS · LAST ONE STANDING WINS</span></h1>
+    <h1 class="big" style="font-size:34px">BATTLE ROYALE<span>2–8 PLAYERS · SURVIVE AND OUT-EARN</span></h1>
     <div class="codebox">
       <em>ROOM CODE</em>
       <b id="roomCode">-----</b>
@@ -105,6 +105,12 @@
       <span class="chip gold" id="royaleCount">0 / 8</span>
     </div>
     <div id="rosterLobby" class="card" style="background:rgba(255,255,255,.03);margin-bottom:14px"><div id="rosterL"></div></div>
+    <div class="qcount">
+      <label for="qCountInput">QUESTIONS PER GAME</label>
+      <input type="number" id="qCountInput" min="3" max="40" step="1" value="10"
+             inputmode="numeric" autocomplete="off" spellcheck="false">
+      <small id="qCountHint">Type a number from <b>3</b> to <b>40</b> — the host decides how long the match runs. Players are out early only if their shields run out.</small>
+    </div>
     <button class="btn" id="btnStartRoyale">☠️ START BATTLE ROYALE</button>
     <button class="btn ghost" id="btnLeave" style="margin-top:9px">← Leave room</button>
     <p class="fine" id="hostOnly" style="display:none">You're the host. If you leave, the longest-present player takes over automatically — nobody gets stuck.</p>

@@ -204,8 +204,11 @@ modules, so it runs from any static host.
 
 ## Question bank
 
-64 questions across six types, interleaved so you never get the same type twice in a
+92 questions across six types, interleaved so you never get the same type twice in a
 row, with a boss question every 5th slot (3 boss variants):
+In battle royale the host picks how many questions the match runs (3–40); the game
+ends early if everyone else is knocked out, otherwise the richest player wins when
+the limit is reached.
 
 `mc` multiple choice · `tf` true/false · `multi` select-all-that-apply ·
 `num` type a number · `ord` put in order · `sld` slider guess
@@ -290,16 +293,20 @@ devices cannot find each other no matter how healthy the in-page self-test is.
 
 ## Tests
 
-406 checks run headless under jsdom:
+415 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.
-- **solo (33)** — all 64 questions well-formed, boss cadence, deck cycling, all six
+- **solo (33)** — all 92 questions well-formed, boss cadence (every 5th question,
+  counted from the bank rather than hardcoded), deck cycling, all six
   question types played through the real UI, cash stays finite, wrong answers cost a
   shelter, bankruptcy ends the run, upgrades persist.
-- **royale (42)** — eight independent browser instances joined over a fake WebRTC bus:
-  lobby, countdown, distinct questions per player, correct/wrong/timeout all scoring
-  correctly, shield loss, elimination, spectating, a winner, and host migration.
+- **royale (51)** — eight independent browser instances joined over a fake WebRTC bus:
+  lobby, a host-set question count (a number entry, min 3 max 40, never a slider — the
+  choice propagates to every client and shows in the round chips), countdown, distinct
+  questions per player rotating each round, correct/wrong/timeout all scoring correctly,
+  shield loss, elimination, spectating, a winner, host migration, and a cap-finished
+  game where the richest player wins after the question limit is hit.
 - **stuck (23)** — every path that can land you on the lobby must have a working way
   out: hosting alone, leaving, double-leaving, starting with no peers, and re-entering
   a room afterwards. Guards a real bug where the net tick survived leaving and dragged
@@ -320,7 +327,7 @@ devices cannot find each other no matter how healthy the in-page self-test is.
   prefix. It also drives `Diag.run` with synthetic relay logs to pin the two diagnoses that
   matter — a fast refusal means blocked on the device, a hang means dropped packets — and
   checks the verdict line never claims all-clear while WebRTC is actually missing.
-- **diag (89)** — the failure-reporting path. Asserts the relay recorder installs
+- **diag (98)** — the failure-reporting path. Asserts the relay recorder installs
   before Trystero, the watchdog cancels when you leave, no bare unguarded
   `AU.init()` call site survives, the clipboard path is awaited with a working
   fallback, and that `Diag.run` produces a full report in a browser with no

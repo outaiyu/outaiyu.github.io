@@ -48,6 +48,11 @@ const STRAGGLER_GRACE = 2500;
 const HEARTBEAT_MS = 2000;      // keeps clients from mistaking a quiet round for a dead host
 const HOST_TIMEOUT = 9000;   // no snapshot for this long ⇒ host is gone
 
+/* The host chooses how many questions (rounds) a match runs for. Every round
+   is one question per living player, so this is the match length. A match can
+   still end early if only one player is left standing. */
+const MIN_QUESTIONS = 3, MAX_QUESTIONS = 40, DEFAULT_QUESTIONS = 10;
+
 const Net = (()=>{
   let room = null, A = {};
   let myId = null, myName = "Player";
@@ -56,6 +61,9 @@ const Net = (()=>{
   let players = {}, order = [], winner = null, finalBoard = null;
   let pendingRep = {}, deadlines = {}, stragglerAt = 0;
   let started = false, everJoined = false, roomCode = "";
+  let totalRounds = DEFAULT_QUESTIONS;      // host-set match length (rounds = questions)
+  let endReason = "elimination";            // "elimination" | "cap"
+  let qBound = false;                       // the lobby number input is wired once
 
   /* ─────────────────────────── room codes ─────────────────────────── */
   const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";  // no I/O/0/1
@@ -67,6 +75,11 @@ const Net = (()=>{
     return s;
   }
   function normCode(s){ return String(s || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0,8); }
+  function clampQuestions(n){
+    n = parseInt(n, 10);
+    if(!isFinite(n)) return DEFAULT_QUESTIONS;
+    return Math.max(MIN_QUESTIONS, Math.min(MAX_QUESTIONS, n));
+  }
 
   /* ─────────────────────────── transport ─────────────────────────── */
   function available(){
@@ -168,6 +181,7 @@ const Net = (()=>{
     round = 0; winner = null; finalBoard = null;
     started = false; resultsShown = false;
     everJoined = false; roomCode = "";
+    totalRounds = DEFAULT_QUESTIONS; endReason = "elimination";
     netPaint();
   }
   function isHost(){ return hostId === myId; }
@@ -237,6 +251,10 @@ const Net = (()=>{
     Object.values(players).forEach(p=>{
       p.alive = true; p.shields = START_SHIELDS; p.cash = 0; p.cleared = 0; p.gone = false;
     });
+    const qi = $("#qCountInput");
+    totalRounds = clampQuestions(qi ? qi.value : totalRounds);
+    if(qi) qi.value = totalRounds;
+    endReason = "elimination";
     round = 1; winner = null; finalBoard = null; started = true; resultsShown = false;
     phase = "countdown"; phaseEnds = Date.now() + COUNTDOWN_MS;
     st.cash = 0; st.lives = START_SHIELDS; st.maxLives = START_SHIELDS;
@@ -250,11 +268,13 @@ const Net = (()=>{
   }
 
   function assignRound(){
-    // a different question per living player, so nobody can copy a neighbour
+    // a different question per living player, so nobody can copy a neighbour;
+    // the window slides one question per round so long cap-games stay fresh
     const ids = livingIds();
     const pool = buildCycle();
+    const off = ((round - 1) % pool.length + pool.length) % pool.length;
     const picked = [];
-    for(let i=0;i<ids.length && i<pool.length;i++) picked.push(pool[i]);
+    for(let i=0;i<ids.length && i<pool.length;i++) picked.push(pool[(off + i) % pool.length]);
     ids.forEach((id,i)=>{
       const q = picked[i];
       const baseSec = Math.max(7, 21 - round * 0.32) + (q.boss ? 10 : 0);
@@ -327,9 +347,17 @@ const Net = (()=>{
   }
   function checkEnd(){
     const alive = livingIds();
-    if(alive.length <= 1 && started){
+    const hitCap = started && round >= totalRounds;
+    if((alive.length <= 1 || hitCap) && started){
       phase = "over";
-      winner = alive[0] || null;
+      if(alive.length === 1){                 // last one standing always wins
+        winner = alive[0]; endReason = "elimination";
+      } else {                                // cap reached: richest living player wins
+        endReason = "cap";
+        const pool = alive.length ? alive : Object.keys(players);
+        pool.sort((a,b)=> (players[b].cash || 0) - (players[a].cash || 0));
+        winner = pool[0] || null;
+      }
       finalBoard = sortedBoard();
       started = false;
       st.running = false; st.deadline = 0;
@@ -379,6 +407,8 @@ const Net = (()=>{
     phase = d.phase; round = d.round || 0; phaseEnds = d.phaseEnds || 0;
     winner = d.winner || null; finalBoard = d.final || null;
     roundChanges = d.changes || [];
+    if(d.total) totalRounds = d.total;
+    if(d.endReason) endReason = d.endReason;
     // mirror the host's phase into the engine's run flag
     const inPlay = d.phase === "countdown" || d.phase === "round" || d.phase === "roundend";
     st.running = inPlay;
@@ -407,7 +437,7 @@ const Net = (()=>{
     try{
       A.snap.send({
         v: 1, epoch, hostId,
-        phase, round, phaseEnds,
+        phase, round, phaseEnds, total: totalRounds, endReason,
         players: Object.values(players), winner, final: finalBoard, changes: roundChanges
       });
     }catch(e){}
@@ -490,6 +520,22 @@ const Net = (()=>{
   function install(){
     MODE.name = "royale";
     MODE.livesLabel = "SHIELDS";
+    if(!qBound){
+      qBound = true;
+      const qi = $("#qCountInput");
+      if(qi){
+        const push = (commit)=>{
+          if(!isHost()) return;
+          const n = parseInt(qi.value, 10);
+          if(commit){ totalRounds = clampQuestions(qi.value); qi.value = totalRounds; }
+          else if(isFinite(n) && n >= MIN_QUESTIONS && n <= MAX_QUESTIONS) totalRounds = n;
+          else return;
+          broadcastSnap();
+        };
+        qi.addEventListener("input", ()=>push(false));
+        qi.addEventListener("change", ()=>push(true));
+      }
+    }
     MODE.tick = function(){
       hostTick(); clientTick();
       if(everJoined) throttlePaint();
@@ -545,6 +591,8 @@ const Net = (()=>{
     get state(){
       return { phase, round, players, winner, finalBoard, isHost:isHost(), me:myId,
                count: countPlayers(), max: MAX_PLAYERS, changes: roundChanges,
+               total: totalRounds, endReason,
+               min: MIN_QUESTIONS, maxQ: MAX_QUESTIONS,
                phaseEnds, timeLeft: phaseEnds ? Math.max(0, phaseEnds - Date.now()) : 0 };
     }
   };
@@ -556,7 +604,12 @@ function netPaint(){
   const s = Net.state;
   const ids = Object.keys(s.players);
   $("#royaleCount").textContent = ids.length + " / " + s.max;
-  $("#royaleRound").textContent = s.round ? "ROUND " + s.round : "LOBBY";
+  $("#royaleRound").textContent = s.round ? "ROUND " + s.round + " / " + s.total : "LOBBY";
+  const qIn = $("#qCountInput");
+  if(qIn){
+    if(document.activeElement !== qIn) qIn.value = s.total;
+    qIn.disabled = !s.isHost;
+  }
   const phaseChip = $("#royalePhase");
   const names = { lobby:"WAITING FOR PLAYERS", countdown:"GET READY", round:"ROUND LIVE",
                   roundend:"ROUND OVER", over:"GAME OVER", off:"OFFLINE" };
@@ -605,10 +658,10 @@ function phasePaint(){
   if(s.phase === "countdown"){
     const left = Math.ceil(s.timeLeft / 1000);
     banner.className = "rb show rbcount";
-    banner.innerHTML = `<b>ROUND ${s.round}</b><span>${left > 0 ? "starts in " + left : "GO!"}</span>`;
+    banner.innerHTML = `<b>ROUND ${s.round} / ${s.total}</b><span>${left > 0 ? "starts in " + left : "GO!"}</span>`;
   } else if(s.phase === "round"){
     banner.className = "rb show";
-    banner.innerHTML = `<b>ROUND ${s.round}</b><span>answer your own question</span>`;
+    banner.innerHTML = `<b>ROUND ${s.round} / ${s.total}</b><span>answer your own question</span>`;
   } else if(s.phase === "roundend"){
     const rows = (s.changes || []).map(c=>{
       const p = s.players[c.id];
@@ -617,7 +670,7 @@ function phasePaint(){
         <b>${esc(p.name)}</b> ${c.out ? "ELIMINATED" : c.ok ? "cleared ✓" : "−1 shield"}</div>`;
     }).join("");
     banner.className = "rb show rbend";
-    banner.innerHTML = `<b>ROUND ${s.round} OVER</b><div class="rcl">${rows}</div>`;
+    banner.innerHTML = `<b>ROUND ${s.round} / ${s.total} OVER</b><div class="rcl">${rows}</div>`;
   } else if(s.phase === "over"){
     banner.className = "rb show rbover";
     banner.innerHTML = winnerBoardHTML();
@@ -640,7 +693,7 @@ function winnerBoardHTML(){
     return `<div class="br ${p.alive ? "" : "out"} ${you ? "you" : ""}">
       <span class="bp">${i === 0 ? "👑" : (i+1)+"."}</span>
       <span class="bn">${esc(p.name)}${you ? " (you)" : ""}</span>
-      <span class="bs">${p.alive ? "SURVIVED" : "out r" + (p.outRound || "?")}</span>
+      <span class="bs">${p.alive ? (s.endReason === "cap" ? "FINISHED" : "SURVIVED") : "out r" + (p.outRound || "?")}</span>
       <span class="bc">${fmt(p.cash || 0)}</span></div>`;
   }).join("")}</div>`;
 }
@@ -652,13 +705,17 @@ function showRoyaleResults(){
   const s = Net.state;
   const youWon = s.winner === s.me;
   const youDead = st.spectating;
+  const cap = s.endReason === "cap";       // ended on the question limit, not elimination
+  const wname = s.players[s.winner] ? esc(s.players[s.winner].name) : "Someone";
   if(youWon) confetti(140);
   showResults({
-    title: youWon ? "YOU SURVIVED" : (s.winner ? "GAME OVER" : "ROUND OVER"),
+    title: youWon ? (cap ? "YOU WIN" : "YOU SURVIVED") : (s.winner ? "GAME OVER" : "ROUND OVER"),
     titleClass: youWon ? "win" : "lose",
-    msg: youWon ? "Last one standing. The Gulf Coast recovery money is yours."
-      : youDead ? "You were knocked out. Watch the survivors finish it out."
-      : (s.winner ? esc(s.players[s.winner] ? s.players[s.winner].name : "Someone") + " survived the storm." : "The round ended."),
+    msg: youWon ? (cap
+        ? "Time's up — you finished with the most cash on the board."
+        : "Last one standing. The Gulf Coast recovery money is yours.")
+      : youDead ? "You were knocked out. Watch the others finish it out."
+      : (s.winner ? (cap ? "Time's up — " + wname + " finished with the most cash." : wname + " survived the storm.") : "The round ended."),
     cash: st.cash,
     stats: winnerBoardHTML() + `<div style="margin-top:12px">Questions cleared <b style="color:#4ade80">${s.players[s.me] ? s.players[s.me].cleared : 0}</b> &nbsp;•&nbsp; Best streak <b style="color:#2ee6b6">${st.bestStreak}</b> &nbsp;•&nbsp; Achievements <b style="color:#a78bfa">${S.ach.length}/${ACHIEVEMENTS.length}</b></div>`
   });

@@ -282,6 +282,19 @@ input[type=text]::placeholder{color:rgba(160,190,215,.45);letter-spacing:0}
 .joinrow{display:flex;gap:9px;align-items:center}
 .joinrow .btn{white-space:nowrap}
 
+/* host picks the match length — a number entry, never a slider */
+.qcount{display:flex;align-items:center;gap:10px;margin:0 0 12px;flex-wrap:wrap}
+.qcount label{font-size:10.5px;color:var(--dim);letter-spacing:1.4px}
+input[type=number]{
+  width:84px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.14);
+  color:#eaf6ff;border-radius:9px;padding:9px 12px;font:inherit;font-size:15px;
+  outline:none;letter-spacing:1px;text-align:center;font-weight:700;
+}
+input[type=number]:focus{border-color:var(--cyan);box-shadow:0 0 0 3px rgba(90,210,255,.13)}
+input[type=number]:disabled{opacity:.45;cursor:not-allowed}
+.qcount small{flex-basis:100%;color:var(--dim);font-size:11px;line-height:1.5;margin:0}
+.qcount small b{color:var(--cyan)}
+
 /* room code display */
 .codebox{
   text-align:center;padding:18px 14px;margin:0 0 16px;
