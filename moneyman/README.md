@@ -290,7 +290,7 @@ devices cannot find each other no matter how healthy the in-page self-test is.
 
 ## Tests
 
-402 checks run headless under jsdom:
+406 checks run headless under jsdom:
 
 - **boot (18)** — the page loads with no runtime errors, every DOM id the code reaches
   for exists, solo mode installs by default.

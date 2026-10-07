@@ -15,6 +15,22 @@ const Diag = (()=>{
     rows.push({ name, state: r.state, detail: r.detail || extra || "" });
   };
 
+  /* A page can carry a Content-Security-Policy whose connect-src does not
+     include wss:. When it does the browser refuses every WebSocket before a
+     packet leaves the device - instant failures that look exactly like a
+     network block, but are really the page's own policy. Sandboxed HTML
+     previews ship this by default, so record any violation the browser
+     reports and read it back out in the report. */
+  const cspHits = [];
+  try {
+    if (typeof document !== "undefined" && document.addEventListener){
+      document.addEventListener("securitypolicyviolation", function(e){
+        cspHits.push({ directive: String((e && e.violatedDirective) || ""),
+                       blocked: String((e && e.blockedURI) || "") });
+      });
+    }
+  } catch(e){}
+
   const ok  = d => ({ state:"ok",   detail: d || "" });
   const bad = d => ({ state:"bad",  detail: d || "" });
   const warn= d => ({ state:"warn", detail: d || "" });
@@ -246,6 +262,35 @@ const Diag = (()=>{
     return null;
   }
 
+  /* Read a <meta> Content-Security-Policy, if the page ships one. HTTP-header
+     policies are invisible to JS, which is why the violation listener above is
+     the more reliable signal. */
+  function metaCsp(){
+    try {
+      const metas = document.getElementsByTagName("meta");
+      for (let i = 0; i < metas.length; i++){
+        const http = metas[i].getAttribute("http-equiv");
+        if (http && http.toLowerCase() === "content-security-policy")
+          return metas[i].getAttribute("content") || "";
+      }
+    } catch(e){}
+    return null;
+  }
+
+  /* Did a CSP actually stop the sockets, or does one plainly would? */
+  function cspBlockReport(){
+    const hits = cspHits.filter(h => /connect-src/i.test(h.directive));
+    const meta = metaCsp();
+    const connect = meta && meta.match(/connect-src([^;]*)/i);
+    const metaBlocks = !!(connect && !/wss:/i.test(connect[1])
+      && !/(^|[,\s])\*($|[,\s])/.test(connect[1]));
+    if (!hits.length && !metaBlocks) return null;
+    return bad("the page's Content-Security-Policy forbids connect-src wss://, so the browser "
+      + "refused every WebSocket before it left the device. This is the page's own policy, not "
+      + "your network or this device. Host the game on a plain static site that sets no CSP - "
+      + "https://outaiyu.github.io/moneyman/ - or relax the policy to include connect-src wss:.");
+  }
+
   async function run(reason, opts){
     const o = opts || {};
     rows.length = 0;
@@ -301,6 +346,8 @@ const Diag = (()=>{
               : "Even non-Nostr WebSocket hosts were refused, so all outbound WebSockets are blocked on this device or network.");
       }
     }
+    const csp = cspBlockReport();
+    if (csp) add("Content-Security-Policy", csp, csp.detail);
     const rr = relayReport();
     const passive = window.__RELAYLOG && window.__RELAYLOG.length
       ? "so far in this session: " + rr.detail
@@ -329,7 +376,13 @@ const Diag = (()=>{
     const self     = rows.find(r => r.name === "WebRTC self-test");
     const lib      = rows.find(r => r.name === "Trystero library");
     let verdict;
-    if (origin)
+    if (csp)
+      verdict = bad("FOUND IT: this page's own Content-Security-Policy forbids wss:// "
+        + "connections, so the browser refuses every relay and every control host instantly. "
+        + "Host the game on a plain static site with no such policy - "
+        + "https://outaiyu.github.io/moneyman/ - and it will connect. Nothing is wrong with "
+        + "your network, device or this build.");
+    else if (origin)
       verdict = bad("FOUND IT: this page is open as a LOCAL FILE, not over a web address. "
         + "A file:// page has an opaque origin, so every browser refuses its WebSockets — "
         + "that is why all the relays below failed in a few milliseconds. Upload the file and "
